@@ -49,6 +49,8 @@ function createVoteButtons(productId, currentVote, card) {
     if (await sendVote(productId, newVote)) {
       vote = newVote;
       showState();
+      // Hoppel (bunny.js) freut sich mit
+      if (newVote === "like") window.dispatchEvent(new CustomEvent("hoppel:like"));
     }
   });
 
@@ -57,6 +59,7 @@ function createVoteButtons(productId, currentVote, card) {
     const newVote = vote === "dislike" ? null : "dislike";
     if (!(await sendVote(productId, newVote))) return;
     vote = newVote;
+    if (newVote === "dislike") window.dispatchEvent(new CustomEvent("hoppel:dislike"));
     if (card && newVote === "dislike") {
       // Bei "Rückgängig" auch den Zustand der Buttons zurücksetzen
       dismiss(card, productId, () => { vote = null; showState(); });

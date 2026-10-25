@@ -26,3 +26,10 @@ def test_many_connect_buttons_all_lead_to_konto(client):
     buttons = re.findall(r'<a href="([^"]+)" class="button[^"]*connect[^"]*">', html)
     assert len(buttons) >= 3
     assert set(buttons) == {"/konto.html"}
+
+
+@pytest.mark.parametrize("path", ["/", "/shop.html", "/konto.html", "/produkt.html"])
+def test_every_page_loads_hoppel(client, path):
+    html = client.get(path).text
+    assert '<script src="bunny.js"></script>' in html
+    assert 'href="bunny.css"' in html

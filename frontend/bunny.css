@@ -1,0 +1,215 @@
+/* Hoppel, das Pixel-Maskottchen (bunny.js) */
+
+.hoppel {
+  position: fixed;
+  bottom: 14px;
+  z-index: 40;
+  width: 64px;
+  height: 64px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hoppel:focus-visible {
+  outline: 3px solid #f6a5b9;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+/* Weicher Schatten unter Hoppel */
+.hoppel::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -3px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(28, 27, 26, 0.15);
+}
+
+.hoppel-body {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 100%;
+}
+
+/* 16×16 Pixel groß gezogen – "pixelated" verhindert Weichzeichnen */
+.hoppel-sprite {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  transition: transform 0.2s;
+}
+
+.hoppel.facing-left .hoppel-sprite {
+  transform: rotate(-6deg);
+}
+
+.hoppel.hopping:not(.facing-left) .hoppel-sprite {
+  transform: rotate(6deg);
+}
+
+/* Hoppeln: hoch und runter, beim Landen etwas platt */
+.hoppel.hopping .hoppel-body {
+  animation: hoppel-hop 0.36s ease-in-out infinite;
+}
+
+@keyframes hoppel-hop {
+  0%, 100% { transform: translateY(0) scale(1.08, 0.92); }
+  50% { transform: translateY(-14px) scale(0.95, 1.05); }
+}
+
+/* Freudensprung */
+.hoppel.jumping .hoppel-body {
+  animation: hoppel-jump 0.6s ease-out;
+}
+
+@keyframes hoppel-jump {
+  0% { transform: translateY(0) scale(1.1, 0.9); }
+  40% { transform: translateY(-26px) scale(0.92, 1.1); }
+  70% { transform: translateY(0) scale(1.1, 0.9); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+/* Tanzen */
+.hoppel.dancing .hoppel-body {
+  animation: hoppel-dance 0.6s ease-in-out infinite;
+}
+
+@keyframes hoppel-dance {
+  0%, 100% { transform: rotate(-10deg) translateX(-3px); }
+  50% { transform: rotate(10deg) translateX(3px); }
+}
+
+/* Herz, z, ♪ – schweben hoch und verschwinden */
+.hoppel-fx {
+  position: absolute;
+  top: -10px;
+  font: 700 18px/1 "Courier New", monospace;
+  color: #6b5656;
+  pointer-events: none;
+  animation: hoppel-float 1.4s ease-out forwards;
+}
+
+.hoppel-fx canvas {
+  width: 21px;
+  height: 18px;
+  image-rendering: pixelated;
+}
+
+@keyframes hoppel-float {
+  0% { transform: translateY(0); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(-38px); opacity: 0; }
+}
+
+/* --- Sprechblase im Pixel-Look ---------------------------------------------------------- */
+
+.hoppel-bubble {
+  position: fixed;
+  z-index: 41;
+  width: min(300px, calc(100vw - 16px));
+  padding: 14px 16px 12px;
+  background: #fff;
+  color: #2d2326;
+  border: 3px solid #2d2326;
+  box-shadow: 4px 4px 0 #f6a5b9;   /* harter, versetzter Schatten = Pixel-Look */
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* Spitze unten, zeigt auf Hoppel (Position kommt aus bunny.js: --tail-x) */
+.hoppel-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -11px;
+  left: calc(var(--tail-x, 50%) - 8px);
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-right: 3px solid #2d2326;
+  border-bottom: 3px solid #2d2326;
+  transform: rotate(45deg);
+}
+
+.hoppel-bubble p {
+  margin: 0 0 8px;
+}
+
+.hoppel-title {
+  font: 700 1rem/1.3 "Courier New", monospace;
+  color: #c0436b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.hoppel-terms {
+  font-size: 0.8rem;
+  color: #7a6a6a;
+}
+
+.hoppel-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.hoppel-buttons button,
+.hoppel-return {
+  padding: 6px 12px;
+  border: 2px solid #2d2326;
+  background: #fff;
+  color: #2d2326;
+  font: 700 0.8rem/1 "Courier New", monospace;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #2d2326;
+}
+
+.hoppel-buttons button.primary {
+  background: #ffc7d1;
+}
+
+.hoppel-buttons button:active,
+.hoppel-return:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.hoppel-close {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  border: none;
+  background: none;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: #7a6a6a;
+  cursor: pointer;
+}
+
+/* Kleiner Knopf zum Zurückholen */
+.hoppel-return {
+  position: fixed;
+  left: 12px;
+  bottom: 14px;
+  z-index: 40;
+  font-size: 1rem;
+}
+
+/* --- Handy -------------------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .hoppel {
+    width: 52px;
+    height: 52px;
+  }
+
+  /* Startseite: über der "Mit Pinterest verbinden"-Leiste bleiben */
+  body.landing .hoppel,
+  body.landing .hoppel-return {
+    bottom: 90px;
+  }
+}
