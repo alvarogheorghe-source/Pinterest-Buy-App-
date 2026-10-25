@@ -9,6 +9,7 @@ import httpx
 import pytest
 
 from backend import ebay, products, storage
+from backend.search_queries import QUERIES_PER_DEPARTMENT, build_queries
 
 
 def item(item_id, title, price="24.99", condition="Gebraucht", affiliate=False, currency="EUR"):
@@ -56,6 +57,7 @@ def fake_ebay(fake, monkeypatch):
     monkeypatch.setenv("EBAY_CLIENT_ID", "id")
     monkeypatch.setenv("EBAY_CLIENT_SECRET", "secret")
     monkeypatch.delenv("EBAY_EPN_CAMPAIGN_ID", raising=False)
+    monkeypatch.delenv("ETSY_API_KEY", raising=False)
     ebay._token.clear()
     fake_api = FakeEbay()
     transport = httpx.MockTransport(fake_api.handler)
@@ -73,22 +75,22 @@ def save_pins(*titles):
 def test_queries_follow_the_style_profile():
     pins = [{"title": "beige oversized hoodie"}, {"title": "beige hoodie"},
             {"title": "black cargo pants"}]
-    queries = ebay.build_queries(pins, "mode")
+    queries = build_queries(pins, "mode")
     assert queries[0] == ("beige oversized Pullover", "Oberteile")   # meistgepinnt zuerst
     # Farbe/Stil aus den Hosen-Pins, nicht vom Hoodie übernommen; "utility" -> "Cargo"
     assert queries[1] == ("schwarz Cargo Hose", "Hosen")
     assert queries[2] == ("schwarz oversized Pullover", "Oberteile")  # zweitliebste Farbe
-    assert len(queries) == ebay.QUERIES_PER_DEPARTMENT
+    assert len(queries) == QUERIES_PER_DEPARTMENT
     assert len({q for q, _ in queries}) == len(queries)                # keine doppelte Suche
 
 
 def test_queries_without_pins_use_defaults():
-    queries = ebay.build_queries([], "wohnen")
+    queries = build_queries([], "wohnen")
     assert [q for q, _ in queries] == ["Vase", "Lampe", "Kissen", "Beistelltisch"]
 
 
 def test_style_words_ebay_sellers_use():
-    queries = ebay.build_queries([{"title": "cozy goth vase"}], "wohnen")
+    queries = build_queries([{"title": "cozy goth vase"}], "wohnen")
     assert queries[0] == ("Gothic Vase", "Deko")
 
 
@@ -141,12 +143,16 @@ def test_unusable_items_are_skipped():
 def test_source_selection(fake, monkeypatch):
     monkeypatch.setenv("PRODUCT_SOURCE", "")
     monkeypatch.delenv("EBAY_CLIENT_ID", raising=False)
-    assert products.source_name() == "demo"                       # keine Schlüssel
+    monkeypatch.delenv("ETSY_API_KEY", raising=False)
+    assert products.source_names() == ["demo"]                    # keine Schlüssel
     monkeypatch.setenv("EBAY_CLIENT_ID", "id")
     monkeypatch.setenv("EBAY_CLIENT_SECRET", "secret")
-    assert products.source_name() == "ebay"
+    assert products.source_names() == ["ebay"]
+    monkeypatch.setenv("ETSY_API_KEY", "key")
+    assert products.source_names() == ["ebay", "etsy"]
+    assert isinstance(products.get_product_source(), products.CombinedSource)
     monkeypatch.setenv("PRODUCT_SOURCE", "demo")                  # erzwungen
-    assert products.source_name() == "demo"
+    assert products.source_names() == ["demo"]
 
 
 def test_ebay_products_in_the_shop_and_cache(fake_ebay, client):
@@ -156,11 +162,11 @@ def test_ebay_products_in_the_shop_and_cache(fake_ebay, client):
         item("11", "Schwarzer Pullover Rollkragen", price="12.00"),
     ]
     data = client.get("/api/recommendations?department=mode").json()
-    assert data["source"] == "ebay"
+    assert data["sources"] == ["ebay"]
     assert data["products"][0]["name"] == "Beige Oversized Hoodie Damen"   # passt am besten
     assert data["products"][0]["affiliate_url"] == "https://www.ebay.de/itm/10"
     searches = len(fake_ebay.searches())
-    assert searches == 2 * ebay.QUERIES_PER_DEPARTMENT
+    assert searches == 2 * QUERIES_PER_DEPARTMENT
 
     # Zweites Laden: aus dem Zwischenspeicher, keine neue Suche
     client.get("/api/recommendations?department=mode")

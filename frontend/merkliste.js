@@ -25,6 +25,7 @@ async function loadSaved() {
 
 function render(items) {
   savedGrid.replaceChildren();
+  showEtsyAttribution(items);
   if (items.length === 0) {
     summary.textContent = "";
     const empty = el("div", "empty saved-empty");

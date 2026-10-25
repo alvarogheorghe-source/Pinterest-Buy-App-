@@ -85,11 +85,24 @@ async function load() {
       : recommendations.products;
     renderGrid(items.map((p) => productToCard(p, hasProfile)), "Produkt", "Produkte",
       "Keine Produkte in diesem Budget. Probier einen höheren Betrag.");
-    // Woher kommen die Produkte?
-    resultCount.textContent += recommendations.source === "ebay"
-      ? " · echte Angebote von eBay (stündlich aktualisiert)"
-      : " · Beispielprodukte (erfunden)";
+    showSources(recommendations.sources || ["demo"]);
   }
+}
+
+// --- Woher kommen die Produkte? (Hinweis + Fußzeile) --------------------------------------
+
+const SOURCE_NAMES = { ebay: "eBay", etsy: "Etsy" };
+
+function showSources(sources) {
+  const online = sources.filter((s) => SOURCE_NAMES[s]).map((s) => SOURCE_NAMES[s]);
+  const text = online.length
+    ? `echte Angebote von ${online.join(" und ")} (stündlich aktualisiert)`
+    : "Beispielprodukte (erfunden)";
+  resultCount.textContent += ` · ${text}`;
+  document.getElementById("source-note").textContent =
+    online.length ? `Produkte: ${online.join(", ")}` : "Prototyp mit erfundenen Beispielprodukten";
+  // Pflicht-Hinweis aus den Etsy-API-Bedingungen
+  document.getElementById("etsy-attribution").hidden = !sources.includes("etsy");
 }
 
 // --- Oben: Stilprofil der gewählten Welt ---------------------------------------------------

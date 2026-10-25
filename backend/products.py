@@ -7,7 +7,9 @@ Klasse, die von ProductSource erbt, und gibst sie in get_product_source() zurüc
 """
 
 import json
+import logging
 import os
+import time
 from pathlib import Path
 from typing import Literal
 
@@ -16,6 +18,7 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 from backend.config import BASE_DIR
 
 PRODUCTS_FILE = BASE_DIR / "data" / "products.json"
+logger = logging.getLogger(__name__)
 
 # Die zwei "Welten" der App: Kleidung und Gegenstände
 DEPARTMENTS = ("mode", "wohnen")
@@ -85,23 +88,74 @@ class JsonProductSource(ProductSource):
             raise ProductSourceError(f"Fehler in {self.path.name}: {err}")
 
 
+class CachedSource(ProductSource):
+    """Quelle mit Online-Suche (eBay, Etsy, ...). Ergebnisse werden zwischengespeichert,
+    damit nicht jeder Klick eine Anfrage kostet. Neue Pins leeren den Speicher."""
+
+    name = ""                    # z.B. "ebay" – für die Anzeige im Shop
+    cache_file = ""              # z.B. "ebay_cache.json" (in data/, gitignored)
+    cache_seconds = 60 * 60      # 1 Stunde
+
+    def fetch(self) -> list[Product]:
+        """Neu suchen. Muss jede Quelle selbst können."""
+        raise NotImplementedError
+
+    def load(self) -> list[Product]:
+        from backend import storage
+        cached = storage.read_json(self.cache_file, default=None)
+        if cached and cached.get("fetched_at", 0) > time.time() - self.cache_seconds:
+            return [Product(**p) for p in cached["products"]]
+        products = self.fetch()
+        storage.write_json(self.cache_file, {"fetched_at": time.time(),
+                                             "products": [p.model_dump() for p in products]})
+        return products
+
+
+class CombinedSource(ProductSource):
+    """Mischt mehrere Quellen (z.B. eBay + Etsy). Fällt eine aus, kommen die anderen
+    trotzdem – nur wenn ALLE ausfallen, gibt es eine Fehlermeldung."""
+
+    def __init__(self, sources: list[ProductSource]):
+        self.sources = sources
+
+    def load(self) -> list[Product]:
+        products, errors = [], []
+        for source in self.sources:
+            try:
+                products.extend(source.load())
+            except ProductSourceError as error:
+                errors.append(error)
+                logger.warning("Produktquelle %s fällt aus: %s", type(source).__name__, error)
+        if errors and len(errors) == len(self.sources):
+            raise errors[0]
+        return products
+
+
+def online_sources() -> list[CachedSource]:
+    """Alle Online-Quellen, für die Schlüssel in .env stehen."""
+    from backend import ebay, etsy  # erst hier, sonst importieren sich die Dateien gegenseitig
+    if os.getenv("PRODUCT_SOURCE", "").strip().lower() == "demo":
+        return []
+    candidates = [(ebay.configured, ebay.EbayProductSource), (etsy.configured, etsy.EtsyProductSource)]
+    return [source() for configured, source in candidates if configured()]
+
+
 def get_product_source() -> ProductSource:
     """HIER wird entschieden, woher die Produkte kommen:
-    - eBay (echte Angebote), wenn EBAY_CLIENT_ID/EBAY_CLIENT_SECRET in .env stehen
+    - echte Angebote von eBay und/oder Etsy, wenn deren Schlüssel in .env stehen
     - sonst die Beispielprodukte aus data/products.json
     PRODUCT_SOURCE=demo in .env erzwingt die Beispielprodukte.
     Später kommen weitere Quellen dazu (z.B. ein Awin-Feed).
     """
-    from backend import ebay  # erst hier, sonst importieren sich die Dateien gegenseitig
-    if os.getenv("PRODUCT_SOURCE", "").strip().lower() != "demo" and ebay.configured():
-        return ebay.EbayProductSource()
-    return JsonProductSource()
+    sources = online_sources()
+    if not sources:
+        return JsonProductSource()
+    return sources[0] if len(sources) == 1 else CombinedSource(sources)
 
 
-def source_name() -> str:
-    """Für die Anzeige im Shop: "ebay" oder "demo"."""
-    from backend import ebay
-    return "ebay" if isinstance(get_product_source(), ebay.EbayProductSource) else "demo"
+def source_names() -> list[str]:
+    """Für die Anzeige im Shop: z.B. ["ebay", "etsy"] oder ["demo"]."""
+    return [source.name for source in online_sources()] or ["demo"]
 
 
 def filter_products(products: list[Product], min_price: float | None = None,

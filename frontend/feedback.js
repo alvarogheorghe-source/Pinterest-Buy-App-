@@ -97,3 +97,9 @@ function dismiss(card, productId, onUndo) {
   placeholder.append(text, undo);
   card.replaceWith(placeholder);
 }
+
+// Pflicht-Hinweis aus den Etsy-API-Bedingungen: zeigen, sobald Etsy-Produkte auf der Seite sind
+function showEtsyAttribution(products) {
+  const note = document.getElementById("etsy-attribution");
+  if (note) note.hidden = !products.some((p) => p.shop.startsWith("Etsy"));
+}

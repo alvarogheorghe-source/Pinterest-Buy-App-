@@ -126,6 +126,26 @@ beim **Production**-Keyset: *App ID (Client ID)* → `EBAY_CLIENT_ID`, *Cert ID 
 Kampagnen-ID als `EBAY_EPN_CAMPAIGN_ID` ein – eBay liefert dann Partnerlinks und die App
 markiert sie als „Werbung“.
 
+### Echte Produkte von Etsy (kostenlos, nach Freigabe)
+
+Sobald `ETSY_API_KEY` (Keystring) und `ETSY_SHARED_SECRET` in `.env` stehen, kommen
+Etsy-Angebote dazu – Vintage, Handgemachtes, Deko (`backend/etsy.py`). Etsy wird auf
+**Englisch** durchsucht („beige oversized sweater“), weil die meisten Titel englisch sind.
+Digitale Dateien (Schnittmuster, Druckvorlagen), Bastelmaterial, Nicht-Euro-Preise und
+Kinder-/Tiersachen werden aussortiert. Schlüssel: https://www.etsy.com/developers →
+„Your Apps“ (Etsy muss die App erst freigeben).
+
+Etsy verlangt einen Hinweis, dass die App nicht von Etsy ist – er erscheint automatisch
+in der Fußzeile, sobald Etsy-Produkte angezeigt werden.
+
+### Mehrere Quellen
+
+Sind eBay **und** Etsy eingerichtet, mischt der Shop beide (`products.CombinedSource`) –
+das Ranking entscheidet, was oben steht. Fällt eine Quelle aus, kommen die anderen
+trotzdem. Die Suchbegriffe baut `backend/search_queries.py` (Deutsch für eBay,
+Englisch für Etsy). Eine neue Quelle erbt von `products.CachedSource`, schreibt `fetch()`
+und wird in `products.online_sources()` eingetragen.
+
 `PRODUCT_SOURCE=demo` in `.env` erzwingt wieder die Beispielprodukte (Tests machen das immer).
 
 **Weitere Affiliate-Feeds einbinden (später):** In `backend/products.py` eine neue Klasse

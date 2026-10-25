@@ -129,6 +129,7 @@ async function init() {
   const data = await response.json();
   renderDetail(data.product, data.has_profile);
   renderSimilar(data.similar);
+  showEtsyAttribution([data.product, ...data.similar.map((item) => item.product || item)]);
 }
 
 init();

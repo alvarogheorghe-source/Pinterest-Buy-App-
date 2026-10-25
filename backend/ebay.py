@@ -5,8 +5,8 @@ Ablauf:
 2. Die Browse API sucht damit auf eBay (nur Sofort-Kaufen).
 3. Jedes Ergebnis wird ein Product: Farben, Stile und Kategorie liest die App aus dem
    Titel – danach funktioniert alles wie bisher (Ranking, ♡/👎, Bilderkennung, ...).
-4. Ergebnisse werden zwischengespeichert (data/ebay_cache.json), damit nicht jeder
-   Klick eine Anfrage kostet.
+4. Ergebnisse werden zwischengespeichert (data/ebay_cache.json, siehe
+   products.CachedSource), damit nicht jeder Klick eine Anfrage kostet.
 
 Zugang (kostenlos): https://developer.ebay.com -> Konto -> "Application Keys"
 (Production). In .env: EBAY_CLIENT_ID und EBAY_CLIENT_SECRET.
@@ -27,32 +27,16 @@ import httpx
 
 from backend import storage
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
-                              STYLE_PATTERNS, build_style_profile, classify_pin, find_terms,
-                              pin_text)
-from backend.products import DEPARTMENTS, Product, ProductSource, ProductSourceError
+                              STYLE_PATTERNS, find_terms)
+from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError
+from backend.search_queries import GERMAN, build_queries
 
 TOKEN_URL = "https://api.ebay.com/identity/v1/oauth2/token"
 SEARCH_URL = "https://api.ebay.com/buy/browse/v1/item_summary/search"
 SCOPE = "https://api.ebay.com/oauth/api_scope"
 
-CACHE_FILE = "ebay_cache.json"
-CACHE_SECONDS = 60 * 60          # 1 Stunde zwischenspeichern
 RESULTS_PER_QUERY = 20
-QUERIES_PER_DEPARTMENT = 4       # 2 Welten × 4 Suchen = 8 Anfragen pro Aktualisierung
 
-# Kategorie -> deutsches Suchwort (eBay.de/.at sucht am besten auf Deutsch)
-SEARCH_WORDS = {
-    "Oberteile": "Pullover", "Hosen": "Hose", "Jacken": "Jacke", "Kleider & Röcke": "Kleid",
-    "Schuhe": "Sneaker", "Accessoires": "Tasche",
-    "Deko": "Vase", "Leuchten": "Lampe", "Textilien": "Kissen", "Küche & Tisch": "Tasse",
-    "Möbel": "Beistelltisch", "Pflanzen & Töpfe": "Blumentopf", "Wandgestaltung": "Poster",
-}
-# Stil -> Wort, das Verkäufer auf eBay wirklich in Titel schreiben. None = weglassen,
-# weil kaum jemand so sucht ("clean", "cozy") – dann lieber breiter suchen.
-STYLE_SEARCH_WORDS = {
-    "utility": "Cargo", "goth": "Gothic", "coquette": "Schleife", "cottagecore": "Blumen",
-    "natur": "Holz", "clean": None, "cozy": None, "casual": None, "sommer": "Sommer",
-}
 # Titel mit diesen Wörtern passen fast nie zu Pins: Kinder-/Puppen-/Tiersachen, Sammelpakete,
 # Defektes, Ersatzteile, Schnittmuster.
 JUNK_PATTERN = re.compile(
@@ -60,12 +44,6 @@ JUNK_PATTERN = re.compile(
     r"konvolut|paket|bundle|sammlung|lot|defekt\w*|bastler\w*|ersatzteil\w*|"
     r"schnittmuster|anleitung|aufkleber|sticker)\b", re.IGNORECASE)
 MIN_PRICE = 5  # Euro – darunter fast nur Kleinkram und Lockangebote
-
-# Ohne Pins: diese Kategorien zuerst
-DEFAULT_CATEGORIES = {
-    "mode": ["Oberteile", "Hosen", "Jacken", "Schuhe"],
-    "wohnen": ["Deko", "Leuchten", "Textilien", "Möbel"],
-}
 
 
 def configured() -> bool:
@@ -101,57 +79,6 @@ def app_token() -> str:
     data = response.json()
     _token.update(value=data["access_token"], expires_at=time.time() + data.get("expires_in", 7200))
     return _token["value"]
-
-
-# --- Suchbegriffe aus dem Stilprofil ---------------------------------------------------------
-
-def _top(counter) -> str | None:
-    return next(iter(counter.most_common(1)), (None,))[0]
-
-
-def _top_style(counter) -> str | None:
-    """Häufigster Stil, den man auf eBay sinnvoll suchen kann (nicht "cozy", "clean" …)."""
-    return next((s for s, _ in counter.most_common() if STYLE_SEARCH_WORDS.get(s, s)), None)
-
-
-def _query(color: str | None, style: str | None, category: str) -> str:
-    style_word = STYLE_SEARCH_WORDS.get(style, style) if style else None
-    return " ".join(w for w in (color, style_word, SEARCH_WORDS[category]) if w)
-
-
-def build_queries(pins: list[dict], department: str) -> list[tuple[str, str]]:
-    """[(Suchtext, Kategorie), ...] – z.B. ("beige oversized Pullover", "Oberteile").
-
-    Farbe und Stil kommen aus den Pins, in denen GENAU diese Kategorie vorkommt:
-    pinnst du beige Hoodies und schwarze Cargohosen, sucht die App "beige … Pullover"
-    und "schwarz Cargo Hose" – nicht alles in Beige.
-    """
-    profile = build_style_profile(pins, department)
-    world_pins = [pin for pin in pins if department in classify_pin(pin)]
-    color, style = _top(profile.colors), _top_style(profile.styles)
-    categories = [c for c, _ in profile.categories.most_common()
-                  if CATEGORY_SYNONYMS[c][0] == department]
-
-    queries: list[tuple[str, str]] = []
-
-    def add(text: str, category: str) -> None:
-        if text not in (q for q, _ in queries):
-            queries.append((text, category))
-
-    for category in categories:
-        matching = [pin for pin in world_pins
-                    if category in find_terms(pin_text(pin), CATEGORY_PATTERNS)]
-        sub = build_style_profile(matching)
-        add(_query(_top(sub.colors) or color, _top_style(sub.styles) or style, category), category)
-
-    # Ein freier Platz? Dann das Lieblingsteil auch in der zweitliebsten Farbe
-    second_colors = [c for c, _ in profile.colors.most_common(2)][1:]
-    if categories and second_colors:
-        add(_query(second_colors[0], style, categories[0]), categories[0])
-
-    for fallback in DEFAULT_CATEGORIES[department]:
-        add(_query(color, style, fallback), fallback)
-    return queries[:QUERIES_PER_DEPARTMENT]
 
 
 def large_image(url: str) -> str:
@@ -216,29 +143,20 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
     )
 
 
-class EbayProductSource(ProductSource):
+class EbayProductSource(CachedSource):
     """Produktquelle mit echten eBay-Angeboten, passend zum Stilprofil der Pins."""
 
-    def load(self) -> list[Product]:
-        cached = storage.read_json(CACHE_FILE, default=None)
-        if cached and cached.get("fetched_at", 0) > time.time() - CACHE_SECONDS:
-            return [Product(**p) for p in cached["products"]]
+    name = "ebay"
+    cache_file = "ebay_cache.json"
 
+    def fetch(self) -> list[Product]:
         pins = storage.load_pins()["pins"]
         products, seen = [], set()
         for department in DEPARTMENTS:
-            for query, category in build_queries(pins, department):
+            for query, category in build_queries(pins, department, GERMAN):
                 for item in search(query):
                     product = to_product(item, department, category)
                     if product and product.id not in seen:
                         seen.add(product.id)
                         products.append(product)
-
-        storage.write_json(CACHE_FILE, {"fetched_at": time.time(),
-                                        "products": [p.model_dump() for p in products]})
         return products
-
-
-def clear_cache() -> None:
-    """Nach neuen Pins: beim nächsten Laden neu suchen."""
-    storage.delete_json(CACHE_FILE)

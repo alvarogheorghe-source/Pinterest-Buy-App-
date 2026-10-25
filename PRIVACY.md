@@ -2,9 +2,10 @@
 
 *Last updated: 25 October 2026*
 
-Style App is a personal, non-commercial prototype that connects to a user's Pinterest
-account, derives a personal style profile from selected boards and suggests matching
-clothing items. It is currently used only for development and testing by its author.
+Style App is a prototype that connects to a user's Pinterest account, derives a personal
+style profile from selected boards and suggests matching clothing and home items. It is
+currently used only for development and testing by its author. Later it may earn
+commissions through affiliate links (always marked as advertising).
 
 ## Who is responsible
 
@@ -29,8 +30,17 @@ create, change or delete anything in your Pinterest account.
 ## Why the data is used
 
 The data is used only to create a style profile (e.g. colors and style keywords) and
-to show clothing suggestions that match it. It is not used for advertising profiles,
-not sold, and not shared with third parties.
+to show product suggestions that match it. It is not used for advertising profiles,
+not sold, and not shared with third parties – except for the short search terms
+described in the next section.
+
+## Product search with eBay and Etsy
+
+To find real products, the app sends short search terms to the official APIs of eBay
+and Etsy, for example "beige oversized sweater". These terms only contain a color, a
+style word and a product type derived from your pins. They contain **no** username,
+no pin images, no pin texts and no other personal data. The search results are stored
+on the app's computer for up to one hour.
 
 ## Where the data is stored
 
@@ -47,9 +57,10 @@ server and no database operated by the developer.
 
 ## Links to shops
 
-The app shows products from partner shops with affiliate links, marked as
-advertising ("Werbung"). When you click such a link, you leave the app, and the privacy
-policy of the respective shop applies.
+The app links to products on eBay, Etsy and other shops. Affiliate links (where we
+may earn a commission) are marked as advertising ("Werbung"); other links are marked
+"Link zu …". When you click a link, you leave the app, and the privacy policy of the
+respective shop applies.
 
 ## Your rights
 
@@ -68,8 +79,10 @@ available at this address.
 
 Die Style App ist ein privater Prototyp. Sie liest über die offizielle Pinterest-API
 (nur Lese-Rechte) deinen Benutzernamen, deine Boards und die Pins ausgewählter Boards,
-um daraus dein Stilprofil zu erstellen und passende Kleidung vorzuschlagen. Passwörter
-und Cookies werden nie gespeichert. Alle Daten bleiben lokal auf dem Computer, auf dem
-die App läuft, und werden nicht weitergegeben. Mit „Verbindung trennen“ werden die
+um daraus dein Stilprofil zu erstellen und passende Kleidung und Wohnsachen
+vorzuschlagen. Passwörter und Cookies werden nie gespeichert. Alle Daten bleiben lokal
+auf dem Computer, auf dem die App läuft. Für die Produktsuche gehen nur kurze
+Suchbegriffe wie „beige oversized Pullover“ an eBay und Etsy – ohne Benutzername, Bilder
+oder sonstige persönliche Daten. Mit „Verbindung trennen“ werden die
 Tokens gelöscht; den Zugriff kannst du jederzeit in deinen Pinterest-Einstellungen
 widerrufen.

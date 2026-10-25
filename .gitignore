@@ -8,6 +8,7 @@ data/selected_boards.json
 data/feedback.json
 data/embeddings.json
 data/ebay_cache.json
+data/etsy_cache.json
 
 # Python-Kram
 __pycache__/

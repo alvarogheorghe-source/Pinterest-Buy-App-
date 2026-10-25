@@ -239,7 +239,7 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
                                  vision.EmbeddingStore.load_existing())
     return {
         "profile": profile.to_dict(),
-        "source": products.source_name(),  # "ebay" (echte Angebote) oder "demo"
+        "sources": products.source_names(),  # z.B. ["ebay", "etsy"] oder ["demo"]
         # 👍/👎 einrechnen: Dislikes raus, Ähnliches zu Likes nach oben
         "products": feedback.apply_feedback(ranked, all_products, feedback.load_feedback()),
     }
