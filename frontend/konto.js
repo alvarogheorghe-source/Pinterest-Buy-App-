@@ -99,10 +99,16 @@ async function showSavedPins() {
   pinsMessage.textContent = `${data.pins.length} Pins gespeichert (Stand: ${date})`;
 
   // Stilprofil (Schritt 5): die häufigsten Farben und Stile
-  const profile = await fetch("/api/profile").then((r) => r.json());
-  const terms = [...profile.top_colors, ...profile.top_styles];
-  document.getElementById("profile-text").textContent = terms.length
-    ? `Dein Stil: ${terms.join(" · ")}`
+  // Zwei Stilprofile: Mode und Wohnen & Deko
+  const profiles = await fetch("/api/profile").then((r) => r.json());
+  const lines = [];
+  for (const [department, name] of [["mode", "Mode"], ["wohnen", "Wohnen & Deko"]]) {
+    const profile = profiles[department];
+    const terms = [...profile.top_colors, ...profile.top_styles];
+    if (terms.length) lines.push(`${name}: ${terms.join(" · ")}`);
+  }
+  document.getElementById("profile-text").textContent = lines.length
+    ? `Dein Stil – ${lines.join("  |  ")}`
     : "In deinen Pins wurden noch keine Farb- oder Stilwörter gefunden.";
   document.getElementById("shop-link").hidden = false;
 

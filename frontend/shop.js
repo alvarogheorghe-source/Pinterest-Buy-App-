@@ -1,4 +1,5 @@
-// Shop-Seite: Stilprofil, Tabs ("Für dich" / "Aus meinen Pins"), Filter und Raster.
+// Shop-Seite: Welt (Mode / Wohnen & Deko), Tabs ("Für dich" / "Aus meinen Pins"),
+// Stilprofil, Filter und Raster.
 
 const grid = document.getElementById("product-grid");
 const resultCount = document.getElementById("result-count");
@@ -9,15 +10,26 @@ const sortSelect = document.getElementById("sort-select");
 const budgetChips = document.getElementById("budget-chips");
 const pinItemsCount = document.getElementById("pin-items-count");
 const tabButtons = document.querySelectorAll(".tab");
+const deptButtons = document.querySelectorAll(".dept");
 
-// Aktueller Zustand. Der Tab steht auch in der Adresse (#pins), damit Links
-// und der Zurück-Button funktionieren.
-const filters = {
-  tab: location.hash === "#pins" ? "pins" : "products",
-  maxPrice: "",
-  category: "",
-  sort: "match",
-};
+const DEPARTMENT_NAMES = { mode: "Mode", wohnen: "Wohnen & Deko" };
+
+// Aktueller Zustand. Welt und Tab stehen auch in der Adresse, z.B. "#wohnen/pins",
+// damit Links und der Zurück-Button funktionieren.
+const filters = { department: "mode", tab: "products", maxPrice: "", category: "", sort: "match" };
+
+// "#wohnen/pins" -> { department: "wohnen", tab: "pins" }
+function readHash() {
+  const [dept, tab] = location.hash.slice(1).split("/");
+  return {
+    department: dept === "wohnen" ? "wohnen" : "mode",
+    tab: tab === "pins" || dept === "pins" ? "pins" : "products", // "#pins" = alte Adresse
+  };
+}
+
+function writeHash(department, tab) {
+  location.hash = tab === "pins" ? `${department}/pins` : department;
+}
 
 // Preise schön formatieren, z.B. 34.99 -> "34,99 €"
 function formatPrice(price, currency) {
@@ -35,14 +47,15 @@ function sortByPrice(items) {
 // --- Daten laden ---------------------------------------------------------------------------
 
 async function load() {
-  const budget = filters.maxPrice ? `max_price=${filters.maxPrice}` : "";
-  const productParams = new URLSearchParams(budget);
+  const common = new URLSearchParams({ department: filters.department });
+  if (filters.maxPrice) common.set("max_price", filters.maxPrice);
+  const productParams = new URLSearchParams(common);
   if (filters.category) productParams.set("category", filters.category);
 
   // Beide Abfragen gleichzeitig starten und auf beide warten
   const [recResponse, pinResponse] = await Promise.all([
     fetch(`/api/recommendations?${productParams}`),
-    fetch(`/api/pin-items?${budget}`),
+    fetch(`/api/pin-items?${common}`),
   ]);
   if (!recResponse.ok || !pinResponse.ok) {
     resultCount.textContent = "Daten konnten nicht geladen werden.";
@@ -50,18 +63,19 @@ async function load() {
   }
   const recommendations = await recResponse.json();
   const pinItems = await pinResponse.json();
+  const profile = recommendations.profile;
 
-  renderBanner(recommendations.profile);
+  renderBanner(profile);
   pinItemsCount.textContent = pinItems.length ? `(${pinItems.length})` : "";
 
   if (filters.tab === "pins") {
     const items = filters.sort === "price" ? sortByPrice(pinItems) : pinItems;
     renderGrid(items.map(pinItemToCard), "Teil", "Teile",
-      recommendations.profile.pin_count > 0
-        ? "Keine Pins mit Shop-Link gefunden (oder alle über deinem Budget)."
+      profile.pin_count > 0
+        ? "Keine Pins mit Shop-Link in diesem Bereich gefunden (oder alle über deinem Budget)."
         : "Lade zuerst deine Pins unter „Mein Pinterest“.");
   } else {
-    const hasProfile = recommendations.profile.pin_count > 0;
+    const hasProfile = profile.pin_count > 0;
     const items = filters.sort === "price"
       ? sortByPrice(recommendations.products)
       : recommendations.products;
@@ -70,18 +84,21 @@ async function load() {
   }
 }
 
-// --- Oben: Stilprofil ---------------------------------------------------------------------
+// --- Oben: Stilprofil der gewählten Welt ---------------------------------------------------
 
 function renderBanner(profile) {
   banner.innerHTML = "";
   const title = document.createElement("h1");
   const text = document.createElement("p");
   banner.append(title, text);
+  const worldName = DEPARTMENT_NAMES[filters.department];
 
   const terms = [...profile.top_colors, ...profile.top_styles];
   if (profile.pin_count === 0 || terms.length === 0) {
-    title.textContent = "Mode, die zu deinem Pinterest passt";
-    text.textContent = "Verbinde dein Pinterest-Konto, dann sortieren wir die Produkte nach deinem Stil. ";
+    title.textContent = filters.department === "wohnen"
+      ? "Deko und Möbel, die zu deinem Pinterest passen"
+      : "Mode, die zu deinem Pinterest passt";
+    text.textContent = "Verbinde dein Pinterest-Konto, dann sortieren wir alles nach deinem Stil. ";
     const link = document.createElement("a");
     link.href = "/konto.html";
     link.textContent = "Jetzt verbinden →";
@@ -89,18 +106,30 @@ function renderBanner(profile) {
     return;
   }
 
-  title.textContent = "Dein Stil";
+  title.textContent = `Dein Stil · ${worldName}`;
   text.className = "muted";
   text.textContent = `Aus ${profile.pin_count} Pins erkannt:`;
-  const tags = document.createElement("div");
-  tags.className = "tag-list";
+  banner.appendChild(tagList(terms));
+
+  // Welche Arten von Teilen zeigen die Pins? (z.B. "Deko", "Leuchten")
+  if (profile.top_categories.length) {
+    const label = document.createElement("p");
+    label.className = "muted banner-sub";
+    label.textContent = "Du pinnst oft:";
+    banner.append(label, tagList(profile.top_categories, "tag outline"));
+  }
+}
+
+function tagList(terms, className = "tag") {
+  const list = document.createElement("div");
+  list.className = "tag-list";
   for (const term of terms) {
     const tag = document.createElement("span");
-    tag.className = "tag";
+    tag.className = className;
     tag.textContent = term;
-    tags.appendChild(tag);
+    list.appendChild(tag);
   }
-  banner.appendChild(tags);
+  return list;
 }
 
 // --- Raster und Kacheln -------------------------------------------------------------------
@@ -122,7 +151,7 @@ function renderGrid(cards, singular, plural, emptyText) {
 function productToCard(product, hasProfile) {
   return {
     imageUrl: product.image_url,
-    topLine: product.shop,
+    topLine: `${product.shop} · ${product.category}`,
     title: product.name,
     price: formatPrice(product.price, product.currency),
     note: hasProfile ? product.reason : "",
@@ -216,8 +245,22 @@ function createCard(data) {
 
 // --- Bedienung ------------------------------------------------------------------------------
 
-function showTab(tab) {
+// Zeigt, was in der Adresse steht (beim Laden und bei jeder Änderung der Adresse)
+async function applyHash() {
+  const { department, tab } = readHash();
+  if (department !== filters.department) {
+    filters.department = department;
+    filters.category = ""; // Kategorien der anderen Welt passen nicht mehr
+    await loadCategories();
+    categorySelect.value = "";
+  }
   filters.tab = tab;
+
+  for (const button of deptButtons) {
+    const active = button.dataset.dept === department;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", active);
+  }
   for (const button of tabButtons) {
     const active = button.dataset.tab === tab;
     button.classList.toggle("active", active);
@@ -228,16 +271,14 @@ function showTab(tab) {
   load();
 }
 
-for (const button of tabButtons) {
-  button.addEventListener("click", () => {
-    // Adresse ändern -> löst "hashchange" aus -> showTab()
-    location.hash = button.dataset.tab === "pins" ? "pins" : "";
-  });
+// Klicks ändern nur die Adresse -> "hashchange" -> applyHash()
+for (const button of deptButtons) {
+  button.addEventListener("click", () => writeHash(button.dataset.dept, filters.tab));
 }
-
-window.addEventListener("hashchange", () => {
-  showTab(location.hash === "#pins" ? "pins" : "products");
-});
+for (const button of tabButtons) {
+  button.addEventListener("click", () => writeHash(filters.department, button.dataset.tab));
+}
+window.addEventListener("hashchange", applyHash);
 
 budgetChips.addEventListener("click", (event) => {
   const chip = event.target.closest(".chip");
@@ -258,9 +299,11 @@ sortSelect.addEventListener("change", () => {
   load();
 });
 
-// Kategorien für die Auswahlliste holen
+// Kategorien der aktuellen Welt in die Auswahlliste schreiben
 async function loadCategories() {
-  const categories = await fetch("/api/categories").then((r) => r.json());
+  const categories = await fetch(`/api/categories?department=${filters.department}`)
+    .then((r) => r.json());
+  categorySelect.length = 1; // alle Optionen außer "Alle Kategorien" entfernen
   for (const category of categories) {
     const option = document.createElement("option");
     option.value = category;
@@ -269,5 +312,5 @@ async function loadCategories() {
   }
 }
 
-loadCategories();
-showTab(filters.tab);
+// Start: Kategorien für "Mode" laden, dann anzeigen, was in der Adresse steht
+loadCategories().then(applyHash);
