@@ -1,0 +1,13 @@
+# Geheime Schlüssel – niemals ins Repository!
+.env
+
+# Laufzeitdaten mit persönlichen Infos (Tokens, Pins, Auswahl)
+data/tokens.json
+data/pins.json
+data/selected_boards.json
+
+# Python-Kram
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
