@@ -413,6 +413,14 @@
   async function showVibe() {
     stop();
     busy = true;
+    // Vorstellungsseite (malipin.com, ohne Server): noch kein Vibe-Check möglich
+    if (document.body.hasAttribute("data-static")) {
+      say(["Bald lese ich deinen Vibe aus deinen Pinterest-Boards – Goth Baddie? Clean Girl? 🔮",
+        "Ich hoppel schon los, versprochen! 🥕"], { buttons: [{ text: `${NAME} verstecken`, onClick: hideMali }] });
+      await happyJump();
+      busy = false;
+      return;
+    }
     say(["Moment, ich schnupper an deinen Pins … 👃"]);
     let vibe;
     try {

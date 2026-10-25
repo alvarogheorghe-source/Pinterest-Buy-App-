@@ -15,3 +15,6 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+
+# Gebaute Vorstellungsseite (scripts/build_site.py)
+site/

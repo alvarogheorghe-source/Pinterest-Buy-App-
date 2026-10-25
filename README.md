@@ -310,6 +310,17 @@ nach `data/pins.json`. Echte Pins („Pins laden“) überschreiben sie.
 **Phase 2:** `build_style_profile()` durch eine Bilderkennung ersetzen, die dasselbe
 `StyleProfile` liefert – `rank_products()` bleibt gleich.
 
+## Website malipin.com (Vorstellungsseite)
+
+`python scripts/build_site.py` baut aus der Startseite eine **statische** Version in `site/`:
+Buttons, die den Server brauchen, werden zu „Bald verfügbar“, dazu kommen Datenschutz
+(aus `PRIVACY.md`) und Impressum (aus `website/impressum.json`, Vorlage:
+`website/impressum.example.json`). **Ohne Impressum wird nichts gebaut.**
+
+Online geht sie automatisch bei jedem Push (`.github/workflows/pages.yml`, GitHub Pages).
+Einmalig nötig: GitHub → Settings → Pages → Source „GitHub Actions“ und Custom domain
+`malipin.com`. Lokal ansehen: `python -m http.server -d site 8080`.
+
 ## Testen
 
 ```bash
