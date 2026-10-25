@@ -274,6 +274,20 @@ def get_feedback():
     return feedback.load_feedback()
 
 
+@app.get("/api/saved")
+def get_saved(department: products.Department | None = None):
+    """Die Merkliste: alle mit ♡ gemerkten Produkte, zuletzt gemerkte zuerst."""
+    votes = feedback.load_feedback()
+    liked = {pid: entry["at"] for pid, entry in votes.items() if entry["vote"] == "like"}
+    saved = [
+        {**p.model_dump(), "saved_at": liked[p.id], "vote": "like"}
+        for p in products.get_product_source().load()
+        if p.id in liked and (department is None or p.department == department)
+    ]
+    saved.sort(key=lambda item: item["saved_at"], reverse=True)
+    return saved
+
+
 @app.delete("/api/feedback")
 def delete_feedback():
     """Alle Bewertungen zurücksetzen."""

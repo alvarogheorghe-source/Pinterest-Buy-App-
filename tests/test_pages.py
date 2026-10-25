@@ -28,7 +28,8 @@ def test_many_connect_buttons_all_lead_to_konto(client):
     assert set(buttons) == {"/konto.html"}
 
 
-@pytest.mark.parametrize("path", ["/", "/shop.html", "/konto.html", "/produkt.html"])
+@pytest.mark.parametrize("path", ["/", "/shop.html", "/konto.html", "/produkt.html",
+                                  "/merkliste.html"])
 def test_every_page_loads_lucifer(client, path):
     html = client.get(path).text
     assert '<script src="bunny.js"></script>' in html

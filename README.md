@@ -33,7 +33,9 @@ frontend/
   index.html + landing.css  Startseite: stellt die App vor, „Kostenlos starten“
   shop.html + shop.js     Shop: Stilprofil, Tabs, Filter, Produktraster
   produkt.html + produkt.js  Detailseite mit „Mehr wie das“ (ähnliche Artikel)
-  feedback.js             👍/👎-Buttons (Shop und Detailseite)
+  feedback.js             ♡/👎-Buttons (Shop und Detailseite)
+  merkliste.html + merkliste.js  Merkliste: alle gemerkten Teile mit Summe
+  nav.js                  Zähler „♡ Merkliste“ in der Kopfzeile
   bunny.js + bunny.css    Lucifer, das Pixel-Maskottchen (auf allen Seiten)
   konto.html + konto.js   Mein Pinterest: verbinden, Boards wählen, Pins laden
   style.css               gemeinsames Design (Farben als Variablen ganz oben)
@@ -158,7 +160,7 @@ Ein kleiner Pixel-Hase, der unten über jede Seite läuft (`frontend/bunny.js`, 
 - hoppelt herum, isst Karotten, schläft, tanzt und hoppelt manchmal zur Maus
 - merkt sich seine Position über Seitenwechsel hinweg
 - stellt beim ersten Besuch der Startseite die Website vor
-- freut sich über 👍 (Herz) und reagiert auf 👎
+- freut sich, wenn du etwas merkst (♡), und reagiert auf 👎
 - **Klick:** verrät, welchen Vibe dein Pinterest abgibt – immer positiv
   (`GET /api/vibe`, Vibes und Sprüche in `backend/vibe.py`)
 - lässt sich verstecken (🐾 holt ihn zurück); bei „Bewegung reduzieren“ sitzt er still
@@ -195,13 +197,20 @@ gespeicherten Zahlen (das Modell muss nicht laufen).
 Gewichte oben in `vision.py` (`VISUAL_WEIGHT`, `VISUAL_FLOOR`). Vor kommerzieller Nutzung
 die **Lizenz des Modells** prüfen.
 
-## 👍 / 👎 Feedback
+## ♡ Merkliste
+
+Das ♡ auf jeder Produktkachel merkt ein Teil (und schiebt Ähnliches nach oben).
+`merkliste.html` zeigt alle gemerkten Teile – zuletzt gemerkte zuerst, filterbar nach
+Mode / Wohnen & Deko, mit Summe („4 Teile · zusammen € 184,96“). Entfernen über das ♡,
+mit „Rückgängig“. Die Kopfzeile zeigt auf jeder Seite die Anzahl. API: `GET /api/saved`
+
+## ♡ / 👎 Feedback
 
 Auf jeder Produktkachel (Shop und Detailseite) oben rechts. Gespeichert in
 `data/feedback.json` (nicht im Git).
 
 - 👎 blendet das Produkt aus (mit „Rückgängig“) und schiebt **ähnliche** Produkte nach unten.
-- 👍 schiebt **ähnliche** Produkte nach oben („Ähnlich wie etwas, das dir gefallen hat“).
+- ♡ merkt das Teil und schiebt **ähnliche** Produkte nach oben („Ähnlich wie etwas, das dir gefallen hat“).
 - „Ähnlich“ kommt aus `similar.py`; wie stark Feedback wirkt, steht oben in `feedback.py`
   (`LIKE_BOOST`, `DISLIKE_PENALTY`).
 - Zurücksetzen unter „Mein Pinterest“. API: `GET/POST/DELETE /api/feedback`

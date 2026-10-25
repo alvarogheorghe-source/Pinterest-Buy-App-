@@ -763,3 +763,63 @@ section + section {
   font-weight: 600;
   color: var(--accent);
 }
+
+/* --- Merkliste -------------------------------------------------------------------------- */
+
+/* Gemerkt = gefülltes Herz */
+.vote-button.like.active .icon {
+  fill: currentColor;
+}
+
+/* Link in der Kopfzeile mit kleinem Zähler-Bläschen */
+.nav-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.saved-count:not(:empty) {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.page-title {
+  margin: 8px 0 18px;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+}
+
+.merkliste-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.saved-summary {
+  margin: 0;
+  font-weight: 700;
+}
+
+.saved-empty {
+  grid-column: 1 / -1;   /* über alle Spalten */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .nav-label {
+    display: none;   /* auf dem Handy nur ♡ + Zahl */
+  }
+}

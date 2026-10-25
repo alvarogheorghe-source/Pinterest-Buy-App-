@@ -811,8 +811,8 @@ details p {
 
   /* Sehr schmale Handys: "Shop" oben ausblenden, "Shop ansehen" steht im Hero */
   @media (max-width: 420px) {
-    .header-nav .header-link {
-      display: none;
+    .header-nav .header-link:not(.nav-saved) {
+      display: none;   /* ♡ Merkliste bleibt sichtbar */
     }
   }
 

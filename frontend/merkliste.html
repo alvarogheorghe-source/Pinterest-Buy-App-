@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Merkliste – Style App</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="bunny.css">
+</head>
+<body>
+  <header class="site-header">
+    <a href="/" class="logo">STYLE APP</a>
+    <nav class="header-nav">
+      <a href="/shop.html" class="header-link">Shop</a>
+      <a href="/merkliste.html" class="header-link nav-saved" aria-label="Merkliste">♡ <span class="nav-label">Merkliste</span> <span class="saved-count"></span></a>
+      <a href="/konto.html" class="header-link">Mein Pinterest</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1 class="page-title">Deine Merkliste ♡</h1>
+
+    <div class="merkliste-bar">
+      <div class="chips" id="dept-chips">
+        <button class="chip active" data-dept="">Alle</button>
+        <button class="chip" data-dept="mode">Mode</button>
+        <button class="chip" data-dept="wohnen">Wohnen &amp; Deko</button>
+      </div>
+      <!-- z.B. "4 Teile · zusammen € 123,45" -->
+      <p id="saved-summary" class="saved-summary"></p>
+    </div>
+
+    <div id="saved-grid" class="product-grid"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      <strong>Werbehinweis:</strong> Die Links „Zum Shop“ sind Affiliate-Links. Wenn du darüber
+      etwas kaufst, erhalten wir eine Provision vom Shop. Für dich ändert sich der Preis nicht.
+    </p>
+  </footer>
+
+  <script src="feedback.js"></script>
+  <script src="merkliste.js"></script>
+  <script src="nav.js"></script>
+  <!-- Lucifer, das Maskottchen -->
+  <script src="bunny.js"></script>
+</body>
+</html>
