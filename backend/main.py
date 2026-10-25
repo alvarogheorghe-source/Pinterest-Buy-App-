@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import matching, pins, pinterest, products, storage
+from backend import matching, pins, pinterest, products, shop_links, storage
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Style App")
@@ -147,6 +147,12 @@ def refresh_pins():
 def get_pins():
     """Die zuletzt gespeicherten Pins (ohne neue Anfrage an Pinterest)."""
     return storage.load_pins()
+
+
+@app.get("/api/pin-items")
+def get_pin_items():
+    """Pins, die direkt zu einem Shop oder Marktplatz (z.B. Depop) führen."""
+    return shop_links.find_pin_items(storage.load_pins()["pins"])
 
 
 # --- Produkte (Schritt 4) -------------------------------------------------------------

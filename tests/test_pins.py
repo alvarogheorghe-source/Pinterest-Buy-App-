@@ -7,13 +7,14 @@ from backend import pins, storage
 from tests.conftest import save_tokens
 
 
-def make_pin(pin_id, title="", description="", images=None, color=None):
+def make_pin(pin_id, title="", description="", images=None, color=None, link=None):
     """Baut einen Pin so, wie ihn die Pinterest API liefert."""
     return {
         "id": pin_id,
         "title": title,
         "description": description,
         "dominant_color": color,
+        "link": link,
         "media": {"media_type": "image", "images": images or {}},
     }
 
@@ -24,7 +25,7 @@ def test_pins_are_loaded_saved_and_simplified(fake, client):
     fake.board_pins["111"] = [[
         make_pin("p1", "Beiger Oversized Hoodie", "cozy streetwear",
                  images={"150x150": {"url": "small.jpg"}, "600x": {"url": "big.jpg"}},
-                 color="#d8c3a5"),
+                 color="#d8c3a5", link="https://www.depop.com/products/seller-beige-hoodie/"),
     ]]
 
     response = client.post("/api/pins/refresh")
@@ -38,6 +39,7 @@ def test_pins_are_loaded_saved_and_simplified(fake, client):
         "description": "cozy streetwear",
         "image_url": "big.jpg",   # 600x wird gegenüber 150x150 bevorzugt
         "dominant_color": "#d8c3a5",
+        "link": "https://www.depop.com/products/seller-beige-hoodie/",
     }]
     assert saved["fetched_at"] is not None
 

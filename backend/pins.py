@@ -37,6 +37,8 @@ def simplify_pin(pin: dict, board_id: str) -> dict:
         "description": pin.get("description") or "",
         "image_url": pick_image_url(pin.get("media")),
         "dominant_color": pin.get("dominant_color"),
+        # Ziel-Link des Pins, z.B. ein Depop-Angebot (siehe shop_links.py)
+        "link": pin.get("link"),
     }
 
 
