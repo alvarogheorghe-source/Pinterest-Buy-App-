@@ -27,6 +27,7 @@ backend/
   vibe.py       Lucifers Vibe-Check („Goth Baddie 🖤“, „Clean-Girl-Aesthetic 🤍“ …)
 eval/           demo_testset.json: Beispiel-Pins mit von Hand gewählten passenden Produkten
   demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
+  rss_import.py TESTWERKZEUG: echte Pins eines öffentlichen Boards per RSS laden
   products.py   Produktmodell, austauschbare Produktquelle, Preis-/Kategoriefilter
   storage.py    speichert Daten als JSON in data/
 frontend/
@@ -244,6 +245,11 @@ Zusammensetzungen („*vase“ → „Keramikvase“) – aber nur, wo das nicht
 
 - http://localhost:8000/api/profile – deine Stilprofile (Mode und Wohnen)
 - http://localhost:8000/api/recommendations?department=wohnen&max_price=40 – Empfehlungen mit Begründung
+
+**Mit echten Pins testen, solange die API-Freigabe fehlt:** öffentliche Boards haben einen
+RSS-Feed. `python -m backend.rss_import benutzer/board` lädt die letzten ~20–25 Pins
+(Bild, Titel, Beschreibung) in `data/pins.json`. Nicht offiziell dokumentiert und nicht immer
+zuverlässig – nur zum Testen, die echte App nutzt die API. Am besten eigene Boards nehmen.
 
 **Ohne Pinterest-Login testen:** `python -m backend.demo_pins` schreibt 19 Beispiel-Pins (Mode + Wohnen)
 nach `data/pins.json`. Echte Pins („Pins laden“) überschreiben sie.
