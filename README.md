@@ -1,4 +1,4 @@
-# Style App (Prototyp)
+# Malipin (Prototyp)
 
 Eine Webapp, die sich mit deinem Pinterest-Konto verbindet, aus deinen Boards deinen
 Stil ableitet und passende Kleidung (**Mode**) und Gegenstände (**Wohnen & Deko**) aus

@@ -1,4 +1,4 @@
-// Mali – das Pixel-Maskottchen der Style App 🐰
+// Mali – das Pixel-Maskottchen von Malipin 🐰
 //
 // Mali läuft unten über jede Seite, isst Karotten, schläft, tanzt, folgt dir
 // manchmal, stellt beim ersten Besuch die Website vor, freut sich über 👍 und

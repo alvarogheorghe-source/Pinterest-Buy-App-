@@ -1,4 +1,4 @@
-# Style App öffentlich machen: Was es braucht
+# Malipin öffentlich machen: Was es braucht
 
 *Stand: Oktober 2026. Rechtliche und steuerliche Punkte sind eine Orientierung, keine
 Rechtsberatung. Zahlen und Bedingungen von Anbietern ändern sich und müssen vor jeder
@@ -59,7 +59,7 @@ Eigene Passwörter zu speichern rate ich ab: Das ist für Anfänger das größte
 | Mehrere Nutzer | Datenbank statt JSON-Dateien (SQLite reicht für den Anfang, später PostgreSQL), Tokens pro Nutzer **verschlüsselt** speichern | gratis |
 | Sitzungen und Sicherheit | Login-Sitzungen, Schutz gegen gefälschte Anfragen (CSRF), Begrenzung der Anfragen pro Nutzer (Rate Limit), nur HTTPS | gratis |
 | Hosting | Ein kleiner Server, am besten in der EU (Datenschutz), z.B. ein kleiner VPS oder ein Dienst wie Render oder Fly.io | ca. 5–10 €/Monat |
-| Domain | z.B. `styleapp.at` (Name vorher auf Verfügbarkeit und Markenrechte prüfen) | ca. 10–20 €/Jahr |
+| Domain | z.B. `malipin.com` (Name vorher auf Verfügbarkeit und Markenrechte prüfen) | ca. 10–20 €/Jahr |
 | HTTPS-Zertifikat | Let's Encrypt | gratis |
 | Pinterest-Redirect | Muss auf die echte Adresse zeigen (`https://…/auth/callback`) | gratis |
 | Produkt-Feeds | Täglicher automatischer Import der Partner-Feeds über eine neue `ProductSource` | gratis |
@@ -82,7 +82,7 @@ Eigene Passwörter zu speichern rate ich ab: Das ist für Anfänger das größte
 | **Werbekennzeichnung** | ✅ schon umgesetzt („Werbung“ bei Affiliate-Links, „Link aus deinem Pin“ bei fremden Links) | – |
 | **Nutzungsbedingungen** | Was die App tut, was nicht, Haftung für Preise und Verfügbarkeit in fremden Shops | gratis bis wenige hundert € |
 | **Gewerbe und Steuern** | Sobald Geld fließt: beim **Gründerservice der WKO** fragen (kostenlose Beratung), ob ein Gewerbe nötig ist und welches. Einkommen muss versteuert werden. Für kleine Umsätze gibt es die Kleinunternehmerregelung bei der Umsatzsteuer (Grenze vorher aktuell prüfen). | Beratung gratis |
-| **Name und Logo** | Vor dem Start prüfen, ob „Style App“ oder der gewählte Name als Marke geschützt ist, und keine Logos von Pinterest oder Shops ohne Erlaubnis verwenden | gratis (Markenrecherche online) |
+| **Name und Logo** | Vor dem Start prüfen, ob „Malipin“ oder der gewählte Name als Marke geschützt ist, und keine Logos von Pinterest oder Shops ohne Erlaubnis verwenden | gratis (Markenrecherche online) |
 
 ---
 

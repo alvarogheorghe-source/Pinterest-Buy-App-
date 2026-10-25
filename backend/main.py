@@ -17,7 +17,7 @@ from backend import (feedback, matching, pins, pinterest, products, shop_links, 
                      storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
-app = FastAPI(title="Style App")
+app = FastAPI(title="Malipin")
 
 # Session-Cookie: merkt sich den OAuth-"state" zwischen Login und Callback.
 # Das Cookie wird mit SESSION_SECRET signiert, damit niemand es fälschen kann.

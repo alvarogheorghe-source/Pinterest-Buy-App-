@@ -79,7 +79,7 @@ def parse_feed(xml_text: str, board_name: str) -> list[dict]:
 
 def fetch(source: str) -> list[dict]:
     response = httpx.get(feed_url(source), timeout=15, follow_redirects=True,
-                         headers={"User-Agent": "Mozilla/5.0 (StyleApp-Test; RSS-Reader)"})
+                         headers={"User-Agent": "Mozilla/5.0 (Malipin-Test; RSS-Reader)"})
     response.raise_for_status()
     return parse_feed(response.text, board_name_from(source))
 

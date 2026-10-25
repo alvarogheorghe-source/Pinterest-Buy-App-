@@ -1,5 +1,5 @@
 #!/bin/bash
-# Startet die Style App mit einem Doppelklick (Mac).
+# Startet Malipin mit einem Doppelklick (Mac).
 # - beendet einen alten Server, der noch auf Port 8000 läuft
 # - startet den Server neu
 # - öffnet die Website im Browser
@@ -31,7 +31,7 @@ sleep 1
   done
 ) &
 
-echo "Style App startet … (Fenster offen lassen)"
+echo "Malipin startet … (Fenster offen lassen)"
 uvicorn backend.main:app --reload
 
 echo

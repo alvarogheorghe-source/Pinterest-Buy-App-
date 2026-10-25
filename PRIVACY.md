@@ -1,8 +1,8 @@
-# Privacy Policy – Style App (Prototype)
+# Privacy Policy – Malipin (Prototype)
 
 *Last updated: 25 October 2026*
 
-Style App is a prototype that connects to a user's Pinterest account, derives a personal
+Malipin is a prototype that connects to a user's Pinterest account, derives a personal
 style profile from selected boards and suggests matching clothing and home items. It is
 currently used only for development and testing by its author. Later it may earn
 commissions through affiliate links (always marked as advertising).
@@ -77,7 +77,7 @@ available at this address.
 
 ### Kurzfassung auf Deutsch
 
-Die Style App ist ein privater Prototyp. Sie liest über die offizielle Pinterest-API
+Malipin ist ein privater Prototyp. Die App liest über die offizielle Pinterest-API
 (nur Lese-Rechte) deinen Benutzernamen, deine Boards und die Pins ausgewählter Boards,
 um daraus dein Stilprofil zu erstellen und passende Kleidung und Wohnsachen
 vorzuschlagen. Passwörter und Cookies werden nie gespeichert. Alle Daten bleiben lokal

@@ -46,7 +46,7 @@ function shopButton(product) {
 }
 
 function renderDetail(product, hasProfile) {
-  document.title = `${product.name} – Style App`;
+  document.title = `${product.name} – Malipin`;
   // Zurück in die richtige Welt des Shops
   backLink.href = `/shop.html#${product.department}`;
 
