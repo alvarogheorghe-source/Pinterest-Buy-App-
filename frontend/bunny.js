@@ -288,7 +288,6 @@
   function hideBubble() {
     bubble.hidden = true;
     clearTimeout(say.timer);
-    if (introStep !== null) finishIntro();
   }
 
   // Blase über Lucifer, aber nie über den Bildschirmrand hinaus
@@ -304,37 +303,106 @@
 
   window.addEventListener("resize", () => { if (!bubble.hidden) placeBubble(); });
 
-  // --- 4. Vorstellung beim ersten Besuch (nur Startseite) ------------------------------------
+  // --- 4. Begrüßung beim Öffnen der Website (einmal pro Besuch) -----------------------------
+  // Rosa Bildschirm, großer Lucifer hüpft herein, Text tippt sich ein, dann fliegt
+  // Lucifer klein an seinen Platz unten. Geht von selbst weg (Antippen überspringt).
 
-  const INTRO = [
-    `Hi, ich bin ${NAME}! 🐰 Keine Sorge – ich bin nur teuflisch süß. 😈`,
-    "Ich schau mir deine Pinterest-Boards an und finde Mode & Deko, die zu deinem Vibe " +
-      "passen – und zu deinem Budget. 💸",
-    "Und wenn du mich anklickst, verrate ich dir, welchen Vibe dein Pinterest abgibt. ✨",
+  const WELCOME = [
+    `Hi, ich bin ${NAME}! 🐰`,
+    "Keine Sorge – ich bin nur teuflisch süß. 😈",
+    "Ich finde Mode & Deko für deinen Vibe. Los geht's! 🥕",
   ];
-  let introStep = null;
+  const TYPE_SPEED = 22;   // ms pro Buchstabe
+  const LINE_PAUSE = 750;  // Pause nach jeder Zeile
 
-  function showIntroStep() {
-    const last = introStep === INTRO.length - 1;
-    say([INTRO[introStep]], {
-      buttons: [
-        { text: last ? "Los geht's! 🥕" : "Weiter", primary: true, onClick: nextIntro },
-        ...(last ? [] : [{ text: "Überspringen", onClick: finishIntro }]),
-      ],
+  async function welcome() {
+    if (el.hidden || recall(sessionStorage, "lucifer-welcome") === "done") return;
+    remember(sessionStorage, "lucifer-welcome", "done");
+
+    // Aufbau: Bildschirm > Bühne > großer Lucifer, Name, Text
+    const overlay = document.createElement("div");
+    overlay.className = "lucifer-splash";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-label", `${NAME} begrüßt dich`);
+    const stage = document.createElement("div");
+    stage.className = "splash-stage";
+    const big = document.createElement("canvas");
+    big.className = "splash-sprite";
+    draw(big, FRAMES.idle);
+    const name = Object.assign(document.createElement("p"), { className: "splash-name", textContent: NAME });
+    const line = Object.assign(document.createElement("p"), { className: "splash-text" });
+    line.setAttribute("aria-hidden", "true"); // das Tippen ist nur fürs Auge ...
+    const spoken = Object.assign(document.createElement("p"),
+      { className: "visually-hidden", textContent: WELCOME.join(" ") }); // ... Screenreader lesen alles
+    const skipHint = Object.assign(document.createElement("p"),
+      { className: "splash-skip", textContent: "Tippen zum Überspringen" });
+    stage.append(big, name, line);
+    overlay.append(stage, spoken, skipHint);
+    document.body.appendChild(overlay);
+    document.documentElement.classList.add("splash-open"); // Scrollen kurz sperren
+    el.classList.add("waiting");                            // kleiner Lucifer wartet unsichtbar
+
+    // Überspringen per Klick/Tippen oder Escape
+    let skipped = false;
+    const listeners = new AbortController();
+    const skip = new Promise((resolve) => {
+      const onSkip = () => { skipped = true; resolve(); };
+      overlay.addEventListener("click", onSkip, { signal: listeners.signal });
+      document.addEventListener("keydown", (event) => { if (event.key === "Escape") onSkip(); },
+        { signal: listeners.signal });
     });
-  }
+    const pause = (ms) => Promise.race([wait(ms), skip]); // Warten, aber Überspringen geht vor
 
-  function nextIntro() {
-    introStep += 1;
-    if (introStep >= INTRO.length) { finishIntro(); return; }
-    showIntroStep();
-    happyJump();
-  }
+    function hearts() {
+      for (let i = 0; i < 3; i++) {
+        const heart = document.createElement("canvas");
+        heart.className = "splash-heart";
+        draw(heart, HEART);
+        heart.style.left = `${random(15, 75)}%`;
+        heart.style.animationDelay = `${i * 180}ms`;
+        stage.appendChild(heart);
+        setTimeout(() => heart.remove(), 2000);
+      }
+    }
 
-  function finishIntro() {
-    introStep = null;
-    remember(localStorage, "lucifer-intro", "done");
-    bubble.hidden = true;
+    await pause(reduceMotion ? 200 : 650); // Zeit für den Hereinhüpfer (CSS)
+    for (const [i, text] of WELCOME.entries()) {
+      if (skipped) break;
+      if (reduceMotion) {
+        line.textContent = text;
+      } else {
+        line.textContent = "";
+        for (const char of text) { // for...of zerlegt Emojis nicht in Einzelteile
+          if (skipped) break;
+          line.textContent += char;
+          await pause(TYPE_SPEED);
+        }
+      }
+      if (i === 0) { draw(big, FRAMES.happy); hearts(); }               // Freude!
+      if (i === 1) { draw(big, FRAMES.blink); await pause(200); draw(big, FRAMES.idle); } // zwinkern
+      if (i === 2) draw(big, FRAMES.eat1);                               // Karotte!
+      await pause(LINE_PAUSE + (reduceMotion ? 450 : 0)); // ohne Tippen etwas mehr Lesezeit
+    }
+    listeners.abort();
+
+    // Abgang: großer Lucifer fliegt an den Platz des kleinen, Hintergrund blendet aus
+    overlay.classList.add("leaving");
+    if (!reduceMotion && big.animate) {
+      const from = big.getBoundingClientRect();
+      const to = el.getBoundingClientRect();
+      const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+      const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+      draw(big, FRAMES.idle);
+      await big.animate(
+        [{ transform: "none" }, { transform: `translate(${dx}px, ${dy}px) scale(${to.width / from.width})` }],
+        { duration: 750, easing: "cubic-bezier(0.5, -0.3, 0.4, 1)", fill: "forwards" },
+      ).finished;
+    } else {
+      await wait(400);
+    }
+    overlay.remove();
+    document.documentElement.classList.remove("splash-open");
+    el.classList.remove("waiting");
   }
 
   // --- 5. Vibe-Check beim Klick ---------------------------------------------------------------
@@ -375,10 +443,7 @@
     busy = false;
   }
 
-  el.addEventListener("click", () => {
-    if (introStep !== null) { nextIntro(); return; }
-    showVibe();
-  });
+  el.addEventListener("click", () => showVibe());
   el.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") { event.preventDefault(); el.click(); }
   });
@@ -418,15 +483,11 @@
   // --- 6. Zufalls-Alltag ----------------------------------------------------------------------
 
   async function life() {
+    busy = true;
+    await welcome(); // Begrüßung beim ersten Öffnen (sonst sofort weiter)
+    busy = false;
     // Kleiner Auftritt beim Laden der Seite
     if (!reduceMotion && !el.hidden) happyJump();
-
-    if (document.body.classList.contains("landing") && recall(localStorage, "lucifer-intro") !== "done"
-        && !el.hidden) {
-      await wait(900);
-      introStep = 0;
-      showIntroStep();
-    }
 
     setInterval(() => { if (!busy && Math.random() < 0.6) blink(); }, 2500);
 
@@ -453,10 +514,11 @@
 
   // Zum Ausprobieren in der Browser-Konsole (Rechtsklick → Untersuchen → Konsole):
   //   lucifer.tanzen()   lucifer.essen()   lucifer.schlafen()   lucifer.freuen()
-  //   lucifer.hoppeln(300)   lucifer.vibe()
+  //   lucifer.hoppeln(300)   lucifer.vibe()   lucifer.begruessen()
   window.lucifer = {
     tanzen: dance, essen: eatCarrot, schlafen: nap, freuen: happyJump,
     hoppeln: (targetX) => hopTo(targetX), vibe: showVibe,
+    begruessen: () => { remember(sessionStorage, "lucifer-welcome", ""); return welcome(); },
   };
 
   life();

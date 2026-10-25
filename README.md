@@ -165,7 +165,9 @@ Ein kleiner Pixel-Hase, der unten über jede Seite läuft (`frontend/bunny.js`, 
 
 - hoppelt herum, isst Karotten, schläft, tanzt und hoppelt manchmal zur Maus
 - merkt sich seine Position über Seitenwechsel hinweg
-- stellt beim ersten Besuch der Startseite die Website vor
+- **Begrüßung** beim Öffnen der Website (einmal pro Besuch): rosa Bildschirm, großer Lucifer
+  hüpft herein, Text tippt sich ein, nach ca. 6 s fliegt er klein an seinen Platz –
+  ganz ohne Klick (Antippen überspringt). Zum Wiederholen: `lucifer.begruessen()`
 - freut sich, wenn du etwas merkst (♡), und reagiert auf 👎
 - **Klick:** verrät, welchen Vibe dein Pinterest abgibt – immer positiv
   (`GET /api/vibe`, Vibes und Sprüche in `backend/vibe.py`)
