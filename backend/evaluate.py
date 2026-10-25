@@ -32,11 +32,25 @@ Recommender = Callable[[dict, str, list[Product]], list[str]]
 
 
 def text_recommender(pin: dict, department: str, products: list[Product]) -> list[str]:
-    """Der heutige Weg: Wörter aus Titel und Beschreibung (matching.py)."""
+    """Der heutige Weg (matching.py): Wörter aus Titel, Beschreibung, Alt-Text und
+    Board-Name + die Hauptfarbe des Bildes."""
     profile = matching.build_style_profile([pin])
     ranked = matching.rank_products(filter_products(products, department=department), profile)
     # Produkte ohne einen einzigen gemeinsamen Begriff sind geraten, nicht erkannt
     return [r["id"] for r in ranked if r["score"] > 0]
+
+
+def pin_text_only_recommender(pin: dict, department: str, products: list[Product]) -> list[str]:
+    """Zum Vergleich: NUR Titel und Beschreibung (ohne Board-Name, Alt-Text, Bildfarbe)."""
+    pin = {"title": pin.get("title"), "description": pin.get("description")}
+    return text_recommender(pin, department, products)
+
+
+# Alle Empfehler, die verglichen werden (Name -> Funktion). Später z.B. "Bilder (FashionCLIP)".
+RECOMMENDERS = {
+    "Nur Pin-Text": pin_text_only_recommender,
+    "Text + Board + Bildfarbe": text_recommender,
+}
 
 
 def load_testset(path: Path = DEMO_TESTSET) -> list[dict]:
@@ -95,11 +109,25 @@ def print_report(report: dict, products: list[Product], name: str = "Text") -> N
     print(f"  Kein Signal: {report['no_signal']} von {report['total']} Pins\n")
 
 
+def print_comparison(reports: dict[str, dict]) -> None:
+    """Kurze Tabelle: alle Empfehler nebeneinander."""
+    print("Vergleich")
+    print(f"  {'Empfehler':<28} {'Treffer@1':>9} {'Treffer@5':>9} {'kein Signal':>12}")
+    for name, report in reports.items():
+        print(f"  {name:<28} {report['hit_at_1']:>9.0%} {report['hit_at_k']:>9.0%} "
+              f"{report['no_signal']:>8} / {report['total']}")
+    print()
+
+
 def main() -> None:
     path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEMO_TESTSET
     products = get_product_source().load()
-    report = evaluate(load_testset(path), text_recommender, products)
-    print_report(report, products)
+    cases = load_testset(path)
+    reports = {name: evaluate(cases, rec, products) for name, rec in RECOMMENDERS.items()}
+    # Ausführlich nur für den besten (letzten) Empfehler, dann der Vergleich
+    last = list(reports)[-1]
+    print_report(reports[last], products, name=last)
+    print_comparison(reports)
 
 
 if __name__ == "__main__":

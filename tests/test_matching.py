@@ -193,3 +193,36 @@ def test_api_recommendations_per_department(fake, client):
     fashion = client.get("/api/recommendations").json()  # Standard: Mode
     assert all(p["department"] == "mode" for p in fashion["products"])
     assert fashion["products"][0]["name"] == "Oversized Hoodie Sand"
+
+
+# --- Board-Namen und Bildfarbe ---------------------------------------------------------------
+
+def test_color_from_hex():
+    assert matching.color_from_hex("#d3bf9f") == "beige"
+    assert matching.color_from_hex("#6e7350") == "oliv"
+    assert matching.color_from_hex("#7a5638") == "braun"
+    assert matching.color_from_hex("#c46a43") == "orange"
+    assert matching.color_from_hex("#1f1d1e") == "schwarz"
+    # Hintergründe werden ignoriert
+    assert matching.color_from_hex("#f4f2ee") is None   # fast weiß
+    assert matching.color_from_hex("#9a9a9c") is None   # grau
+    # Ungültige Werte
+    assert matching.color_from_hex(None) is None
+    assert matching.color_from_hex("beige") is None
+
+
+def test_board_name_and_alt_text_count_as_text():
+    p = {"title": "fit 🤍", "description": "", "board_name": "Herbst Outfits",
+         "alt_text": "Frau im Trenchcoat"}
+    assert matching.classify_pin(p) == {"mode"}
+    profile = build_style_profile([p])
+    assert profile.categories == {"Jacken": 1}
+
+
+def test_image_color_counts_once_per_pin():
+    pins = [
+        {"title": "Beige look", "dominant_color": "#d3bf9f"},  # beige aus Text UND Bild
+        {"title": "", "dominant_color": "#d3bf9f"},            # beige nur aus dem Bild
+        {"title": "", "dominant_color": "#f4f2ee"},            # weißer Hintergrund
+    ]
+    assert build_style_profile(pins).colors == {"beige": 2}

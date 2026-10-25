@@ -50,3 +50,24 @@ def test_text_recommender_finds_nothing_without_words():
     ranking = text_recommender({"title": "Keramikvase", "description": "sand"}, "wohnen", products)
     assert ranking[0] == "prod-031"
     assert all(pid in {p.id for p in products if p.department == "wohnen"} for pid in ranking)
+
+
+def test_board_name_and_image_color_help_text_poor_pins():
+    """Ohne Board/Farbe kein Signal – mit Board-Name und Bildfarbe ein Ergebnis."""
+    from backend.evaluate import pin_text_only_recommender
+    products = JsonProductSource().load()
+    pin = {"title": "home inspo ✨", "description": "", "board_name": "Balkon",
+           "dominant_color": "#c46a43"}
+    assert pin_text_only_recommender(pin, "wohnen", products) == []
+    assert text_recommender(pin, "wohnen", products)[0] == "prod-041"   # Pflanztopf Terracotta
+
+
+def test_demo_comparison_board_and_color_not_worse():
+    """Wache gegen Rückschritte: Board + Farbe darf auf dem Demo-Set nicht schlechter sein."""
+    from backend.evaluate import RECOMMENDERS
+    products = JsonProductSource().load()
+    cases = load_testset()
+    text_only = evaluate(cases, RECOMMENDERS["Nur Pin-Text"], products)
+    with_board = evaluate(cases, RECOMMENDERS["Text + Board + Bildfarbe"], products)
+    assert with_board["hit_at_k"] >= text_only["hit_at_k"]
+    assert with_board["no_signal"] <= text_only["no_signal"]

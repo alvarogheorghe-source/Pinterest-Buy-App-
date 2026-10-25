@@ -134,8 +134,13 @@ python -m backend.evaluate mein_test.json  # eigenes Testset
 Ein Testset enthält Pins und von Hand ausgewählte passende Produkte (`relevant`).
 Gemessen werden **Treffer@1** (erster Vorschlag passt), **Treffer@5** (mind. ein
 passender unter den ersten 5), **Ø Platz** des ersten Treffers und wie viele Pins
-**kein Signal** liefern (kein bekanntes Wort). Der Empfehler ist austauschbar, damit sich
-z.B. Text und Bilderkennung mit demselben Testset vergleichen lassen.
+**kein Signal** liefern (kein bekanntes Wort). Alle Empfehler in `RECOMMENDERS`
+(`backend/evaluate.py`) werden mit demselben Testset verglichen – heute „Nur Pin-Text“
+gegen „Text + Board + Bildfarbe“, später z.B. eine Bilderkennung.
+
+Zusätzliche Hinweise neben Titel/Beschreibung: der **Board-Name** („Herbst Outfits“),
+der **Alt-Text** des Pins und die **Hauptfarbe des Bildes** (`color_from_hex()` in
+`matching.py`; fast weiße und graue Töne werden als Hintergrund ignoriert).
 
 **Achtung:** Das Demo-Testset ist erfunden und eher „leicht“ (die Pins enthalten
 meist passende Wörter, der Katalog ist klein). Aussagekräftig wird die Messung erst

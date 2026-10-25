@@ -35,8 +35,10 @@ def test_pins_are_loaded_saved_and_simplified(fake, client):
     assert saved["pins"] == [{
         "id": "p1",
         "board_id": "111",
+        "board_name": "Sommer Looks",  # aus der Board-Liste
         "title": "Beiger Oversized Hoodie",
         "description": "cozy streetwear",
+        "alt_text": "",
         "image_url": "big.jpg",   # 600x wird gegenüber 150x150 bevorzugt
         "dominant_color": "#d8c3a5",
         "link": "https://www.depop.com/products/seller-beige-hoodie/",

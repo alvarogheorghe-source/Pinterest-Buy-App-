@@ -28,13 +28,17 @@ def pick_image_url(media: dict | None) -> str | None:
     return media.get("cover_image_url")
 
 
-def simplify_pin(pin: dict, board_id: str) -> dict:
+def simplify_pin(pin: dict, board_id: str, board_name: str | None = None) -> dict:
     """Macht aus der großen API-Antwort einen kleinen, übersichtlichen Eintrag."""
     return {
         "id": pin["id"],
         "board_id": board_id,
+        # Der Board-Name verrät oft Welt und Stil ("Herbst Outfits", "Wohnzimmer")
+        "board_name": board_name,
         "title": pin.get("title") or "",
         "description": pin.get("description") or "",
+        # Bildbeschreibung (für Barrierefreiheit) – fehlt oft, hilft aber, wenn vorhanden
+        "alt_text": pin.get("alt_text") or "",
         "image_url": pick_image_url(pin.get("media")),
         "dominant_color": pin.get("dominant_color"),
         # Ziel-Link des Pins, z.B. ein Depop-Angebot (siehe shop_links.py)
@@ -42,7 +46,8 @@ def simplify_pin(pin: dict, board_id: str) -> dict:
     }
 
 
-def fetch_board_pins(board_id: str, max_pins: int = MAX_PINS_PER_BOARD) -> list[dict]:
+def fetch_board_pins(board_id: str, max_pins: int = MAX_PINS_PER_BOARD,
+                     board_name: str | None = None) -> list[dict]:
     """Lädt die Pins eines Boards – seitenweise, bis max_pins erreicht sind."""
     pins = []
     bookmark = None
@@ -53,7 +58,7 @@ def fetch_board_pins(board_id: str, max_pins: int = MAX_PINS_PER_BOARD) -> list[
         page = pinterest.api_get(f"/boards/{board_id}/pins", params=params)
 
         for pin in page.get("items", []):
-            pins.append(simplify_pin(pin, board_id))
+            pins.append(simplify_pin(pin, board_id, board_name))
 
         bookmark = page.get("bookmark")
         if not bookmark:
@@ -67,10 +72,13 @@ def load_pins_for_selected_boards() -> dict:
     if not board_ids:
         raise ValueError("Keine Boards ausgewählt.")
 
+    # Board-Namen einmal holen: Board-ID -> Name
+    board_names = {board["id"]: board["name"] for board in pinterest.list_boards()}
+
     all_pins = []
     seen_ids = set()  # derselbe Pin kann in mehreren Boards sein -> nur einmal speichern
     for board_id in board_ids:
-        for pin in fetch_board_pins(board_id):
+        for pin in fetch_board_pins(board_id, board_name=board_names.get(board_id)):
             if pin["id"] not in seen_ids:
                 seen_ids.add(pin["id"])
                 all_pins.append(pin)

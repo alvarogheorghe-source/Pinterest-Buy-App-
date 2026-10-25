@@ -1,103 +1,211 @@
 {
-  "_hinweis": "Erfundenes Demo-Testset. Pins wie sie typischerweise auf Pinterest aussehen; die passenden Produkte ('relevant') wurden von Hand aus data/products.json ausgewählt. 'bild_zeigt' beschreibt, was auf dem (gedachten) Bild zu sehen ist – die Text-Erkennung sieht das NICHT.",
+  "_hinweis": "Erfundenes Demo-Testset. Pins wie sie typischerweise auf Pinterest aussehen; die passenden Produkte ('relevant') wurden von Hand aus data/products.json ausgewählt. 'bild_zeigt' beschreibt, was auf dem (gedachten) Bild zu sehen ist – die Text-Erkennung sieht das NICHT. 'board_name' und 'dominant_color' sind so gewählt, wie Pinterest sie liefern könnte – bei drei Pins ist die Bildfarbe bewusst ein weißer Hintergrund.",
   "cases": [
     {
       "id": "beiger-hoodie",
       "department": "mode",
-      "pin": {"title": "Beige oversized hoodie", "description": "cozy streetwear look"},
+      "pin": {
+        "title": "Beige oversized hoodie",
+        "description": "cozy streetwear look",
+        "board_name": "Outfits",
+        "dominant_color": "#cbb89d"
+      },
       "bild_zeigt": "Beiger Oversized-Hoodie",
-      "relevant": ["prod-001", "prod-005"]
+      "relevant": [
+        "prod-001",
+        "prod-005"
+      ]
     },
     {
       "id": "cargohose",
       "department": "mode",
-      "pin": {"title": "Baggy cargo pants outfit", "description": "olive, streetwear"},
+      "pin": {
+        "title": "Baggy cargo pants outfit",
+        "description": "olive, streetwear",
+        "board_name": "Streetwear",
+        "dominant_color": "#6e7350"
+      },
       "bild_zeigt": "Weite olivgrüne Cargohose",
-      "relevant": ["prod-003"]
+      "relevant": [
+        "prod-003"
+      ]
     },
     {
       "id": "rollkragen",
       "department": "mode",
-      "pin": {"title": "Schwarzer Rollkragenpullover", "description": "elegant und minimalistisch"},
+      "pin": {
+        "title": "Schwarzer Rollkragenpullover",
+        "description": "elegant und minimalistisch",
+        "board_name": "Herbst Looks",
+        "dominant_color": "#f2f1ef"
+      },
       "bild_zeigt": "Schwarzer Rollkragenpullover",
-      "relevant": ["prod-023"]
+      "relevant": [
+        "prod-023"
+      ]
     },
     {
       "id": "blumenkleid",
       "department": "mode",
-      "pin": {"title": "Floral midi dress", "description": "summer, romantic"},
+      "pin": {
+        "title": "Floral midi dress",
+        "description": "summer, romantic",
+        "board_name": "Sommer",
+        "dominant_color": "#e3b7bd"
+      },
       "bild_zeigt": "Geblümtes Midikleid",
-      "relevant": ["prod-009", "prod-018"]
+      "relevant": [
+        "prod-009",
+        "prod-018"
+      ]
     },
     {
       "id": "lederjacke",
       "department": "mode",
-      "pin": {"title": "Vintage Lederjacke", "description": "braun, 70s Vibes"},
+      "pin": {
+        "title": "Vintage Lederjacke",
+        "description": "braun, 70s Vibes",
+        "board_name": "Vintage",
+        "dominant_color": "#7a5638"
+      },
       "bild_zeigt": "Braune Vintage-Lederjacke",
-      "relevant": ["prod-016", "prod-022"]
+      "relevant": [
+        "prod-016",
+        "prod-022"
+      ]
     },
     {
       "id": "sneaker",
       "department": "mode",
-      "pin": {"title": "white chunky sneakers", "description": ""},
+      "pin": {
+        "title": "white chunky sneakers",
+        "description": "",
+        "board_name": "Shoes",
+        "dominant_color": "#efefef"
+      },
       "bild_zeigt": "Weiße klobige Sneaker",
-      "relevant": ["prod-011"]
+      "relevant": [
+        "prod-011"
+      ]
     },
     {
       "id": "fit-herz",
       "department": "mode",
-      "pin": {"title": "fit 🤍", "description": ""},
+      "pin": {
+        "title": "fit 🤍",
+        "description": "",
+        "board_name": "Herbst Outfits",
+        "dominant_color": "#d3bf9f"
+      },
       "bild_zeigt": "Beiger Trenchcoat mit Bundfaltenhose (kaum Text!)",
-      "relevant": ["prod-007", "prod-020"]
+      "relevant": [
+        "prod-007",
+        "prod-020"
+      ]
     },
     {
       "id": "ohne-text",
       "department": "mode",
-      "pin": {"title": "", "description": ""},
+      "pin": {
+        "title": "",
+        "description": "",
+        "board_name": "Abendlooks",
+        "dominant_color": "#1f1d1e"
+      },
       "bild_zeigt": "Schwarzes Slip Dress (gar kein Text!)",
-      "relevant": ["prod-010"]
+      "relevant": [
+        "prod-010"
+      ]
     },
     {
       "id": "keramikvase",
       "department": "wohnen",
-      "pin": {"title": "Keramikvase", "description": "japandi, sand"},
+      "pin": {
+        "title": "Keramikvase",
+        "description": "japandi, sand",
+        "board_name": "Wohnung",
+        "dominant_color": "#d9c6a9"
+      },
       "bild_zeigt": "Sandfarbene Keramikvase",
-      "relevant": ["prod-031", "prod-047"]
+      "relevant": [
+        "prod-031",
+        "prod-047"
+      ]
     },
     {
       "id": "rattanlampe",
       "department": "wohnen",
-      "pin": {"title": "Rattan lamp", "description": "boho living room"},
+      "pin": {
+        "title": "Rattan lamp",
+        "description": "boho living room",
+        "board_name": "Wohnzimmer",
+        "dominant_color": "#b48a5a"
+      },
       "bild_zeigt": "Rattan-Pendelleuchte im Wohnzimmer",
-      "relevant": ["prod-033", "prod-050"]
+      "relevant": [
+        "prod-033",
+        "prod-050"
+      ]
     },
     {
       "id": "schlafzimmer",
       "department": "wohnen",
-      "pin": {"title": "Cozy bedroom", "description": "linen bedding, cream blanket"},
+      "pin": {
+        "title": "Cozy bedroom",
+        "description": "linen bedding, cream blanket",
+        "board_name": "Schlafzimmer",
+        "dominant_color": "#ebe4d8"
+      },
       "bild_zeigt": "Bett mit Leinenbettwäsche und cremefarbener Decke",
-      "relevant": ["prod-046", "prod-036"]
+      "relevant": [
+        "prod-046",
+        "prod-036"
+      ]
     },
     {
       "id": "kueche",
       "department": "wohnen",
-      "pin": {"title": "Scandi kitchen", "description": "wooden board, white mugs"},
+      "pin": {
+        "title": "Scandi kitchen",
+        "description": "wooden board, white mugs",
+        "board_name": "Küche",
+        "dominant_color": "#f4f2ee"
+      },
       "bild_zeigt": "Helle Küche mit Holzbrett und weißen Tassen",
-      "relevant": ["prod-037", "prod-038"]
+      "relevant": [
+        "prod-037",
+        "prod-038"
+      ]
     },
     {
       "id": "home-inspo",
       "department": "wohnen",
-      "pin": {"title": "home inspo ✨", "description": ""},
+      "pin": {
+        "title": "home inspo ✨",
+        "description": "",
+        "board_name": "Balkon",
+        "dominant_color": "#c46a43"
+      },
       "bild_zeigt": "Terrakotta-Töpfe und ein Olivenbäumchen (kaum Text!)",
-      "relevant": ["prod-041", "prod-042"]
+      "relevant": [
+        "prod-041",
+        "prod-042"
+      ]
     },
     {
       "id": "bilderwand",
       "department": "wohnen",
-      "pin": {"title": "Gallery wall", "description": "wooden frames, abstract prints"},
+      "pin": {
+        "title": "Gallery wall",
+        "description": "wooden frames, abstract prints",
+        "board_name": "Wohnzimmer",
+        "dominant_color": "#e8e2d6"
+      },
       "bild_zeigt": "Bilderwand mit Holzrahmen und abstrakten Postern",
-      "relevant": ["prod-049", "prod-039"]
+      "relevant": [
+        "prod-049",
+        "prod-039"
+      ]
     }
   ]
 }

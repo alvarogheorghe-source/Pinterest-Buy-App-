@@ -71,7 +71,7 @@ CATEGORY_SYNONYMS = {
     "Oberteile": ("mode", ["hoodie", "*pullover", "sweater", "*shirt", "t-shirt", "top",
                            "*bluse", "blouse", "*hemd", "knit", "crop top"]),
     "Hosen": ("mode", ["*hose", "pants", "*jeans", "trousers", "sweatpants"]),
-    "Jacken": ("mode", ["*jacke", "jacket", "coat", "*mantel", "trench", "puffer", "blazer",
+    "Jacken": ("mode", ["*jacke", "jacket", "*coat", "*mantel", "trench", "puffer", "blazer",
                         "bomber"]),
     "Kleider & Röcke": ("mode", ["*kleid", "dress", "rock", "minirock", "jeansrock",
                                  "faltenrock", "plisseerock", "skirt"]),
@@ -98,11 +98,13 @@ CATEGORY_SYNONYMS = {
 }
 
 # Allgemeine Wörter, die eine Welt verraten, ohne eine Kategorie zu nennen
+# (Auch typische Board-Namen wie "Outfits", "Mode", "Wohnideen")
 DEPARTMENT_WORDS = {
-    "mode": ["outfit", "ootd", "fashion", "kleidung", "clothing", "streetwear", "fit check"],
+    "mode": ["outfit", "outfits", "ootd", "fashion", "mode", "kleidung", "clothing",
+             "streetwear", "fit check"],
     "wohnen": ["interior", "einrichtung", "home decor", "wohnzimmer", "living room",
                "schlafzimmer", "bedroom", "wohnung", "apartment", "zuhause", "interior design",
-               "badezimmer", "bathroom"],
+               "badezimmer", "bathroom", "wohnen", "wohnideen", "küche"],
 }
 
 
@@ -169,7 +171,48 @@ def find_terms(text: str, patterns: dict[str, re.Pattern]) -> set[str]:
 
 
 def pin_text(pin: dict) -> str:
-    return f"{pin.get('title') or ''} {pin.get('description') or ''}"
+    """Alle Texte eines Pins: Titel, Beschreibung, Alt-Text und Name des Boards."""
+    parts = ["title", "description", "alt_text", "board_name"]
+    return " ".join(pin.get(part) or "" for part in parts)
+
+
+# Bildfarbe -> Farbname. Pinterest liefert pro Bild eine Hauptfarbe ("#d3bf9f").
+# Wir suchen die nächstliegende unserer Farben (Abstand im RGB-Farbraum).
+# Weiß, Grau, Silber, Gold fehlen hier bewusst – siehe color_from_hex().
+COLOR_REFERENCES = {
+    "beige": (216, 195, 165),
+    "braun": (123, 90, 60),
+    "oliv": (107, 112, 72),
+    "grün": (122, 158, 126),
+    "blau": (90, 130, 180),
+    "rosa": (232, 180, 188),
+    "rot": (180, 40, 50),
+    "orange": (200, 105, 63),
+    "gelb": (225, 190, 60),
+    "schwarz": (30, 30, 30),
+}
+
+
+def color_from_hex(hex_color: str | None) -> str | None:
+    """"#d3bf9f" -> "beige". None, wenn die Farbe wohl nur der Hintergrund ist.
+
+    Die Hauptfarbe eines Pins ist oft die weiße Wand oder das graue Studio
+    dahinter. Fast weiße und farblose (graue) Töne ignorieren wir deshalb –
+    Weiß und Grau erkennt die App dann nur aus dem Text.
+    """
+    if not hex_color or not re.fullmatch(r"#[0-9a-fA-F]{6}", hex_color):
+        return None
+    r, g, b = (int(hex_color[i:i + 2], 16) for i in (1, 3, 5))
+    brightest, darkest = max(r, g, b), min(r, g, b)
+    if darkest > 225:                                   # fast weiß
+        return None
+    if brightest - darkest < 18 and brightest > 60:     # grau (aber nicht schwarz)
+        return None
+
+    def distance(reference: tuple[int, int, int]) -> int:
+        return sum((a - b) ** 2 for a, b in zip((r, g, b), reference))
+
+    return min(COLOR_REFERENCES, key=lambda name: distance(COLOR_REFERENCES[name]))
 
 
 def classify_pin(pin: dict) -> set[str]:
@@ -199,7 +242,11 @@ def build_style_profile(pins: list[dict], department: str | None = None) -> Styl
     profile = StyleProfile(pin_count=len(pins))
     for pin in pins:
         text = pin_text(pin)
-        profile.colors.update(find_terms(text, COLOR_PATTERNS))
+        colors = find_terms(text, COLOR_PATTERNS)
+        image_color = color_from_hex(pin.get("dominant_color"))
+        if image_color:
+            colors.add(image_color)  # Menge -> zählt pro Pin trotzdem nur einmal
+        profile.colors.update(colors)
         profile.styles.update(find_terms(text, STYLE_PATTERNS))
         categories = find_terms(text, CATEGORY_PATTERNS)
         if department:  # nur Kategorien der gewählten Welt
