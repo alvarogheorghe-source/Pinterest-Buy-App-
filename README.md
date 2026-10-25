@@ -20,12 +20,14 @@ backend/
   matching.py   Stilprofil aus Pin-Texten + Produkt-Ranking mit Begründung
   shop_links.py erkennt Pins mit Link zu Shops/Second-Hand (Depop, Vinted …)
   prices.py     liest Preise aus Pin-Texten („25€“, „£18“ …)
+  similar.py    ähnliche Artikel (gleiche Welt, Kategorie, Farben, Stile)
   demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
   products.py   Produktmodell, austauschbare Produktquelle, Preis-/Kategoriefilter
   storage.py    speichert Daten als JSON in data/
 frontend/
   index.html + landing.css  Startseite: stellt die App vor, „Kostenlos starten“
   shop.html + shop.js     Shop: Stilprofil, Tabs, Filter, Produktraster
+  produkt.html + produkt.js  Detailseite mit „Mehr wie das“ (ähnliche Artikel)
   konto.html + konto.js   Mein Pinterest: verbinden, Boards wählen, Pins laden
   style.css               gemeinsames Design (Farben als Variablen ganz oben)
 data/           products.json (Beispielprodukte) + Laufzeitdaten (tokens.json etc. – nicht im Git)
@@ -107,6 +109,18 @@ direkt zu einem Angebot, ist das genau das Teil aus dem Bild.
 - Diese Links sind **keine Werbung** (wir verdienen nichts) → Hinweis „Link aus deinem Pin“,
   `rel="nofollow"`. Shop-Seiten werden nicht abgerufen (kein Scraping).
 - http://localhost:8000/shop.html#wohnen/pins öffnet Welt + Tab direkt; API: `/api/pin-items?department=wohnen&max_price=30`
+
+## „Mehr wie das“ (Pinterest-Stil)
+
+Klick auf ein Produkt im Shop → `produkt.html?id=…` zeigt es groß und darunter ähnliche
+Artikel in Spalten wie bei Pinterest. Jede Kachel ist wieder klickbar.
+
+`similar.py` vergibt Punkte: gleiche Welt (Pflicht), gleiche Kategorie (+2),
+Überschneidung der Stile (bis +2) und Farben (bis +1,5), gemessen als Jaccard-Ähnlichkeit
+(gemeinsame Begriffe ÷ alle Begriffe). Die Gewichte stehen oben in der Datei.
+**Phase 2:** `similar_products()` durch einen Bildvergleich (FashionCLIP) ersetzen.
+
+- http://localhost:8000/api/products/prod-001 – Produkt + ähnliche Artikel
 
 ## Matching (ohne KI)
 

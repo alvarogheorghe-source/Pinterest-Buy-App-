@@ -6,13 +6,13 @@ Starten mit:  uvicorn backend.main:app --reload
 import os
 import secrets
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import matching, pins, pinterest, products, shop_links, storage
+from backend import matching, pins, pinterest, products, shop_links, similar, storage
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Style App")
@@ -169,6 +169,25 @@ def get_products(min_price: float | None = None, max_price: float | None = None,
     """Produkte, optional gefiltert. Beispiel: /api/products?max_price=30&department=wohnen"""
     all_products = products.get_product_source().load()
     return products.filter_products(all_products, min_price, max_price, category, department)
+
+
+@app.get("/api/products/{product_id}")
+def get_product_detail(product_id: str, limit: int = Query(12, ge=1, le=48)):
+    """Ein Produkt mit Begründung + ähnliche Artikel ("Mehr wie das").
+    Beispiel: /api/products/prod-001"""
+    all_products = products.get_product_source().load()
+    product = next((p for p in all_products if p.id == product_id), None)
+    if product is None:
+        raise HTTPException(404, "Produkt nicht gefunden.")
+
+    # Begründung wie im Shop: mit dem Stilprofil der passenden Welt
+    profile = matching.build_style_profile(storage.load_pins()["pins"], product.department)
+    detail = matching.rank_products([product], profile)[0]
+    return {
+        "product": detail,
+        "has_profile": profile.pin_count > 0,
+        "similar": similar.similar_products(product, all_products, limit=limit),
+    }
 
 
 @app.get("/api/categories")

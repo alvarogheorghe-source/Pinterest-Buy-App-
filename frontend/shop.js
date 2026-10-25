@@ -166,6 +166,8 @@ function productToCard(product, hasProfile) {
     title: product.name,
     price: formatPrice(product.price, product.currency),
     note: hasProfile ? product.reason : "",
+    // Klick auf Bild oder Name -> Detailseite mit "Mehr wie das"
+    detailUrl: `/produkt.html?id=${encodeURIComponent(product.id)}`,
     buttonText: "Zum Shop",
     href: product.affiliate_url,
     // sponsored = bezahlter Link (für Suchmaschinen), noopener = Shop kann unsere Seite nicht steuern
@@ -250,7 +252,22 @@ function createCard(data) {
   actions.append(link, label);
 
   body.append(topLine, title, price, note, actions);
-  card.append(imageBox, body);
+
+  // Bild und Name als Link zur Detailseite (nur bei Katalog-Produkten)
+  if (data.detailUrl) {
+    const imageLink = document.createElement("a");
+    imageLink.className = "card-link";
+    imageLink.href = data.detailUrl;
+    imageLink.appendChild(imageBox);
+    const titleLink = document.createElement("a");
+    titleLink.className = "card-link";
+    titleLink.href = data.detailUrl;
+    title.replaceWith(titleLink);
+    titleLink.appendChild(title);
+    card.append(imageLink, body);
+  } else {
+    card.append(imageBox, body);
+  }
   return card;
 }
 

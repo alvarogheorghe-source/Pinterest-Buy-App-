@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Produkt – Style App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a href="/" class="logo">STYLE APP</a>
+    <nav class="header-nav">
+      <a href="/shop.html" class="header-link">Shop</a>
+      <a href="/konto.html" class="header-link">Mein Pinterest</a>
+    </nav>
+  </header>
+
+  <main>
+    <a id="back-link" class="back-link" href="/shop.html">← Zurück zum Shop</a>
+
+    <!-- Das Produkt groß (wird von produkt.js gefüllt) -->
+    <article id="detail" class="detail"></article>
+
+    <!-- "Mehr wie das": ähnliche Artikel im Pinterest-Look (Spalten, unterschiedlich hoch) -->
+    <section class="more-like">
+      <h2>Mehr wie das</h2>
+      <div id="masonry" class="masonry"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      <strong>Werbehinweis:</strong> Die Links „Zum Shop“ sind Affiliate-Links. Wenn du darüber
+      etwas kaufst, erhalten wir eine Provision vom Shop. Für dich ändert sich der Preis nicht.
+    </p>
+  </footer>
+
+  <script src="produkt.js"></script>
+</body>
+</html>

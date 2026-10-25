@@ -401,6 +401,160 @@ select {
   text-align: center;
 }
 
+/* Klickbare Teile einer Produktkachel (Bild + Name führen zur Detailseite) */
+.card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-link:hover .card-name {
+  text-decoration: underline;
+}
+
+/* --- Detailseite (produkt.html) -------------------------------------------------------- */
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--text);
+}
+
+.detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 36px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+}
+
+.detail-image {
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  border-radius: 12px;
+  background: var(--chip-bg);
+}
+
+.detail-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-image.fallback,
+.pin-card-image.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.detail-name {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+.detail-price {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.detail-reason {
+  margin: 0;
+  color: var(--muted);
+}
+
+.detail-info .card-actions {
+  margin-top: 12px;
+}
+
+/* "Mehr wie das": Spalten wie bei Pinterest (CSS columns = Masonry ohne JavaScript) */
+.more-like h2 {
+  margin: 40px 0 16px;
+}
+
+.masonry {
+  columns: 4 200px;   /* so viele Spalten wie passen, jede mind. 200px */
+  column-gap: 14px;
+}
+
+.pin-card {
+  display: block;
+  margin-bottom: 14px;
+  break-inside: avoid;  /* Kachel nie auf zwei Spalten aufteilen */
+  color: inherit;
+  text-decoration: none;
+}
+
+.pin-card-image {
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--chip-bg);
+  transition: filter 0.2s;
+}
+
+.pin-card:hover .pin-card-image {
+  filter: brightness(0.92);
+}
+
+.pin-card-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pin-card-body {
+  padding: 8px 4px 0;
+}
+
+.pin-card-body p {
+  margin: 0;
+}
+
+.pin-card-name {
+  font-weight: 600;
+}
+
+.pin-card-price {
+  font-weight: 700;
+}
+
+.pin-card-shared {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+@media (max-width: 720px) {
+  .detail {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 14px;
+  }
+
+  .masonry {
+    columns: 2;
+    column-gap: 10px;
+  }
+}
+
 /* --- Footer -------------------------------------------------------------------------- */
 
 .site-footer {
