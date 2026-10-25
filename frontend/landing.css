@@ -88,18 +88,6 @@ body.landing {
   font-size: 1.25rem;
 }
 
-.step-button {
-  margin-top: 16px;
-}
-
-.band-button {
-  margin-top: 24px;
-}
-
-.privacy .button.connect {
-  margin-top: 4px;
-}
-
 /* Leiste unten – nur auf dem Handy sichtbar (siehe Media Query unten) */
 .mobile-connect {
   display: none;

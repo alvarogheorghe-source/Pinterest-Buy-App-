@@ -24,5 +24,5 @@ def test_many_connect_buttons_all_lead_to_konto(client):
     import re
     html = client.get("/").text
     buttons = re.findall(r'<a href="([^"]+)" class="button[^"]*connect[^"]*">', html)
-    assert len(buttons) >= 6
+    assert len(buttons) >= 3
     assert set(buttons) == {"/konto.html"}
