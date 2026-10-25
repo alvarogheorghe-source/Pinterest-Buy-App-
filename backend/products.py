@@ -9,7 +9,7 @@ Klasse, die von ProductSource erbt, und gibst sie in get_product_source() zurüc
 import json
 from pathlib import Path
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from backend.config import BASE_DIR
 
@@ -28,6 +28,15 @@ class Product(BaseModel):
     style_tags: list[str] = []        # feste Begriffe wie "streetwear", "oversized"
     image_url: str
     affiliate_url: str
+
+    @field_validator("image_url", "affiliate_url")
+    @classmethod
+    def must_be_web_link(cls, url: str) -> str:
+        """Nur echte Web-Links erlauben. Ein "javascript:..."-Link aus einem
+        fremden Feed könnte sonst beim Klick Code im Browser ausführen."""
+        if not url.startswith(("https://", "http://")):
+            raise ValueError("Link muss mit http:// oder https:// beginnen")
+        return url
 
 
 class ProductSourceError(Exception):

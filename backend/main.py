@@ -67,7 +67,7 @@ def callback(request: Request, code: str | None = None, state: str | None = None
     """Hierher schickt Pinterest den Nutzer nach dem Login zurück."""
     if error:
         # z.B. wenn der Nutzer auf "Ablehnen" geklickt hat
-        return RedirectResponse(f"/?error={error}")
+        return RedirectResponse(f"/konto.html?error={error}")
 
     expected_state = request.session.pop("oauth_state", None)
     if not state or state != expected_state:
@@ -76,7 +76,8 @@ def callback(request: Request, code: str | None = None, state: str | None = None
         raise HTTPException(400, "Kein Code von Pinterest erhalten.")
 
     pinterest.exchange_code(code)
-    return RedirectResponse("/")
+    # Nach dem Login direkt zur Board-Auswahl
+    return RedirectResponse("/konto.html")
 
 
 @app.post("/auth/logout")

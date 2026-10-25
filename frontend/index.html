@@ -3,36 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Style App</title>
+  <title>Style App – Mode, die zu dir passt</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="site-header">
+    <a href="/" class="logo">STYLE APP</a>
+    <a href="/konto.html" class="header-link">Mein Pinterest</a>
+  </header>
+
   <main>
-    <h1>Style App</h1>
-    <p id="status">Lade…</p>
+    <!-- Stilprofil oder Hinweis zum Verbinden (wird von shop.js gefüllt) -->
+    <section id="profile-banner" class="profile-banner"></section>
 
-    <!-- Sichtbar, solange der Nutzer NICHT verbunden ist -->
-    <section id="login-section" hidden>
-      <p>Verbinde dein Pinterest-Konto, damit wir deinen Stil aus deinen Boards ablesen können.</p>
-      <a class="button" href="/auth/login">Mit Pinterest verbinden</a>
+    <section class="filters">
+      <div>
+        <span class="filter-label">Budget</span>
+        <div class="chips" id="budget-chips">
+          <button class="chip" data-max="15">bis 15 €</button>
+          <button class="chip" data-max="25">bis 25 €</button>
+          <button class="chip" data-max="40">bis 40 €</button>
+          <button class="chip" data-max="60">bis 60 €</button>
+          <button class="chip active" data-max="">Alle</button>
+        </div>
+      </div>
+      <div>
+        <label class="filter-label" for="category-select">Kategorie</label>
+        <select id="category-select">
+          <option value="">Alle Kategorien</option>
+        </select>
+      </div>
+      <div>
+        <label class="filter-label" for="sort-select">Sortieren</label>
+        <select id="sort-select">
+          <option value="match">Passt am besten</option>
+          <option value="price">Preis aufsteigend</option>
+        </select>
+      </div>
     </section>
 
-    <!-- Sichtbar, sobald der Nutzer verbunden ist -->
-    <section id="boards-section" hidden>
-      <h2>Welche Boards zeigen deinen Stil?</h2>
-      <ul id="board-list"></ul>
-      <button id="save-button" class="button">Auswahl speichern</button>
-      <button id="logout-button" class="button secondary">Verbindung trennen</button>
-      <p id="save-message"></p>
-
-      <h2>Deine Pins</h2>
-      <button id="pins-button" class="button">Pins laden</button>
-      <p id="pins-message" class="muted"></p>
-      <p id="profile-text"></p>
-      <div id="pin-grid"></div>
-    </section>
+    <p id="result-count" class="muted"></p>
+    <div id="product-grid" class="product-grid"></div>
   </main>
 
-  <script src="app.js"></script>
+  <footer class="site-footer">
+    <p>
+      <strong>Werbehinweis:</strong> Die Links „Zum Shop“ sind Affiliate-Links. Wenn du darüber
+      etwas kaufst, erhalten wir eine Provision vom Shop. Für dich ändert sich der Preis nicht.
+    </p>
+    <p>
+      Prototyp mit erfundenen Beispielprodukten ·
+      <a href="https://github.com/alvarogheorghe-source/Pinterest-Buy-App-/blob/main/PRIVACY.md">Datenschutz</a>
+    </p>
+  </footer>
+
+  <script src="shop.js"></script>
 </body>
 </html>

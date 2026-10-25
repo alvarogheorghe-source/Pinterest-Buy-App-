@@ -1,4 +1,4 @@
-// Kleines Frontend für Schritt 2: Login-Status anzeigen, Boards auswählen.
+// Konto-Seite: Login-Status anzeigen, Boards auswählen, Pins laden.
 
 const statusText = document.getElementById("status");
 const loginSection = document.getElementById("login-section");
@@ -104,6 +104,7 @@ async function showSavedPins() {
   document.getElementById("profile-text").textContent = terms.length
     ? `Dein Stil: ${terms.join(" · ")}`
     : "In deinen Pins wurden noch keine Farb- oder Stilwörter gefunden.";
+  document.getElementById("shop-link").hidden = false;
 
   // Vorschau: die ersten 24 Bilder
   pinGrid.innerHTML = "";
@@ -130,7 +131,7 @@ document.getElementById("pins-button").addEventListener("click", async () => {
 
 document.getElementById("logout-button").addEventListener("click", async () => {
   await fetch("/auth/logout", { method: "POST" });
-  location.href = "/";
+  location.href = "/konto.html";
 });
 
 init();

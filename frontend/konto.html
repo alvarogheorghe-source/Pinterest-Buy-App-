@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mein Pinterest – Style App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a href="/" class="logo">STYLE APP</a>
+    <a href="/" class="header-link">← Zum Shop</a>
+  </header>
+
+  <main class="narrow">
+    <h1>Mein Pinterest</h1>
+    <p id="status">Lade…</p>
+
+    <!-- Sichtbar, solange der Nutzer NICHT verbunden ist -->
+    <section id="login-section" hidden>
+      <p>Verbinde dein Pinterest-Konto, damit wir deinen Stil aus deinen Boards ablesen können.</p>
+      <a class="button pinterest" href="/auth/login">Mit Pinterest verbinden</a>
+    </section>
+
+    <!-- Sichtbar, sobald der Nutzer verbunden ist -->
+    <section id="boards-section" hidden>
+      <h2>Welche Boards zeigen deinen Stil?</h2>
+      <ul id="board-list"></ul>
+      <button id="save-button" class="button">Auswahl speichern</button>
+      <button id="logout-button" class="button secondary">Verbindung trennen</button>
+      <p id="save-message"></p>
+
+      <h2>Deine Pins</h2>
+      <button id="pins-button" class="button">Pins laden</button>
+      <p id="pins-message" class="muted"></p>
+      <p id="profile-text"></p>
+      <p id="shop-link" hidden><a class="button" href="/">Passende Produkte ansehen →</a></p>
+      <div id="pin-grid"></div>
+    </section>
+  </main>
+
+  <script src="konto.js"></script>
+</body>
+</html>

@@ -45,7 +45,7 @@ def test_callback_exchanges_code_and_saves_tokens(fake, client):
 
     response = client.get(f"/auth/callback?code=abc&state={state}")
     assert response.status_code == 307
-    assert response.headers["location"] == "/"
+    assert response.headers["location"] == "/konto.html"
 
     # Wurde der Code korrekt mit Basic Auth eingetauscht?
     token_request = fake.requests[0]
@@ -63,7 +63,7 @@ def test_callback_exchanges_code_and_saves_tokens(fake, client):
 
 def test_login_error_from_pinterest(fake, client):
     response = client.get("/auth/callback?error=access_denied")
-    assert response.headers["location"] == "/?error=access_denied"
+    assert response.headers["location"] == "/konto.html?error=access_denied"
 
 
 # --- Refresh -------------------------------------------------------------------------

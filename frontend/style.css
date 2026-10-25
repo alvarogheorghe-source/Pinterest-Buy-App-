@@ -1,33 +1,301 @@
-/* Schlichtes Basis-Design. Der richtige Shop-Look kommt in Schritt 6. */
+/* Gemeinsames Design für Shop (index.html) und Konto (konto.html).
+   Alle Farben stehen hier als Variablen – so lässt sich der Look an EINER Stelle ändern. */
+
+:root {
+  --bg: #faf8f5;          /* warmes Off-White */
+  --surface: #ffffff;     /* Kacheln, Kästen */
+  --text: #1c1b1a;
+  --muted: #6f6a64;
+  --border: #e6e1da;
+  --accent: #1c1b1a;      /* Buttons */
+  --accent-text: #ffffff;
+  --chip-bg: #efeae3;
+  --pinterest: #e60023;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #fafafa;
-  color: #222;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
 }
 
+a {
+  color: inherit;
+}
+
+/* --- Kopfzeile ------------------------------------------------------------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.header-link {
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.header-link:hover {
+  text-decoration: underline;
+}
+
+/* --- Allgemeine Bausteine ----------------------------------------------------- */
+
 main {
-  max-width: 640px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 20px 16px 40px;
+}
+
+.narrow {
+  max-width: 640px;
 }
 
 .button {
   display: inline-block;
   padding: 10px 18px;
   border: none;
-  border-radius: 6px;
-  background: #e60023; /* Pinterest-Rot */
-  color: #fff;
-  font-size: 1rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.95rem;
+  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
 }
 
 .button.secondary {
-  background: #ddd;
-  color: #222;
+  background: var(--chip-bg);
+  color: var(--text);
+}
+
+.button.pinterest {
+  background: var(--pinterest);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* --- Stilprofil-Banner -------------------------------------------------------------- */
+
+.profile-banner {
+  padding: 18px;
+  margin-bottom: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.profile-banner h1 {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+}
+
+.profile-banner p {
+  margin: 0;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--chip-bg);
+  font-size: 0.85rem;
+}
+
+/* --- Filter --------------------------------------------------------------------------- */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 24px;
+  margin-bottom: 10px;
+}
+
+.filter-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+select {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+/* --- Produktraster ---------------------------------------------------------------------- */
+
+/* auto-fill + minmax: so viele Spalten wie passen, jede mind. 220px breit */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.card-image {
+  aspect-ratio: 4 / 5;
+  background: var(--chip-bg);
+}
+
+.card-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Ersatz, falls das Bild nicht lädt: Produktname auf farbiger Fläche */
+.card-image.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px 14px;
+}
+
+.card-shop {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.card-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.card-price {
+  margin: 2px 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.card-reason {
+  flex: 1;              /* schiebt den Button immer an den unteren Rand */
+  margin: 4px 0 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Kennzeichnung "Werbung" – bewusst gut sichtbar */
+.ad-label {
+  padding: 2px 8px;
+  border: 1px solid var(--muted);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.empty {
+  padding: 40px 0;
+  text-align: center;
+}
+
+/* --- Footer -------------------------------------------------------------------------- */
+
+.site-footer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* --- Konto-Seite: Board-Liste und Pin-Vorschau ---------------------------------------------- */
+
+section + section {
+  margin-top: 28px;
 }
 
 #board-list {
@@ -41,8 +309,9 @@ main {
   gap: 12px;
   padding: 8px;
   margin-bottom: 8px;
-  background: #fff;
-  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
 #board-list img {
@@ -57,7 +326,6 @@ main {
   cursor: pointer;
 }
 
-/* Vorschau der Pins: so viele Spalten wie hineinpassen, mind. 90px breit */
 #pin-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
@@ -71,7 +339,31 @@ main {
   border-radius: 4px;
 }
 
-.muted {
-  color: #777;
-  font-size: 0.9rem;
+/* --- Handy ------------------------------------------------------------------------------ */
+
+@media (max-width: 520px) {
+  /* Auf dem Handy immer 2 Spalten, etwas kompakter */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .card-body {
+    padding: 10px;
+  }
+
+  .card-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .card-actions .button {
+    width: 100%;
+    padding: 9px 10px;
+    text-align: center;
+  }
+
+  .card-reason {
+    font-size: 0.8rem;
+  }
 }

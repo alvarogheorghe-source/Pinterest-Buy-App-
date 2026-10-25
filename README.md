@@ -3,7 +3,7 @@
 Eine Webapp, die sich mit deinem Pinterest-Konto verbindet, aus deinen Boards deinen
 Stil ableitet und passende Kleidung aus Partnershops vorschlägt.
 
-**Stand:** Phase 1, Schritt 1–5 (Projektgerüst, Pinterest-Login mit Board-Auswahl, Pins laden, Produktdaten, Matching).
+**Stand:** Phase 1 fertig (Projektgerüst, Pinterest-Login mit Board-Auswahl, Pins laden, Produktdaten, Matching, Shop-Oberfläche).
 
 ## Aufbau
 
@@ -17,7 +17,10 @@ backend/
   demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
   products.py   Produktmodell, austauschbare Produktquelle, Preis-/Kategoriefilter
   storage.py    speichert Daten als JSON in data/
-frontend/       index.html, style.css, app.js
+frontend/
+  index.html + shop.js    Shop: Stilprofil, Filter, Produktraster
+  konto.html + konto.js   Mein Pinterest: verbinden, Boards wählen, Pins laden
+  style.css               gemeinsames Design (Farben als Variablen ganz oben)
 data/           products.json (Beispielprodukte) + Laufzeitdaten (tokens.json etc. – nicht im Git)
 tests/          pytest-Tests; conftest.py simuliert den Pinterest-Server
 ```
@@ -51,7 +54,7 @@ Neue Apps haben oft nur „Trial Access“. Für dein eigenes Konto reicht das m
 uvicorn backend.main:app --reload
 ```
 
-Dann http://localhost:8000 öffnen → „Mit Pinterest verbinden“ → Boards auswählen → speichern → „Pins laden“.
+Dann http://localhost:8000 öffnen → **Mein Pinterest** → „Mit Pinterest verbinden“ → Boards auswählen → speichern → „Pins laden“ → „Passende Produkte ansehen“.
 
 Die Pins landen in `data/pins.json` (Titel, Beschreibung, Bild-URL, Hauptfarbe).
 
@@ -71,6 +74,14 @@ Farben und Stil-Tags sind feste, kleingeschriebene Begriffe (`beige`, `streetwea
 schreiben, die von `ProductSource` erbt und in `load()` den Feed in `Product`-Objekte
 umwandelt. Dann in `get_product_source()` diese Klasse zurückgeben – der Rest der App
 bleibt unverändert.
+
+## Shop-Oberfläche
+
+- Kachelraster mit Bild, Shop, Name, Preis und Begründung; auf dem Handy 2 Spalten
+- Filter: Budget (bis 15/25/40/60 €), Kategorie, Sortierung (Passung oder Preis)
+- „Zum Shop“ öffnet den Affiliate-Link im neuen Tab (`rel="sponsored noopener"`),
+  daneben die Kennzeichnung **Werbung**; im Footer ein Werbehinweis
+- Links in Produktdaten müssen mit `http(s)://` beginnen (Schutz vor `javascript:`-Links)
 
 ## Matching (ohne KI)
 

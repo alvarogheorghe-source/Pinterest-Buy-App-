@@ -13,7 +13,7 @@ from backend.products import JsonProductSource, Product, ProductSource, ProductS
 
 def make_product(**changes) -> Product:
     data = {"id": "x1", "name": "Test", "shop": "Testshop", "price": 20.0,
-            "category": "Hosen", "image_url": "img.jpg", "affiliate_url": "https://example.com"}
+            "category": "Hosen", "image_url": "https://example.com/img.jpg", "affiliate_url": "https://example.com"}
     data.update(changes)
     return Product(**data)
 
@@ -50,6 +50,13 @@ def test_invalid_product_gives_clear_error(tmp_path):
 def test_negative_price_is_rejected():
     with pytest.raises(ValueError):
         make_product(price=-5)
+
+
+def test_dangerous_links_are_rejected():
+    with pytest.raises(ValueError, match="http"):
+        make_product(affiliate_url="javascript:alert('hack')")
+    with pytest.raises(ValueError, match="http"):
+        make_product(image_url="data:text/html,<script>")
 
 
 # --- Filter --------------------------------------------------------------------------------
