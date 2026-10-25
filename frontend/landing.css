@@ -1,0 +1,338 @@
+/* Zusätzliches Design nur für die Startseite (index.html).
+   Farben und Grundbausteine kommen aus style.css. */
+
+:root {
+  /* Serifenschrift für Überschriften – vom Gerät, KEINE Google Fonts (Datenschutz) */
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --terracotta: #b85c38;
+}
+
+.header-nav .button.small {
+  padding: 8px 14px;
+  font-size: 0.9rem;
+}
+
+.button.large {
+  padding: 14px 26px;
+  font-size: 1.05rem;
+}
+
+/* --- Hero ------------------------------------------------------------------------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px 16px 72px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+}
+
+.hero h1 {
+  margin: 0 0 20px;
+  font-family: var(--serif);
+  font-size: clamp(2.6rem, 6vw, 4.4rem); /* wächst mit der Fensterbreite */
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.lead {
+  max-width: 34em;
+  margin: 0 0 28px;
+  font-size: 1.15rem;
+  color: var(--muted);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.small-note {
+  margin: 0;
+}
+
+/* App-Vorschau: Board aus Farbflächen + schwebende Produktkachel */
+.hero-visual {
+  position: relative;
+  min-height: 420px;
+}
+
+.board {
+  columns: 3;            /* Masonry-Look wie bei Pinterest */
+  column-gap: 10px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  transform: rotate(-2deg);
+}
+
+.board-pin {
+  height: var(--h);
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: var(--c);
+  break-inside: avoid;
+}
+
+.preview-card {
+  position: absolute;
+  right: -8px;
+  bottom: -24px;
+  width: 220px;
+  padding: 10px 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(28, 27, 26, 0.14);
+  transform: rotate(2deg);
+}
+
+.preview-card p {
+  margin: 4px 4px 0;
+}
+
+.preview-image {
+  height: 150px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: linear-gradient(160deg, #e3d2b8, #cbb391);
+}
+
+.preview-reason {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.preview-tags {
+  position: absolute;
+  top: -14px;
+  left: 18px;
+  display: flex;
+  gap: 6px;
+}
+
+.preview-tags .tag {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* --- Abschnitte -------------------------------------------------------------------- */
+
+.section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px 16px;
+}
+
+.section.alt {
+  max-width: none;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.section.alt > * {
+  max-width: 1168px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.section-title {
+  margin: 0 0 28px;
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  font-weight: 600;
+}
+
+.narrow-section {
+  max-width: 760px;
+}
+
+/* So funktioniert's */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step h3,
+.feature h3 {
+  margin: 12px 0 6px;
+  font-size: 1.1rem;
+}
+
+.step p,
+.feature p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+/* Vorteile */
+.features {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.feature {
+  padding: 22px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  border-top: 3px solid var(--terracotta);
+}
+
+/* Datenschutz */
+.privacy {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 40px;
+}
+
+.checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist li {
+  padding: 12px 0 12px 32px;
+  border-bottom: 1px solid var(--border);
+  background: no-repeat 0 50% / 20px
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='10' fill='%23b85c38'/%3E%3Cpath d='M6 10.5l2.5 2.5L14 7.5' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+}
+
+/* Konto-/Start-Bereich */
+.cta {
+  max-width: 1168px;
+  margin-bottom: 24px;
+  border-radius: 24px;
+  background: var(--text);
+  color: var(--bg);
+  text-align: center;
+}
+
+.cta h2 {
+  margin: 0 0 10px;
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 600;
+}
+
+.cta p {
+  margin: 0 0 26px;
+  color: #cfc8bf;
+}
+
+/* Häufige Fragen */
+details {
+  border-bottom: 1px solid var(--border);
+}
+
+summary {
+  padding: 16px 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+details p {
+  margin: 0 0 16px;
+  color: var(--muted);
+}
+
+/* --- Tablet und Handy ---------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;   /* Text oben, Vorschau darunter */
+    padding-top: 40px;
+  }
+
+  .hero-visual {
+    width: 100%;          /* sonst schrumpft es im Grid auf fast 0 (Inhalt ist "schwebend") */
+    max-width: 440px;
+    margin: 0 auto 30px;
+  }
+
+  .features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .privacy {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .hide-mobile {
+    display: none;
+  }
+
+  .steps,
+  .features {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-visual {
+    min-height: 360px;
+  }
+
+  .preview-card {
+    right: 0;
+    width: 190px;
+  }
+
+  /* Tags dürfen umbrechen, sonst ragen sie über den Bildschirmrand */
+  .preview-tags {
+    right: 18px;
+    flex-wrap: wrap;
+  }
+
+  .section {
+    padding: 48px 16px;
+  }
+
+  .cta {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+
+  .hero-actions .button {
+    flex: 1;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+    white-space: nowrap;   /* Button-Text nicht umbrechen */
+  }
+}

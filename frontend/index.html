@@ -3,69 +3,161 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Style App – Mode, die zu dir passt</title>
+  <title>Style App – Dein Pinterest-Stil zum kleinen Preis</title>
+  <meta name="description" content="Style App erkennt deinen Stil aus deinen Pinterest-Boards und findet passende Kleidung aus vielen Shops und Second Hand – passend zu deinem Budget.">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="landing.css">
 </head>
 <body>
   <header class="site-header">
     <a href="/" class="logo">STYLE APP</a>
-    <a href="/konto.html" class="header-link">Mein Pinterest</a>
+    <nav class="header-nav">
+      <a href="#so-gehts" class="header-link hide-mobile">So funktioniert's</a>
+      <a href="/shop.html" class="header-link">Shop</a>
+      <a href="/konto.html" class="button small">Kostenlos starten</a>
+    </nav>
   </header>
 
-  <main>
-    <!-- Stilprofil oder Hinweis zum Verbinden (wird von shop.js gefüllt) -->
-    <section id="profile-banner" class="profile-banner"></section>
+  <!-- 1. Hero: das Wichtigste auf einen Blick -->
+  <section class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Mode nach deinem Pinterest</p>
+      <h1>Dein Stil.<br>Zum kleinen Preis.</h1>
+      <p class="lead">
+        Style App schaut sich deine Pinterest-Boards an, erkennt deinen Stil und findet
+        passende Kleidung aus vielen Shops und Second Hand. Sortiert nach deinem Budget.
+      </p>
+      <div class="hero-actions">
+        <a href="/konto.html" class="button large">Kostenlos starten</a>
+        <a href="/shop.html" class="button large secondary">Shop ansehen</a>
+      </div>
+      <p class="muted small-note">Kein neues Passwort. Nur Lesezugriff auf deine Boards.</p>
+    </div>
 
-    <!-- Tabs: Empfehlungen aus dem Katalog vs. Teile direkt aus den Pins -->
-    <nav class="tabs" role="tablist">
-      <button class="tab active" role="tab" aria-selected="true" data-tab="products">Für dich</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="pins">
-        Aus meinen Pins <span id="pin-items-count"></span>
-      </button>
-    </nav>
+    <!-- Vorschau der App: reines HTML/CSS, keine Bilder nötig -->
+    <div class="hero-visual" aria-hidden="true">
+      <div class="board">
+        <div class="board-pin" style="--c: #d8c3a5; --h: 150px"></div>
+        <div class="board-pin" style="--c: #1c1b1a; --h: 110px"></div>
+        <div class="board-pin" style="--c: #6b7048; --h: 120px"></div>
+        <div class="board-pin" style="--c: #efe6d8; --h: 160px"></div>
+        <div class="board-pin" style="--c: #b85c38; --h: 100px"></div>
+        <div class="board-pin" style="--c: #9e9e9e; --h: 130px"></div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-image"></div>
+        <p class="card-shop">Nordfaden</p>
+        <p class="card-name">Oversized Hoodie Sand</p>
+        <p class="card-price">€ 34,99</p>
+        <p class="preview-reason">Passt zu dir: <strong>beige</strong> und <strong>oversized</strong> sind in 12 deiner Pins.</p>
+      </div>
+      <div class="preview-tags">
+        <span class="tag">beige</span>
+        <span class="tag">streetwear</span>
+        <span class="tag">oversized</span>
+      </div>
+    </div>
+  </section>
 
-    <section class="filters">
+  <!-- 2. So funktioniert's -->
+  <section class="section" id="so-gehts">
+    <h2 class="section-title">So funktioniert's</h2>
+    <ol class="steps">
+      <li class="step">
+        <span class="step-number">1</span>
+        <h3>Pinterest verbinden</h3>
+        <p>Du meldest dich direkt bei Pinterest an. Wir sehen dein Passwort nie und können nichts verändern.</p>
+      </li>
+      <li class="step">
+        <span class="step-number">2</span>
+        <h3>Boards auswählen</h3>
+        <p>Wähle die Boards, die deinen Stil zeigen. Aus Farben und Begriffen entsteht dein Stilprofil.</p>
+      </li>
+      <li class="step">
+        <span class="step-number">3</span>
+        <h3>Passende Teile entdecken</h3>
+        <p>Stell dein Budget ein und sieh, was zu dir passt. Mit einem Satz, warum.</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- 3. Vorteile -->
+  <section class="section alt">
+    <h2 class="section-title">Warum Style App?</h2>
+    <div class="features">
+      <article class="feature">
+        <h3>Dein Stil, erkannt</h3>
+        <p>Beige, oversized, Streetwear? Wir lesen deinen Stil aus deinen Pins, nicht aus einem Fragebogen.</p>
+      </article>
+      <article class="feature">
+        <h3>Budget im Blick</h3>
+        <p>Zeig nur, was du dir leisten willst. Bei gleicher Passung kommt das günstigere Teil zuerst.</p>
+      </article>
+      <article class="feature">
+        <h3>Second Hand aus deinen Pins</h3>
+        <p>Führt ein Pin zu Depop, Vinted oder Etsy, zeigen wir dir genau dieses Teil. Gut für Geldbörse und Umwelt.</p>
+      </article>
+      <article class="feature">
+        <h3>Ehrlich und transparent</h3>
+        <p>Links, an denen wir verdienen, sind als „Werbung“ markiert. Für dich ändert sich der Preis nicht.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- 4. Datenschutz -->
+  <section class="section">
+    <div class="privacy">
       <div>
-        <span class="filter-label">Budget</span>
-        <div class="chips" id="budget-chips">
-          <button class="chip" data-max="15">bis 15 €</button>
-          <button class="chip" data-max="25">bis 25 €</button>
-          <button class="chip" data-max="40">bis 40 €</button>
-          <button class="chip" data-max="60">bis 60 €</button>
-          <button class="chip active" data-max="">Alle</button>
-        </div>
+        <h2 class="section-title">Deine Daten bleiben deine</h2>
+        <p class="lead">Wir fragen nur das, was wir für deine Vorschläge brauchen, und nichts davon wird verkauft.</p>
       </div>
-      <div id="category-filter">
-        <label class="filter-label" for="category-select">Kategorie</label>
-        <select id="category-select">
-          <option value="">Alle Kategorien</option>
-        </select>
-      </div>
-      <div>
-        <label class="filter-label" for="sort-select">Sortieren</label>
-        <select id="sort-select">
-          <option value="match">Passt am besten</option>
-          <option value="price">Preis aufsteigend</option>
-        </select>
-      </div>
-    </section>
+      <ul class="checklist">
+        <li>Nur Lesezugriff auf Konto, Boards und Pins</li>
+        <li>Kein Passwort, keine Cookies von Pinterest gespeichert</li>
+        <li>Verbindung jederzeit mit einem Klick trennen</li>
+        <li>Keine Weitergabe an Dritte</li>
+      </ul>
+    </div>
+  </section>
 
-    <p id="result-count" class="muted"></p>
-    <div id="product-grid" class="product-grid"></div>
-  </main>
+  <!-- 5. Konto / Start -->
+  <section class="section cta" id="konto">
+    <h2>Starte in einer Minute</h2>
+    <p>Dein Konto ist dein Pinterest-Login. Kein neues Passwort, kein Formular.</p>
+    <a href="/konto.html" class="button large pinterest">Mit Pinterest verbinden</a>
+  </section>
+
+  <!-- 6. Häufige Fragen: <details> klappt ohne JavaScript auf und zu -->
+  <section class="section narrow-section">
+    <h2 class="section-title">Häufige Fragen</h2>
+    <details>
+      <summary>Kostet Style App etwas?</summary>
+      <p>Nein. Kaufst du über einen mit „Werbung“ markierten Link, bekommen wir eine kleine Provision vom Shop. Dein Preis bleibt gleich.</p>
+    </details>
+    <details>
+      <summary>Woher kommen die Produkte?</summary>
+      <p>Von Partnershops und aus deinen eigenen Pins, wenn diese zu einem Shop oder Second-Hand-Angebot führen.</p>
+    </details>
+    <details>
+      <summary>Brauche ich ein Pinterest-Business-Konto?</summary>
+      <p>Nein, dein normales Pinterest-Konto reicht.</p>
+    </details>
+    <details>
+      <summary>Kann ich meine Daten löschen?</summary>
+      <p>Ja. Unter „Mein Pinterest“ trennst du die Verbindung, und deine gespeicherten Zugangsdaten werden gelöscht. Zusätzlich kannst du den Zugriff in deinen Pinterest-Einstellungen widerrufen.</p>
+    </details>
+  </section>
 
   <footer class="site-footer">
     <p>
-      <strong>Werbehinweis:</strong> Die Links „Zum Shop“ sind Affiliate-Links. Wenn du darüber
-      etwas kaufst, erhalten wir eine Provision vom Shop. Für dich ändert sich der Preis nicht.
-      Links im Tab „Aus meinen Pins“ stammen aus deinen eigenen Pins und sind keine Werbung.
+      <strong>Werbehinweis:</strong> Links mit der Kennzeichnung „Werbung“ sind Affiliate-Links.
+      Wenn du darüber etwas kaufst, erhalten wir eine Provision. Für dich ändert sich der Preis nicht.
     </p>
     <p>
-      Prototyp mit erfundenen Beispielprodukten ·
+      Prototyp mit Beispieldaten ·
       <a href="https://github.com/alvarogheorghe-source/Pinterest-Buy-App-/blob/main/PRIVACY.md">Datenschutz</a>
+      · Impressum folgt
     </p>
   </footer>
-
-  <script src="shop.js"></script>
 </body>
 </html>

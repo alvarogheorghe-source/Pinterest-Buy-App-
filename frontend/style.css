@@ -51,6 +51,12 @@ a {
   text-decoration: none;
 }
 
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
 .header-link {
   font-size: 0.95rem;
   text-decoration: none;

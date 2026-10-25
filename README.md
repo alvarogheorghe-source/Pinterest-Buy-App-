@@ -5,6 +5,9 @@ Stil ableitet und passende Kleidung aus Partnershops vorschlägt.
 
 **Stand:** Phase 1 fertig (Projektgerüst, Pinterest-Login mit Board-Auswahl, Pins laden, Produktdaten, Matching, Shop-Oberfläche).
 
+Was für einen öffentlichen Start noch fehlt (Pinterest-Freigabe, Konten, Hosting,
+Recht in Österreich/EU, Affiliate, Kosten): **[docs/LAUNCH.md](docs/LAUNCH.md)**
+
 ## Aufbau
 
 ```
@@ -20,7 +23,8 @@ backend/
   products.py   Produktmodell, austauschbare Produktquelle, Preis-/Kategoriefilter
   storage.py    speichert Daten als JSON in data/
 frontend/
-  index.html + shop.js    Shop: Stilprofil, Filter, Produktraster
+  index.html + landing.css  Startseite: stellt die App vor, „Kostenlos starten“
+  shop.html + shop.js     Shop: Stilprofil, Tabs, Filter, Produktraster
   konto.html + konto.js   Mein Pinterest: verbinden, Boards wählen, Pins laden
   style.css               gemeinsames Design (Farben als Variablen ganz oben)
 data/           products.json (Beispielprodukte) + Laufzeitdaten (tokens.json etc. – nicht im Git)
@@ -56,7 +60,7 @@ Neue Apps haben oft nur „Trial Access“. Für dein eigenes Konto reicht das m
 uvicorn backend.main:app --reload
 ```
 
-Dann http://localhost:8000 öffnen → **Mein Pinterest** → „Mit Pinterest verbinden“ → Boards auswählen → speichern → „Pins laden“ → „Passende Produkte ansehen“.
+Dann http://localhost:8000 öffnen (Startseite) → **Kostenlos starten** bzw. **Mein Pinterest** → „Mit Pinterest verbinden“ → Boards auswählen → speichern → „Pins laden“ → „Passende Produkte ansehen“ (Shop unter http://localhost:8000/shop.html).
 
 Die Pins landen in `data/pins.json` (Titel, Beschreibung, Bild-URL, Hauptfarbe).
 
@@ -99,7 +103,7 @@ direkt zu einem Angebot, ist das genau das Teil aus dem Bild.
 - Budgetfilter blendet nur aus, was sicher zu teuer ist (ohne Preis / £ / $ bleibt sichtbar).
 - Diese Links sind **keine Werbung** (wir verdienen nichts) → Hinweis „Link aus deinem Pin“,
   `rel="nofollow"`. Shop-Seiten werden nicht abgerufen (kein Scraping).
-- http://localhost:8000/#pins öffnet den Tab direkt; API: `/api/pin-items?max_price=30`
+- http://localhost:8000/shop.html#pins öffnet den Tab direkt; API: `/api/pin-items?max_price=30`
 
 ## Matching (ohne KI)
 
