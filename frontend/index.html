@@ -4,135 +4,264 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Style App – Dein Pinterest-Stil zum kleinen Preis</title>
-  <meta name="description" content="Style App erkennt deinen Stil aus deinen Pinterest-Boards und findet passende Kleidung aus vielen Shops und Second Hand – passend zu deinem Budget.">
+  <meta name="description" content="Style App erkennt deinen Stil aus deinen Pinterest-Boards und findet passende Mode und Wohn-Deko aus vielen Shops und Second Hand – passend zu deinem Budget.">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="landing.css">
 </head>
-<body>
-  <header class="site-header">
+<body class="landing">
+
+  <!-- Icon-Sammlung ("Sprite"): jedes Icon EINMAL definieren, dann überall mit
+       <svg class="icon"><use href="#i-name"/></svg> verwenden. Keine externe Bibliothek nötig. -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
+    <symbol id="i-shirt" viewBox="0 0 24 24"><path d="M20.4 3.5 16 2a4 4 0 0 1-8 0L3.6 3.5a2 2 0 0 0-1.3 2.2l.6 3.5a1 1 0 0 0 1 .8H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.1a1 1 0 0 0 1-.8l.6-3.5a2 2 0 0 0-1.3-2.2z"/></symbol>
+    <symbol id="i-lamp" viewBox="0 0 24 24"><path d="M8 2h8l4 10H4L8 2Z"/><path d="M12 12v6"/><path d="M8 22v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2H8Z"/></symbol>
+    <symbol id="i-vase" viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v3.5C10 8 7 9.5 7 13.5a5 5 0 0 0 10 0c0-4-3-5.5-3-7V3"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M11 4l1.8 4.9L17.7 10.7 12.8 12.5 11 17.4 9.2 12.5 4.3 10.7 9.2 8.9z"/><path d="M19 3v4"/><path d="M17 5h4"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z"/><circle cx="7.5" cy="7.5" r="1.2"/></symbol>
+    <symbol id="i-loop" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  </svg>
+
+  <header class="site-header glass">
     <a href="/" class="logo">STYLE APP</a>
     <nav class="header-nav">
+      <a href="#welten" class="header-link hide-mobile">Mode &amp; Wohnen</a>
       <a href="#so-gehts" class="header-link hide-mobile">So funktioniert's</a>
       <a href="/shop.html" class="header-link">Shop</a>
       <a href="/konto.html" class="button small">Kostenlos starten</a>
     </nav>
   </header>
 
-  <!-- 1. Hero: das Wichtigste auf einen Blick -->
+  <!-- 1. Hero ------------------------------------------------------------------------ -->
   <section class="hero">
-    <div class="hero-text">
-      <p class="eyebrow">Mode nach deinem Pinterest</p>
-      <h1>Dein Stil.<br>Zum kleinen Preis.</h1>
-      <p class="lead">
-        Style App schaut sich deine Pinterest-Boards an, erkennt deinen Stil und findet
-        passende Kleidung aus vielen Shops und Second Hand. Sortiert nach deinem Budget.
-      </p>
-      <div class="hero-actions">
-        <a href="/konto.html" class="button large">Kostenlos starten</a>
-        <a href="/shop.html" class="button large secondary">Shop ansehen</a>
-      </div>
-      <p class="muted small-note">Kein neues Passwort. Nur Lesezugriff auf deine Boards.</p>
+    <div class="hero-bg" aria-hidden="true">
+      <span class="blob blob-blush"></span>
+      <span class="blob blob-sage"></span>
+      <span class="blob blob-butter"></span>
     </div>
 
-    <!-- Vorschau der App: reines HTML/CSS, keine Bilder nötig -->
+    <div class="hero-text">
+      <p class="eyebrow-chip">
+        <svg class="icon"><use href="#i-sparkle"/></svg>
+        Mode · Wohnen · Second Hand
+      </p>
+      <h1>Dein Pinterest.<br>Dein Stil. <em>Zum kleinen Preis.</em></h1>
+      <p class="lead">
+        Style App liest deine Pinterest-Boards, erkennt deinen Stil und findet passende
+        Kleidung und Deko aus vielen Shops und Second Hand. Sortiert nach deinem Budget.
+      </p>
+      <div class="hero-actions">
+        <a href="/konto.html" class="button large">
+          Kostenlos starten <svg class="icon"><use href="#i-arrow"/></svg>
+        </a>
+        <a href="/shop.html" class="button large outline">Shop ansehen</a>
+      </div>
+      <ul class="trust-row">
+        <li><svg class="icon"><use href="#i-shield"/></svg> Nur Lesezugriff</li>
+        <li><svg class="icon"><use href="#i-key"/></svg> Kein neues Passwort</li>
+        <li><svg class="icon"><use href="#i-tag"/></svg> Mit Budgetfilter</li>
+      </ul>
+    </div>
+
+    <!-- App-Vorschau: Pinterest-Board aus Farbflächen + schwebende Karten (nur HTML/CSS) -->
     <div class="hero-visual" aria-hidden="true">
       <div class="board">
-        <div class="board-pin" style="--c: #d8c3a5; --h: 150px"></div>
-        <div class="board-pin" style="--c: #1c1b1a; --h: 110px"></div>
-        <div class="board-pin" style="--c: #6b7048; --h: 120px"></div>
-        <div class="board-pin" style="--c: #efe6d8; --h: 160px"></div>
-        <div class="board-pin" style="--c: #b85c38; --h: 100px"></div>
-        <div class="board-pin" style="--c: #9e9e9e; --h: 130px"></div>
+        <div class="board-pin tile-blush" style="--h: 150px"><svg class="icon"><use href="#i-shirt"/></svg></div>
+        <div class="board-pin tile-ink" style="--h: 104px"></div>
+        <div class="board-pin tile-sage" style="--h: 128px"><svg class="icon"><use href="#i-lamp"/></svg></div>
+        <div class="board-pin tile-sand" style="--h: 160px"><svg class="icon"><use href="#i-vase"/></svg></div>
+        <div class="board-pin tile-terracotta" style="--h: 96px"></div>
+        <div class="board-pin tile-sky" style="--h: 132px"></div>
       </div>
-      <div class="preview-card">
-        <div class="preview-image"></div>
-        <p class="card-shop">Nordfaden</p>
+
+      <div class="float-card card-fashion">
+        <div class="float-image grad-sand"></div>
+        <p class="card-shop">Nordfaden · Oberteile</p>
         <p class="card-name">Oversized Hoodie Sand</p>
         <p class="card-price">€ 34,99</p>
-        <p class="preview-reason">Passt zu dir: <strong>beige</strong> und <strong>oversized</strong> sind in 12 deiner Pins.</p>
       </div>
-      <div class="preview-tags">
-        <span class="tag">beige</span>
-        <span class="tag">streetwear</span>
-        <span class="tag">oversized</span>
+
+      <div class="float-card card-home">
+        <div class="float-image grad-sage"></div>
+        <p class="card-shop">Tonwerk · Deko</p>
+        <p class="card-name">Keramikvase Sand</p>
+        <p class="card-price">€ 24,99</p>
+      </div>
+
+      <div class="float-tags">
+        <span class="soft-chip chip-blush">streetwear</span>
+        <span class="soft-chip chip-sage">japandi</span>
+        <span class="soft-chip chip-butter">beige</span>
       </div>
     </div>
   </section>
 
-  <!-- 2. So funktioniert's -->
+  <!-- 2. Zwei Welten ------------------------------------------------------------------ -->
+  <section class="section" id="welten">
+    <p class="section-kicker">Zwei Welten, ein Stil</p>
+    <h2 class="section-title">Für deinen Kleiderschrank und dein Zuhause</h2>
+    <p class="section-lead">
+      Wir erkennen, ob ein Pin ein Outfit oder ein Wohnzimmer zeigt, und trennen beides sauber.
+      So kann dein Mode-Stil Streetwear sein und dein Wohnstil Japandi.
+    </p>
+
+    <div class="worlds">
+      <a href="/shop.html#mode" class="world world-mode">
+        <span class="world-icon"><svg class="icon"><use href="#i-shirt"/></svg></span>
+        <h3>Mode</h3>
+        <p>Oberteile, Hosen, Jacken, Kleider, Schuhe und Accessoires, passend zu deinen Outfit-Pins.</p>
+        <ul class="world-chips">
+          <li>Oberteile</li><li>Hosen</li><li>Jacken</li><li>Schuhe</li><li>Accessoires</li>
+        </ul>
+        <span class="world-link">Mode entdecken <svg class="icon"><use href="#i-arrow"/></svg></span>
+      </a>
+
+      <a href="/shop.html#wohnen" class="world world-home">
+        <span class="world-icon"><svg class="icon"><use href="#i-lamp"/></svg></span>
+        <h3>Wohnen &amp; Deko</h3>
+        <p>Vasen, Leuchten, Kissen, Möbel und Pflanzen. Wir erkennen die Gegenstände in deinen Pins.</p>
+        <ul class="world-chips">
+          <li>Deko</li><li>Leuchten</li><li>Textilien</li><li>Möbel</li><li>Pflanzen</li>
+        </ul>
+        <span class="world-link">Wohnen entdecken <svg class="icon"><use href="#i-arrow"/></svg></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 3. So funktioniert's ------------------------------------------------------------- -->
   <section class="section" id="so-gehts">
+    <p class="section-kicker">In drei Schritten</p>
     <h2 class="section-title">So funktioniert's</h2>
     <ol class="steps">
       <li class="step">
-        <span class="step-number">1</span>
+        <span class="step-icon tint-sky"><svg class="icon"><use href="#i-link"/></svg></span>
+        <span class="step-number">01</span>
         <h3>Pinterest verbinden</h3>
         <p>Du meldest dich direkt bei Pinterest an. Wir sehen dein Passwort nie und können nichts verändern.</p>
       </li>
       <li class="step">
-        <span class="step-number">2</span>
+        <span class="step-icon tint-butter"><svg class="icon"><use href="#i-grid"/></svg></span>
+        <span class="step-number">02</span>
         <h3>Boards auswählen</h3>
-        <p>Wähle die Boards, die deinen Stil zeigen. Aus Farben und Begriffen entsteht dein Stilprofil.</p>
+        <p>Wähle die Boards, die dich zeigen. Daraus entstehen deine Stilprofile für Mode und Wohnen.</p>
       </li>
       <li class="step">
-        <span class="step-number">3</span>
-        <h3>Passende Teile entdecken</h3>
-        <p>Stell dein Budget ein und sieh, was zu dir passt. Mit einem Satz, warum.</p>
+        <span class="step-icon tint-terracotta"><svg class="icon"><use href="#i-bag"/></svg></span>
+        <span class="step-number">03</span>
+        <h3>Passendes entdecken</h3>
+        <p>Stell dein Budget ein und sieh, was zu dir passt. Zu jedem Teil sagen wir dir, warum.</p>
       </li>
     </ol>
   </section>
 
-  <!-- 3. Vorteile -->
-  <section class="section alt">
-    <h2 class="section-title">Warum Style App?</h2>
+  <!-- 4. Vorteile ------------------------------------------------------------------------ -->
+  <section class="section">
+    <p class="section-kicker">Warum Style App?</p>
+    <h2 class="section-title">Gemacht für guten Geschmack und kleines Budget</h2>
     <div class="features">
       <article class="feature">
+        <span class="feature-icon tint-butter"><svg class="icon"><use href="#i-sparkle"/></svg></span>
         <h3>Dein Stil, erkannt</h3>
-        <p>Beige, oversized, Streetwear? Wir lesen deinen Stil aus deinen Pins, nicht aus einem Fragebogen.</p>
+        <p>Beige, oversized, Japandi? Wir lesen deinen Stil aus deinen Pins, nicht aus einem Fragebogen.</p>
       </article>
       <article class="feature">
+        <span class="feature-icon tint-blush"><svg class="icon"><use href="#i-layers"/></svg></span>
+        <h3>Mode und Wohnen getrennt</h3>
+        <p>Outfit-Pins und Interior-Pins bekommen eigene Profile, damit Vorschläge wirklich passen.</p>
+      </article>
+      <article class="feature">
+        <span class="feature-icon tint-sage"><svg class="icon"><use href="#i-tag"/></svg></span>
         <h3>Budget im Blick</h3>
         <p>Zeig nur, was du dir leisten willst. Bei gleicher Passung kommt das günstigere Teil zuerst.</p>
       </article>
       <article class="feature">
+        <span class="feature-icon tint-sky"><svg class="icon"><use href="#i-loop"/></svg></span>
         <h3>Second Hand aus deinen Pins</h3>
         <p>Führt ein Pin zu Depop, Vinted oder Etsy, zeigen wir dir genau dieses Teil. Gut für Geldbörse und Umwelt.</p>
       </article>
       <article class="feature">
-        <h3>Ehrlich und transparent</h3>
+        <span class="feature-icon tint-terracotta"><svg class="icon"><use href="#i-eye"/></svg></span>
+        <h3>Ehrlich gekennzeichnet</h3>
         <p>Links, an denen wir verdienen, sind als „Werbung“ markiert. Für dich ändert sich der Preis nicht.</p>
+      </article>
+      <article class="feature">
+        <span class="feature-icon tint-sage"><svg class="icon"><use href="#i-shield"/></svg></span>
+        <h3>Deine Daten bleiben deine</h3>
+        <p>Nur Lesezugriff, keine Weitergabe, Verbindung jederzeit mit einem Klick trennen.</p>
       </article>
     </div>
   </section>
 
-  <!-- 4. Datenschutz -->
-  <section class="section">
-    <div class="privacy">
+  <!-- 5. Stil-Band ---------------------------------------------------------------------- -->
+  <section class="style-band">
+    <div class="style-band-inner">
       <div>
-        <h2 class="section-title">Deine Daten bleiben deine</h2>
-        <p class="lead">Wir fragen nur das, was wir für deine Vorschläge brauchen, und nichts davon wird verkauft.</p>
+        <h2>Wir sprechen deinen Stil</h2>
+        <p>Auf Deutsch und Englisch, von „cozy“ bis „Japandi“. Aus „cream knit“ wird beige, aus „baggy“ wird oversized.</p>
       </div>
-      <ul class="checklist">
-        <li>Nur Lesezugriff auf Konto, Boards und Pins</li>
-        <li>Kein Passwort, keine Cookies von Pinterest gespeichert</li>
-        <li>Verbindung jederzeit mit einem Klick trennen</li>
-        <li>Keine Weitergabe an Dritte</li>
+      <ul class="style-words">
+        <li class="w-blush">streetwear</li>
+        <li class="w-sage">japandi</li>
+        <li class="w-butter">beige</li>
+        <li class="w-sky">skandinavisch</li>
+        <li class="w-terracotta">boho</li>
+        <li class="w-blush">oversized</li>
+        <li class="w-sky">minimalistisch</li>
+        <li class="w-butter">vintage</li>
+        <li class="w-sage">natur</li>
+        <li class="w-terracotta">cozy</li>
+        <li class="w-sky">y2k</li>
+        <li class="w-sage">industrial</li>
       </ul>
     </div>
   </section>
 
-  <!-- 5. Konto / Start -->
-  <section class="section cta" id="konto">
-    <h2>Starte in einer Minute</h2>
-    <p>Dein Konto ist dein Pinterest-Login. Kein neues Passwort, kein Formular.</p>
-    <a href="/konto.html" class="button large pinterest">Mit Pinterest verbinden</a>
+  <!-- 6. Datenschutz ---------------------------------------------------------------------- -->
+  <section class="section">
+    <div class="privacy">
+      <div>
+        <p class="section-kicker">Datenschutz</p>
+        <h2 class="section-title">Deine Daten bleiben deine</h2>
+        <p class="section-lead">Wir nutzen nur, was wir für deine Vorschläge brauchen, und verkaufen nichts davon.</p>
+      </div>
+      <ul class="checklist">
+        <li><span class="check"><svg class="icon"><use href="#i-check"/></svg></span>Nur Lesezugriff auf Konto, Boards und Pins</li>
+        <li><span class="check"><svg class="icon"><use href="#i-check"/></svg></span>Kein Passwort, keine Cookies von Pinterest gespeichert</li>
+        <li><span class="check"><svg class="icon"><use href="#i-check"/></svg></span>Verbindung jederzeit mit einem Klick trennen</li>
+        <li><span class="check"><svg class="icon"><use href="#i-check"/></svg></span>Keine Weitergabe an Dritte</li>
+      </ul>
+    </div>
   </section>
 
-  <!-- 6. Häufige Fragen: <details> klappt ohne JavaScript auf und zu -->
+  <!-- 7. Konto / Start --------------------------------------------------------------------- -->
+  <section class="cta" id="konto">
+    <span class="cta-glow" aria-hidden="true"></span>
+    <h2>Starte in einer Minute</h2>
+    <p>Dein Konto ist dein Pinterest-Login. Kein neues Passwort, kein Formular.</p>
+    <a href="/konto.html" class="button large light">
+      Mit Pinterest verbinden <svg class="icon"><use href="#i-arrow"/></svg>
+    </a>
+  </section>
+
+  <!-- 8. Häufige Fragen: <details> klappt ohne JavaScript auf und zu ---------------------- -->
   <section class="section narrow-section">
+    <p class="section-kicker">FAQ</p>
     <h2 class="section-title">Häufige Fragen</h2>
     <details>
       <summary>Kostet Style App etwas?</summary>
       <p>Nein. Kaufst du über einen mit „Werbung“ markierten Link, bekommen wir eine kleine Provision vom Shop. Dein Preis bleibt gleich.</p>
+    </details>
+    <details>
+      <summary>Was zählt zu „Wohnen &amp; Deko“?</summary>
+      <p>Gegenstände für dein Zuhause: Deko wie Vasen und Kerzen, Leuchten, Textilien wie Kissen und Decken, Küche &amp; Tisch, Möbel, Pflanzen und Wanddeko.</p>
     </details>
     <details>
       <summary>Woher kommen die Produkte?</summary>
@@ -148,16 +277,21 @@
     </details>
   </section>
 
-  <footer class="site-footer">
+  <footer class="site-footer landing-footer">
+    <div class="footer-top">
+      <a href="/" class="logo">STYLE APP</a>
+      <nav class="footer-links">
+        <a href="/shop.html#mode">Mode</a>
+        <a href="/shop.html#wohnen">Wohnen &amp; Deko</a>
+        <a href="/konto.html">Mein Pinterest</a>
+        <a href="https://github.com/alvarogheorghe-source/Pinterest-Buy-App-/blob/main/PRIVACY.md">Datenschutz</a>
+      </nav>
+    </div>
     <p>
       <strong>Werbehinweis:</strong> Links mit der Kennzeichnung „Werbung“ sind Affiliate-Links.
       Wenn du darüber etwas kaufst, erhalten wir eine Provision. Für dich ändert sich der Preis nicht.
     </p>
-    <p>
-      Prototyp mit Beispieldaten ·
-      <a href="https://github.com/alvarogheorghe-source/Pinterest-Buy-App-/blob/main/PRIVACY.md">Datenschutz</a>
-      · Impressum folgt
-    </p>
+    <p>Prototyp mit Beispieldaten · Impressum folgt</p>
   </footer>
 </body>
 </html>

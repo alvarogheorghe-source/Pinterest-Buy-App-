@@ -1,7 +1,8 @@
 # Style App (Prototyp)
 
 Eine Webapp, die sich mit deinem Pinterest-Konto verbindet, aus deinen Boards deinen
-Stil ableitet und passende Kleidung aus Partnershops vorschlägt.
+Stil ableitet und passende Kleidung (**Mode**) und Gegenstände (**Wohnen & Deko**) aus
+Partnershops und Second Hand vorschlägt.
 
 **Stand:** Phase 1 fertig (Projektgerüst, Pinterest-Login mit Board-Auswahl, Pins laden, Produktdaten, Matching, Shop-Oberfläche).
 
@@ -69,12 +70,14 @@ Die Pins landen in `data/pins.json` (Titel, Beschreibung, Bild-URL, Hauptfarbe).
 
 ## Produkte
 
-`data/products.json` enthält 30 **erfundene** Produkte (Shops, Preise und Links sind nicht echt).
+`data/products.json` enthält 50 **erfundene** Produkte (Shops, Preise und Links sind nicht echt):
+30 × Mode (`"department": "mode"`) und 20 × Wohnen & Deko (`"department": "wohnen"`).
 Farben und Stil-Tags sind feste, kleingeschriebene Begriffe (`beige`, `streetwear` …).
 
 - http://localhost:8000/api/products – alle Produkte
 - http://localhost:8000/api/products?max_price=30&category=Hosen – gefiltert
-- http://localhost:8000/api/categories – alle Kategorien
+- http://localhost:8000/api/products?department=wohnen – nur Wohnen & Deko
+- http://localhost:8000/api/categories?department=wohnen – Kategorien einer Welt
 
 **Echten Affiliate-Feed einbinden (später):** In `backend/products.py` eine neue Klasse
 schreiben, die von `ProductSource` erbt und in `load()` den Feed in `Product`-Objekte
@@ -96,14 +99,14 @@ direkt zu einem Angebot, ist das genau das Teil aus dem Bild.
 
 - `shop_links.py` prüft den Ziel-Link jedes Pins: Second Hand (Depop, Vinted, willhaben,
   eBay, Kleinanzeigen, Etsy, Sellpy), Shops (Zalando, ASOS, H&M, Zara, About You) und
-  unbekannte Shops mit Produkt-Adresse (`/products/…`). Social Media, gefälschte
+  Wohn-Shops (IKEA, Westwing, Butlers, JYSK, …), unbekannte Shops mit Produkt-Adresse (`/products/…`). Social Media, gefälschte
   Adressen (`depop.com.betrug.net`) und Nicht-Web-Links werden ignoriert.
   Neue Plattform = eine Zeile in `PLATFORMS`.
 - `prices.py` liest den ersten Preis mit Währung aus Titel/Beschreibung („ca. 25 €“).
 - Budgetfilter blendet nur aus, was sicher zu teuer ist (ohne Preis / £ / $ bleibt sichtbar).
 - Diese Links sind **keine Werbung** (wir verdienen nichts) → Hinweis „Link aus deinem Pin“,
   `rel="nofollow"`. Shop-Seiten werden nicht abgerufen (kein Scraping).
-- http://localhost:8000/shop.html#pins öffnet den Tab direkt; API: `/api/pin-items?max_price=30`
+- http://localhost:8000/shop.html#wohnen/pins öffnet Welt + Tab direkt; API: `/api/pin-items?department=wohnen&max_price=30`
 
 ## Matching (ohne KI)
 
@@ -113,10 +116,17 @@ direkt zu einem Angebot, ist das genau das Teil aus dem Bild.
 3. Produkte bekommen Punkte für jede passende Farbe/jeden Stil (häufige Begriffe zählen mehr).
    Bei Gleichstand gewinnt das günstigere Produkt.
 
-- http://localhost:8000/api/profile – dein Stilprofil
-- http://localhost:8000/api/recommendations?max_price=40 – Empfehlungen mit Begründung
+**Mode vs. Wohnen & Deko:** `CATEGORY_SYNONYMS` ordnet Wörter Kategorien zu („vase“ → Deko,
+„hoodie“ → Oberteile). `classify_pin()` entscheidet daraus, ob ein Pin Mode, Wohnen oder
+(ohne klares Wort) beides zeigt. Jede Welt hat ihr **eigenes Stilprofil**; Kategorien, die
+oft gepinnt werden, geben einen Bonus. Ein `*` vor einem Wort erlaubt deutsche
+Zusammensetzungen („*vase“ → „Keramikvase“) – aber nur, wo das nichts Falsches findet
+(„*tisch“ fände „praktisch“, „*decke“ fände „Entdecke“).
 
-**Ohne Pinterest-Login testen:** `python -m backend.demo_pins` schreibt 12 Beispiel-Pins
+- http://localhost:8000/api/profile – deine Stilprofile (Mode und Wohnen)
+- http://localhost:8000/api/recommendations?department=wohnen&max_price=40 – Empfehlungen mit Begründung
+
+**Ohne Pinterest-Login testen:** `python -m backend.demo_pins` schreibt 19 Beispiel-Pins (Mode + Wohnen)
 nach `data/pins.json`. Echte Pins („Pins laden“) überschreiben sie.
 
 **Phase 2:** `build_style_profile()` durch eine Bilderkennung ersetzen, die dasselbe
