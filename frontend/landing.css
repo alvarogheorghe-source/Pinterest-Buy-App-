@@ -4,18 +4,19 @@
 :root {
   /* --serif (Überschriften) steht in style.css */
 
-  /* Akzentfarben: je eine kräftigere Farbe (Icons, Linien) und eine helle Fläche */
-  --terracotta: #c0643f;
-  --terracotta-soft: #f6e4da;
-  --sage: #6f8466;
-  --sage-soft: #e5ebdf;
-  --blush: #c47a6c;
-  --blush-soft: #f6e6e1;
-  --sky: #5f7c97;
-  --sky-soft: #e2eaf1;
-  --butter: #b08a2e;
-  --butter-soft: #f8efd6;
-  --sand: #e9dcc7;
+  /* Akzentfarben – eine rosa Farbfamilie. Je eine kräftigere Farbe (Icons, Linien)
+     und eine helle Fläche. */
+  --berry: #c93a69;
+  --berry-soft: #fde4ec;
+  --lilac: #7b5ea7;
+  --lilac-soft: #f0e9f8;
+  --rose: #b84f74;
+  --rose-soft: #fdeaf0;
+  --peach: #b85e43;
+  --peach-soft: #fdebe2;
+  --gold: #8f6a20;
+  --cream: #fff4de;
+  --shell: #f7e4ea;
 }
 
 /* Schutz gegen seitliches Scrollen durch die schwebenden Deko-Elemente */
@@ -26,7 +27,7 @@ body.landing {
 /* --- Kopfzeile: halbdurchsichtig mit Unschärfe ("Glas") --------------------------------- */
 
 .site-header.glass {
-  background: rgba(250, 248, 245, 0.78);
+  background: rgba(255, 248, 250, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -121,28 +122,28 @@ body.landing {
   opacity: 0.55;
 }
 
-.blob-blush {
+.blob-rose {
   width: 420px;
   height: 420px;
   top: -80px;
   right: 8%;
-  background: var(--blush-soft);
+  background: var(--rose-soft);
 }
 
-.blob-sage {
+.blob-lilac {
   width: 360px;
   height: 360px;
   bottom: -60px;
   right: 30%;
-  background: var(--sage-soft);
+  background: var(--lilac-soft);
 }
 
-.blob-butter {
+.blob-cream {
   width: 300px;
   height: 300px;
   top: 10%;
   left: -100px;
-  background: var(--butter-soft);
+  background: var(--cream);
 }
 
 .eyebrow-chip {
@@ -156,7 +157,7 @@ body.landing {
   background: var(--surface);
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--terracotta);
+  color: var(--berry);
 }
 
 .eyebrow-chip .icon {
@@ -175,7 +176,7 @@ body.landing {
 
 .hero h1 em {
   font-style: italic;
-  color: var(--terracotta);
+  color: var(--berry);
 }
 
 .lead {
@@ -212,7 +213,7 @@ body.landing {
 .trust-row .icon {
   width: 18px;
   height: 18px;
-  color: var(--sage);
+  color: var(--lilac);
 }
 
 /* App-Vorschau */
@@ -228,7 +229,7 @@ body.landing {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 22px;
-  box-shadow: 0 30px 60px -30px rgba(28, 27, 26, 0.25);
+  box-shadow: 0 30px 60px -30px rgba(58, 42, 48, 0.25);
   transform: rotate(-2deg);
 }
 
@@ -249,12 +250,12 @@ body.landing {
   stroke-width: 1.3;
 }
 
-.tile-blush { background: linear-gradient(160deg, #e9c3b8, #d79b8c); }
-.tile-ink { background: linear-gradient(160deg, #3a3633, #1c1b1a); }
-.tile-sage { background: linear-gradient(160deg, #a9b89e, #7e9373); }
-.tile-sand { background: linear-gradient(160deg, #eadbc3, #cdb390); }
-.tile-terracotta { background: linear-gradient(160deg, #d98a66, #b85c38); }
-.tile-sky { background: linear-gradient(160deg, #b9cbdb, #8aa3ba); }
+.tile-rose { background: linear-gradient(160deg, #f8c9d7, #ec9ab4); }
+.tile-plum { background: linear-gradient(160deg, #8e3b5c, #5e2840); }
+.tile-lilac { background: linear-gradient(160deg, #dccbf0, #b39ad8); }
+.tile-shell { background: linear-gradient(160deg, #fbe6dc, #efc3b5); }
+.tile-peach { background: linear-gradient(160deg, #f6a98f, #e47d73); }
+.tile-cream { background: linear-gradient(160deg, #fff1d8, #f6d8b8); }
 
 .float-card {
   position: absolute;
@@ -263,7 +264,7 @@ body.landing {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 22px 44px -12px rgba(28, 27, 26, 0.22);
+  box-shadow: 0 22px 44px -12px rgba(58, 42, 48, 0.22);
 }
 
 .float-card p {
@@ -280,8 +281,8 @@ body.landing {
   border-radius: 10px;
 }
 
-.grad-sand { background: linear-gradient(160deg, #eadbc3, #c9ad87); }
-.grad-sage { background: linear-gradient(160deg, #dfe6d8, #9fb092); }
+.grad-shell { background: linear-gradient(160deg, #fbe6dc, #eec0b0); }
+.grad-rose { background: linear-gradient(160deg, #fde4ec, #f2a9c0); }
 
 .card-fashion {
   right: -14px;
@@ -312,12 +313,12 @@ body.landing {
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
-  box-shadow: 0 6px 16px -8px rgba(28, 27, 26, 0.3);
+  box-shadow: 0 6px 16px -8px rgba(58, 42, 48, 0.3);
 }
 
-.chip-blush { background: var(--blush-soft); color: var(--blush); }
-.chip-sage { background: var(--sage-soft); color: var(--sage); }
-.chip-butter { background: var(--butter-soft); color: var(--butter); }
+.chip-rose { background: var(--rose-soft); color: var(--rose); }
+.chip-lilac { background: var(--lilac-soft); color: var(--lilac); }
+.chip-cream { background: var(--cream); color: var(--gold); }
 
 /* Leichtes Schweben – aus, wenn im System "Bewegung reduzieren" eingestellt ist */
 @keyframes float {
@@ -345,7 +346,7 @@ body.landing {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--terracotta);
+  color: var(--berry);
 }
 
 .section-title {
@@ -377,11 +378,11 @@ body.landing {
   justify-content: center;
 }
 
-.tint-sky { background: var(--sky-soft); color: var(--sky); }
-.tint-butter { background: var(--butter-soft); color: var(--butter); }
-.tint-terracotta { background: var(--terracotta-soft); color: var(--terracotta); }
-.tint-sage { background: var(--sage-soft); color: var(--sage); }
-.tint-blush { background: var(--blush-soft); color: var(--blush); }
+.tint-peach { background: var(--peach-soft); color: var(--peach); }
+.tint-cream { background: var(--cream); color: var(--gold); }
+.tint-berry { background: var(--berry-soft); color: var(--berry); }
+.tint-lilac { background: var(--lilac-soft); color: var(--lilac); }
+.tint-rose { background: var(--rose-soft); color: var(--rose); }
 
 /* --- Zwei Welten ------------------------------------------------------------------------ */
 
@@ -404,11 +405,11 @@ body.landing {
 
 .world:hover {
   transform: translateY(-4px);
-  box-shadow: 0 24px 48px -24px rgba(28, 27, 26, 0.3);
+  box-shadow: 0 24px 48px -24px rgba(58, 42, 48, 0.3);
 }
 
-.world-mode { background: var(--blush-soft); }
-.world-home { background: var(--sage-soft); }
+.world-mode { background: var(--rose-soft); }
+.world-home { background: var(--lilac-soft); }
 
 /* großer, dezenter Kreis als Deko in der Ecke */
 .world::after {
@@ -435,8 +436,8 @@ body.landing {
   height: 28px;
 }
 
-.world-mode .world-icon { color: var(--blush); }
-.world-home .world-icon { color: var(--sage); }
+.world-mode .world-icon { color: var(--rose); }
+.world-home .world-icon { color: var(--lilac); }
 
 .world h3 {
   margin: 0 0 8px;
@@ -559,7 +560,7 @@ body.landing {
 
 .feature:hover {
   transform: translateY(-3px);
-  box-shadow: 0 18px 36px -24px rgba(28, 27, 26, 0.35);
+  box-shadow: 0 18px 36px -24px rgba(58, 42, 48, 0.35);
 }
 
 .feature-icon {
@@ -584,8 +585,8 @@ body.landing {
   margin: 0 auto;
   padding: 56px;
   border-radius: 28px;
-  background: var(--text);
-  color: var(--bg);
+  background: linear-gradient(135deg, #fde4ec, #f9d3e0);
+  color: var(--text);
 }
 
 .style-band h2 {
@@ -597,7 +598,7 @@ body.landing {
 
 .style-band p {
   margin: 0;
-  color: #cfc8bf;
+  color: var(--muted);
 }
 
 .style-words {
@@ -617,11 +618,11 @@ body.landing {
   font-style: italic;
 }
 
-.w-blush { background: var(--blush-soft); color: #8f4f42; }
-.w-sage { background: var(--sage-soft); color: #4c5e44; }
-.w-butter { background: var(--butter-soft); color: #7a5e18; }
-.w-sky { background: var(--sky-soft); color: #3f5a73; }
-.w-terracotta { background: var(--terracotta-soft); color: #94452a; }
+.w-rose { background: var(--rose-soft); color: #93365a; }
+.w-lilac { background: var(--lilac-soft); color: #5a3f86; }
+.w-cream { background: var(--cream); color: #7a5a18; }
+.w-peach { background: var(--peach-soft); color: #93432c; }
+.w-berry { background: var(--berry-soft); color: #a32c55; }
 
 /* --- Datenschutz --------------------------------------------------------------------------- */
 
@@ -654,8 +655,8 @@ body.landing {
   height: 28px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: var(--sage-soft);
-  color: var(--sage);
+  background: var(--lilac-soft);
+  color: var(--lilac);
 }
 
 .check .icon {
@@ -672,8 +673,8 @@ body.landing {
   margin: 0 auto 24px;
   padding: 72px 24px;
   border-radius: 28px;
-  background: var(--text);
-  color: var(--bg);
+  background: linear-gradient(135deg, #cc3d70, #b8325e);
+  color: #fff;
   text-align: center;
   overflow: hidden;
 }
@@ -687,7 +688,7 @@ body.landing {
   height: 320px;
   translate: -50% 0;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(192, 100, 63, 0.45), transparent);
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.28), transparent);
   pointer-events: none;
 }
 
@@ -702,7 +703,7 @@ body.landing {
 .cta p {
   position: relative;
   margin: 0 0 28px;
-  color: #cfc8bf;
+  color: rgba(255, 255, 255, 0.88);
 }
 
 /* --- Häufige Fragen ----------------------------------------------------------------------- */
@@ -730,7 +731,7 @@ summary::after {
   content: "+";
   font-size: 1.3rem;
   line-height: 1;
-  color: var(--terracotta);
+  color: var(--berry);
 }
 
 details[open] summary::after {
@@ -880,7 +881,7 @@ details p {
     z-index: 20;
     display: block;
     padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); /* iPhone-Home-Balken */
-    background: rgba(250, 248, 245, 0.85);
+    background: rgba(255, 248, 250, 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid var(--border);

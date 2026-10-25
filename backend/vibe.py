@@ -1,9 +1,9 @@
-"""Hoppels Vibe-Check: Welchen Vibe gibt dein Pinterest ab? Immer positiv!
+"""Lucifers Vibe-Check: Welchen Vibe gibt dein Pinterest ab? Immer positiv!
 
 Jeder Vibe hat Begriffe (Stile, Farben) mit Gewichten. Wir rechnen für jeden Vibe:
     Punkte = Summe( Gewicht × Anteil der Pins mit diesem Begriff )
 Der Vibe mit den meisten Punkten gewinnt. Ist ein zweiter fast so stark, kommt er
-als "mit einer Prise …" dazu. Die Sprüche werden zufällig gewählt, damit Hoppel
+als "mit einer Prise …" dazu. Die Sprüche werden zufällig gewählt, damit Lucifer
 bei jedem Klick etwas Neues sagt.
 
 Neue Vibes oder Sprüche? Einfach unten in VIBES ergänzen.

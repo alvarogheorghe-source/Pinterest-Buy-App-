@@ -1,13 +1,13 @@
-// Hoppel – das Pixel-Maskottchen der Style App 🐰
+// Lucifer – das Pixel-Maskottchen der Style App 🐰
 //
-// Hoppel läuft unten über jede Seite, isst Karotten, schläft, tanzt, folgt dir
+// Lucifer läuft unten über jede Seite, isst Karotten, schläft, tanzt, folgt dir
 // manchmal, stellt beim ersten Besuch die Website vor, freut sich über 👍 und
 // verrät dir per Klick, welchen Vibe dein Pinterest abgibt (/api/vibe).
 //
 // Wird auf JEDER Seite geladen (nach den anderen Skripten). Aussehen: bunny.css
 
 (() => {
-  const NAME = "Hoppel";
+  const NAME = "Lucifer";
 
   // --- 1. Pixel-Zeichnung ------------------------------------------------------------------
   // Jede Figur ist ein Raster aus Buchstaben (16 × 16). Jeder Buchstabe = ein Pixel
@@ -101,28 +101,28 @@
     try { return store.getItem(key); } catch { return null; }
   }
 
-  // --- 2. Hoppel auf die Seite setzen ---------------------------------------------------------
+  // --- 2. Lucifer auf die Seite setzen ---------------------------------------------------------
 
   const el = document.createElement("div");
-  el.className = "hoppel";
+  el.className = "lucifer";
   el.setAttribute("role", "button");
   el.tabIndex = 0;
   el.setAttribute("aria-label", `${NAME} – klick mich für deinen Pinterest-Vibe`);
   const body = document.createElement("div");
-  body.className = "hoppel-body";
+  body.className = "lucifer-body";
   const sprite = document.createElement("canvas");
-  sprite.className = "hoppel-sprite";
+  sprite.className = "lucifer-sprite";
   body.appendChild(sprite);
   el.appendChild(body);
 
   const bubble = document.createElement("div");
-  bubble.className = "hoppel-bubble";
+  bubble.className = "lucifer-bubble";
   bubble.setAttribute("role", "status");
   bubble.setAttribute("aria-live", "polite");
   bubble.hidden = true;
 
   const returnButton = document.createElement("button");
-  returnButton.className = "hoppel-return";
+  returnButton.className = "lucifer-return";
   returnButton.textContent = "🐾";
   returnButton.setAttribute("aria-label", `${NAME} zurückholen`);
   returnButton.hidden = true;
@@ -139,7 +139,7 @@
   // Position (x = Abstand vom linken Rand) – über Seiten hinweg gemerkt
   const width = () => el.offsetWidth || 64;
   const maxX = () => Math.max(8, window.innerWidth - width() - 8);
-  let x = Number(recall(sessionStorage, "hoppel-x"));
+  let x = Number(recall(sessionStorage, "lucifer-x"));
   if (!Number.isFinite(x) || x <= 0) x = random(8, maxX());
   x = Math.min(x, maxX());
   el.style.left = `${x}px`;
@@ -147,19 +147,19 @@
   function setX(newX) {
     x = Math.max(8, Math.min(newX, maxX()));
     el.style.left = `${x}px`;
-    remember(sessionStorage, "hoppel-x", String(Math.round(x)));
+    remember(sessionStorage, "lucifer-x", String(Math.round(x)));
   }
 
   window.addEventListener("resize", () => setX(x));
 
   // --- Bewegungen -------------------------------------------------------------------------------
 
-  let busy = false; // macht Hoppel gerade etwas?
+  let busy = false; // macht Lucifer gerade etwas?
 
   // Kleiner Effekt über dem Kopf (Herz, z, ♪), der hochschwebt und verschwindet
   function effect(content) {
     const fx = document.createElement("div");
-    fx.className = "hoppel-fx";
+    fx.className = "lucifer-fx";
     if (content === "heart") {
       const heart = document.createElement("canvas");
       draw(heart, HEART);
@@ -187,7 +187,7 @@
     el.style.transition = "";
   }
 
-  // Sofort anhalten (z.B. wenn man auf Hoppel klickt, während er hoppelt)
+  // Sofort anhalten (z.B. wenn man auf Lucifer klickt, während er hoppelt)
   function stop() {
     const current = el.getBoundingClientRect().left;
     el.style.transition = "";
@@ -247,7 +247,7 @@
     show("idle");
   }
 
-  // Maus merken – manchmal hoppelt Hoppel zu dir
+  // Maus merken – manchmal hoppelt Lucifer zu dir
   let mouse = null;
   window.addEventListener("mousemove", (event) => { mouse = { x: event.clientX, at: Date.now() }; });
 
@@ -262,7 +262,7 @@
     }
     if (buttons.length) {
       const row = document.createElement("div");
-      row.className = "hoppel-buttons";
+      row.className = "lucifer-buttons";
       for (const { text, onClick, primary } of buttons) {
         const button = document.createElement("button");
         button.textContent = text;
@@ -273,7 +273,7 @@
       bubble.appendChild(row);
     }
     const close = document.createElement("button");
-    close.className = "hoppel-close";
+    close.className = "lucifer-close";
     close.textContent = "×";
     close.setAttribute("aria-label", "Sprechblase schließen");
     close.addEventListener("click", () => hideBubble());
@@ -291,7 +291,7 @@
     if (introStep !== null) finishIntro();
   }
 
-  // Blase über Hoppel, aber nie über den Bildschirmrand hinaus
+  // Blase über Lucifer, aber nie über den Bildschirmrand hinaus
   function placeBubble() {
     const rect = el.getBoundingClientRect();
     const bubbleWidth = bubble.offsetWidth;
@@ -299,7 +299,7 @@
     const left = Math.max(8, Math.min(center - bubbleWidth / 2, window.innerWidth - bubbleWidth - 8));
     bubble.style.left = `${left}px`;
     bubble.style.bottom = `${window.innerHeight - rect.top + 10}px`;
-    bubble.style.setProperty("--tail-x", `${center - left}px`); // Spitze zeigt auf Hoppel
+    bubble.style.setProperty("--tail-x", `${center - left}px`); // Spitze zeigt auf Lucifer
   }
 
   window.addEventListener("resize", () => { if (!bubble.hidden) placeBubble(); });
@@ -307,7 +307,7 @@
   // --- 4. Vorstellung beim ersten Besuch (nur Startseite) ------------------------------------
 
   const INTRO = [
-    `Hi, ich bin ${NAME}! 🐰`,
+    `Hi, ich bin ${NAME}! 🐰 Keine Sorge – ich bin nur teuflisch süß. 😈`,
     "Ich schau mir deine Pinterest-Boards an und finde Mode & Deko, die zu deinem Vibe " +
       "passen – und zu deinem Budget. 💸",
     "Und wenn du mich anklickst, verrate ich dir, welchen Vibe dein Pinterest abgibt. ✨",
@@ -333,7 +333,7 @@
 
   function finishIntro() {
     introStep = null;
-    remember(localStorage, "hoppel-intro", "done");
+    remember(localStorage, "lucifer-intro", "done");
     bubble.hidden = true;
   }
 
@@ -354,13 +354,13 @@
     }
 
     const title = document.createElement("p");
-    title.className = "hoppel-title";
+    title.className = "lucifer-title";
     title.textContent = `Du bist: ${vibe.emoji} ${vibe.title}`;
     const parts = [title, vibe.text];
     if (vibe.second) parts.push(`… mit einer Prise ${vibe.second}`);
     if (vibe.terms.length) {
       const terms = document.createElement("p");
-      terms.className = "hoppel-terms";
+      terms.className = "lucifer-terms";
       terms.textContent = `Deine Top-Vibes: ${vibe.terms.join(" · ")}`;
       parts.push(terms);
     }
@@ -368,7 +368,7 @@
     const buttons = vibe.pin_count === 0
       ? [{ text: "Pinterest verbinden", primary: true, onClick: () => { location.href = "/konto.html"; } }]
       : [{ text: "Nochmal! 🎲", primary: true, onClick: showVibe }];
-    buttons.push({ text: `${NAME} verstecken`, onClick: hideHoppel });
+    buttons.push({ text: `${NAME} verstecken`, onClick: hideLucifer });
 
     say(parts, { buttons });
     await happyJump();
@@ -384,32 +384,32 @@
   });
 
   // Ausblenden / zurückholen (gemerkt)
-  function hideHoppel() {
+  function hideLucifer() {
     hideBubble();
     el.hidden = true;
     returnButton.hidden = false;
-    remember(localStorage, "hoppel-hidden", "1");
+    remember(localStorage, "lucifer-hidden", "1");
   }
   returnButton.addEventListener("click", () => {
     el.hidden = false;
     returnButton.hidden = true;
-    remember(localStorage, "hoppel-hidden", "0");
+    remember(localStorage, "lucifer-hidden", "0");
     say(["Da bin ich wieder! 🐰"], { autoClose: 2000 });
     happyJump();
   });
-  if (recall(localStorage, "hoppel-hidden") === "1") {
+  if (recall(localStorage, "lucifer-hidden") === "1") {
     el.hidden = true;
     returnButton.hidden = false;
   }
 
   // Reaktion auf 👍 / 👎 (feedback.js meldet das)
-  window.addEventListener("hoppel:like", () => {
+  window.addEventListener("lucifer:like", () => {
     if (el.hidden) return;
     say([pick(["Gemerkt! 💖", "Ooh, das passt sooo zu dir!", "Gute Wahl – iconic! 💅",
       "Ich hätte es auch gewählt. Ehrlich! 🐰"])], { autoClose: 2200 });
     happyJump();
   });
-  window.addEventListener("hoppel:dislike", () => {
+  window.addEventListener("lucifer:dislike", () => {
     if (el.hidden) return;
     say([pick(["Verstanden – weg damit! 🫡", "Okay, sowas zeig ich dir seltener.",
       "Nicht dein Vibe? Kein Ding! ✌️"])], { autoClose: 2200 });
@@ -421,7 +421,7 @@
     // Kleiner Auftritt beim Laden der Seite
     if (!reduceMotion && !el.hidden) happyJump();
 
-    if (document.body.classList.contains("landing") && recall(localStorage, "hoppel-intro") !== "done"
+    if (document.body.classList.contains("landing") && recall(localStorage, "lucifer-intro") !== "done"
         && !el.hidden) {
       await wait(900);
       introStep = 0;
@@ -452,9 +452,9 @@
   }
 
   // Zum Ausprobieren in der Browser-Konsole (Rechtsklick → Untersuchen → Konsole):
-  //   hoppel.tanzen()   hoppel.essen()   hoppel.schlafen()   hoppel.freuen()
-  //   hoppel.hoppeln(300)   hoppel.vibe()
-  window.hoppel = {
+  //   lucifer.tanzen()   lucifer.essen()   lucifer.schlafen()   lucifer.freuen()
+  //   lucifer.hoppeln(300)   lucifer.vibe()
+  window.lucifer = {
     tanzen: dance, essen: eatCarrot, schlafen: nap, freuen: happyJump,
     hoppeln: (targetX) => hopTo(targetX), vibe: showVibe,
   };

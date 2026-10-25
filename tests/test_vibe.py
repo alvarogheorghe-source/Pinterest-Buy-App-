@@ -1,4 +1,4 @@
-"""Tests für Hoppels Vibe-Check (backend/vibe.py).
+"""Tests für Lucifers Vibe-Check (backend/vibe.py).
 
 Starten mit:  pytest -v
 """

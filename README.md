@@ -24,7 +24,7 @@ backend/
   evaluate.py   misst die Genauigkeit der Vorschläge mit einem Testset
   feedback.py   👍/👎: blendet Dislikes aus, schiebt Ähnliches zu Likes nach oben
   vision.py     Bilderkennung (FashionCLIP): Bild-Vektoren berechnen und vergleichen
-  vibe.py       Hoppels Vibe-Check („Goth Baddie 🖤“, „Clean-Girl-Aesthetic 🤍“ …)
+  vibe.py       Lucifers Vibe-Check („Goth Baddie 🖤“, „Clean-Girl-Aesthetic 🤍“ …)
 eval/           demo_testset.json: Beispiel-Pins mit von Hand gewählten passenden Produkten
   demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
   products.py   Produktmodell, austauschbare Produktquelle, Preis-/Kategoriefilter
@@ -34,7 +34,7 @@ frontend/
   shop.html + shop.js     Shop: Stilprofil, Tabs, Filter, Produktraster
   produkt.html + produkt.js  Detailseite mit „Mehr wie das“ (ähnliche Artikel)
   feedback.js             👍/👎-Buttons (Shop und Detailseite)
-  bunny.js + bunny.css    Hoppel, das Pixel-Maskottchen (auf allen Seiten)
+  bunny.js + bunny.css    Lucifer, das Pixel-Maskottchen (auf allen Seiten)
   konto.html + konto.js   Mein Pinterest: verbinden, Boards wählen, Pins laden
   style.css               gemeinsames Design (Farben als Variablen ganz oben)
 data/           products.json (Beispielprodukte) + Laufzeitdaten (tokens.json etc. – nicht im Git)
@@ -151,7 +151,7 @@ der **Alt-Text** des Pins und die **Hauptfarbe des Bildes** (`color_from_hex()` 
 meist passende Wörter, der Katalog ist klein). Aussagekräftig wird die Messung erst
 mit echten Pins und echten Produkten.
 
-## Hoppel 🐰 – das Maskottchen
+## Lucifer 🐰 – das Maskottchen
 
 Ein kleiner Pixel-Hase, der unten über jede Seite läuft (`frontend/bunny.js`, `bunny.css`):
 
@@ -163,9 +163,9 @@ Ein kleiner Pixel-Hase, der unten über jede Seite läuft (`frontend/bunny.js`, 
   (`GET /api/vibe`, Vibes und Sprüche in `backend/vibe.py`)
 - lässt sich verstecken (🐾 holt ihn zurück); bei „Bewegung reduzieren“ sitzt er still
 
-**Umzeichnen:** Hoppel ist ein 16×16-Raster aus Buchstaben in `bunny.js` (`IDLE`),
-Farben in `PALETTE`. **Ausprobieren** in der Browser-Konsole: `hoppel.tanzen()`,
-`hoppel.essen()`, `hoppel.schlafen()`, `hoppel.freuen()`, `hoppel.vibe()`.
+**Umzeichnen:** Lucifer ist ein 16×16-Raster aus Buchstaben in `bunny.js` (`IDLE`),
+Farben in `PALETTE`. **Ausprobieren** in der Browser-Konsole: `lucifer.tanzen()`,
+`lucifer.essen()`, `lucifer.schlafen()`, `lucifer.freuen()`, `lucifer.vibe()`.
 
 ## Bilderkennung (FashionCLIP, optional)
 

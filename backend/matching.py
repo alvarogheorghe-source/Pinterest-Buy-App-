@@ -60,7 +60,7 @@ STYLE_SYNONYMS = {
     "industrial": ["industrial", "industrie", "loft"],
     "modern": ["modern", "contemporary"],
     "natur": ["natur", "natural", "rattan", "jute", "holz", "wood", "wooden", "leinen", "linen"],
-    # Ästhetiken, vor allem für den Vibe von Hoppel (vibe.py)
+    # Ästhetiken, vor allem für den Vibe von Lucifer (vibe.py)
     "goth": ["goth", "gothic", "witchy", "dark aesthetic", "dark academia"],
     "grunge": ["grunge"],
     "coquette": ["coquette", "bow", "bows", "schleife", "schleifen", "balletcore"],

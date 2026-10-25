@@ -5,16 +5,17 @@
   /* Schrift für Überschriften und Logo. Cochin ist auf Mac/iPhone installiert;
      auf Windows/Android springen die Ersatzschriften dahinter ein. */
   --serif: "Cochin", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-  --bg: #faf8f5;          /* warmes Off-White */
+  /* Weiß & Rosa – passend zu Lucifer 🐰 */
+  --bg: #fff8fa;          /* Weiß mit einem Hauch Rosa */
   --surface: #ffffff;     /* Kacheln, Kästen */
-  --text: #1c1b1a;
-  --muted: #6f6a64;
-  --border: #e6e1da;
-  --accent: #1c1b1a;      /* Buttons */
+  --text: #3a2a30;        /* warmes Pflaumenbraun statt Schwarz (wie Lucifers Umriss) */
+  --muted: #7a606a;
+  --border: #f5dfe6;
+  --accent: #c93a69;      /* Himbeer-Rosa für Buttons und Akzente */
   --accent-text: #ffffff;
-  --chip-bg: #efeae3;
+  --chip-bg: #fde9ef;
   --pinterest: #e60023;
-  --radius: 10px;
+  --radius: 12px;
 }
 
 * {
@@ -227,7 +228,7 @@ main {
 .dept.active {
   background: var(--surface);
   color: var(--text);
-  box-shadow: 0 1px 4px rgba(28, 27, 26, 0.12);
+  box-shadow: 0 1px 4px rgba(58, 42, 48, 0.12);
 }
 
 /* --- Tabs ----------------------------------------------------------------------------- */
@@ -252,7 +253,7 @@ main {
 }
 
 .tab.active {
-  border-bottom-color: var(--text);
+  border-bottom-color: var(--accent);
   color: var(--text);
 }
 
@@ -711,7 +712,7 @@ section + section {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.92);
   color: var(--text);
-  box-shadow: 0 2px 8px rgba(28, 27, 26, 0.18);
+  box-shadow: 0 2px 8px rgba(58, 42, 48, 0.18);
   cursor: pointer;
 }
 
@@ -725,7 +726,7 @@ section + section {
 }
 
 .vote-button.active {
-  background: var(--text);
+  background: var(--accent);
   color: var(--accent-text);
 }
 
@@ -760,5 +761,5 @@ section + section {
   margin: 2px 0 0;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #94452a;
+  color: var(--accent);
 }
