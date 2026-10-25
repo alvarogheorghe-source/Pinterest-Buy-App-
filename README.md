@@ -213,6 +213,11 @@ mit echten Pins und echten Produkten.
 
 ## Mali 🐰 – das Maskottchen
 
+**Logo:** Mali als Pinnadel (Hasenkopf + rosa Nadelspitze) und „mali*pin*“ mit Pixel-Herzen
+als i-Punkten. Mali blinzelt im Logo ab und zu und wackelt mit den Ohren, wenn man darauf
+zeigt. Erzeugt wird es aus einem Pixel-Raster in `scripts/make_logo.py` (auch das
+Browser-Tab-Symbol `frontend/img/favicon.svg`): Raster ändern → `python scripts/make_logo.py`.
+
 Ein kleiner Pixel-Hase, der unten über jede Seite läuft (`frontend/bunny.js`, `bunny.css`):
 
 - hoppelt herum, isst Karotten, schläft, tanzt und hoppelt manchmal zur Maus

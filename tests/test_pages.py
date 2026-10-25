@@ -54,3 +54,11 @@ def test_logout_brings_the_start_page_back(fake, client):
     client.post("/auth/logout")
     response = client.get("/")
     assert response.status_code == 200 and "Kostenlos starten" in response.text
+
+
+@pytest.mark.parametrize("path", ["/", "/shop.html", "/konto.html", "/produkt.html", "/merkliste.html"])
+def test_every_page_has_the_mali_logo(client, path):
+    """Logo (Mali als Pinnadel) und Tab-Symbol – erzeugt von scripts/make_logo.py."""
+    html = client.get(path).text
+    assert 'class="logo-pin"' in html and 'href="/img/favicon.svg"' in html
+    assert client.get("/img/favicon.svg").headers["content-type"].startswith("image/svg+xml")

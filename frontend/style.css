@@ -61,11 +61,119 @@ h2,
   font-family: var(--serif);
 }
 
+/* --- Logo: Mali als Pinnadel + "malipin" (erzeugt von scripts/make_logo.py) --- */
 .logo {
-  font-size: 1.35rem;
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 7px;
+  font-size: 1.5rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  line-height: 1;
+  letter-spacing: 0.01em;
   text-decoration: none;
+  color: var(--text);
+}
+
+.logo-pin {
+  width: 30px;
+  height: 34px;
+  flex: none;
+  overflow: visible;
+  margin-bottom: -4px;   /* Nadelspitze "steckt" etwas unter der Grundlinie */
+}
+
+.logo-word {
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+.logo {
+  flex: none;            /* Logo wird nie zusammengedrückt */
+}
+
+.header-nav .button {
+  white-space: nowrap;
+}
+
+/* Kleine Handys: Logo etwas kleiner, damit Navigation und Button Platz haben */
+@media (max-width: 380px) {
+  .logo {
+    font-size: 1.25rem;
+    gap: 5px;
+  }
+
+  .logo-pin {
+    width: 24px;
+    height: 27px;
+  }
+}
+
+.logo-pinword {
+  color: var(--accent);
+  font-style: italic;
+}
+
+/* Punktloses ı mit Pixel-Herz als i-Punkt */
+.logo-i {
+  position: relative;
+  display: inline-block;
+}
+
+.logo-heart {
+  position: absolute;
+  left: 50%;
+  top: -0.02em;
+  width: 0.3em;
+  height: 0.24em;
+  transform: translateX(-50%);
+  fill: var(--accent);
+}
+
+/* Mali blinzelt ab und zu ... */
+.logo-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: logo-blink 5s infinite;
+}
+
+@keyframes logo-blink {
+  0%, 94%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.15); }
+}
+
+/* ... und wackelt mit den Ohren, wenn man drauf zeigt */
+.logo-ears {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.logo:hover .logo-ears,
+.logo:focus-visible .logo-ears {
+  animation: logo-ears 0.5s ease-in-out 2;
+}
+
+.logo:hover .logo-pin,
+.logo:focus-visible .logo-pin {
+  animation: logo-bounce 0.5s ease-in-out;
+}
+
+@keyframes logo-ears {
+  0%, 100% { transform: none; }
+  30% { transform: rotate(-6deg) translateY(-1px); }
+  70% { transform: rotate(6deg) translateY(-1px); }
+}
+
+@keyframes logo-bounce {
+  0%, 100% { transform: none; }
+  40% { transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-eyes,
+  .logo:hover .logo-ears,
+  .logo:hover .logo-pin {
+    animation: none;
+  }
 }
 
 .header-nav {
