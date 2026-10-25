@@ -27,7 +27,8 @@ import httpx
 
 from backend import storage
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
-                              STYLE_PATTERNS, StyleProfile, build_style_profile, find_terms)
+                              STYLE_PATTERNS, build_style_profile, classify_pin, find_terms,
+                              pin_text)
 from backend.products import DEPARTMENTS, Product, ProductSource, ProductSourceError
 
 TOKEN_URL = "https://api.ebay.com/identity/v1/oauth2/token"
@@ -46,6 +47,20 @@ SEARCH_WORDS = {
     "Deko": "Vase", "Leuchten": "Lampe", "Textilien": "Kissen", "Küche & Tisch": "Tasse",
     "Möbel": "Beistelltisch", "Pflanzen & Töpfe": "Blumentopf", "Wandgestaltung": "Poster",
 }
+# Stil -> Wort, das Verkäufer auf eBay wirklich in Titel schreiben. None = weglassen,
+# weil kaum jemand so sucht ("clean", "cozy") – dann lieber breiter suchen.
+STYLE_SEARCH_WORDS = {
+    "utility": "Cargo", "goth": "Gothic", "coquette": "Schleife", "cottagecore": "Blumen",
+    "natur": "Holz", "clean": None, "cozy": None, "casual": None, "sommer": "Sommer",
+}
+# Titel mit diesen Wörtern passen fast nie zu Pins: Kinder-/Puppen-/Tiersachen, Sammelpakete,
+# Defektes, Ersatzteile, Schnittmuster.
+JUNK_PATTERN = re.compile(
+    r"\b(?:baby|kinder\w*|kids|mädchen|jungen|puppe\w*|barbie|hund(?!ezahn)\w*|katze\w*|"
+    r"konvolut|paket|bundle|sammlung|lot|defekt\w*|bastler\w*|ersatzteil\w*|"
+    r"schnittmuster|anleitung|aufkleber|sticker)\b", re.IGNORECASE)
+MIN_PRICE = 5  # Euro – darunter fast nur Kleinkram und Lockangebote
+
 # Ohne Pins: diese Kategorien zuerst
 DEFAULT_CATEGORIES = {
     "mode": ["Oberteile", "Hosen", "Jacken", "Schuhe"],
@@ -90,27 +105,66 @@ def app_token() -> str:
 
 # --- Suchbegriffe aus dem Stilprofil ---------------------------------------------------------
 
-def build_queries(profile: StyleProfile, department: str) -> list[tuple[str, str]]:
-    """[(Suchtext, Kategorie), ...] – z.B. ("beige oversized Pullover", "Oberteile")."""
+def _top(counter) -> str | None:
+    return next(iter(counter.most_common(1)), (None,))[0]
+
+
+def _top_style(counter) -> str | None:
+    """Häufigster Stil, den man auf eBay sinnvoll suchen kann (nicht "cozy", "clean" …)."""
+    return next((s for s, _ in counter.most_common() if STYLE_SEARCH_WORDS.get(s, s)), None)
+
+
+def _query(color: str | None, style: str | None, category: str) -> str:
+    style_word = STYLE_SEARCH_WORDS.get(style, style) if style else None
+    return " ".join(w for w in (color, style_word, SEARCH_WORDS[category]) if w)
+
+
+def build_queries(pins: list[dict], department: str) -> list[tuple[str, str]]:
+    """[(Suchtext, Kategorie), ...] – z.B. ("beige oversized Pullover", "Oberteile").
+
+    Farbe und Stil kommen aus den Pins, in denen GENAU diese Kategorie vorkommt:
+    pinnst du beige Hoodies und schwarze Cargohosen, sucht die App "beige … Pullover"
+    und "schwarz Cargo Hose" – nicht alles in Beige.
+    """
+    profile = build_style_profile(pins, department)
+    world_pins = [pin for pin in pins if department in classify_pin(pin)]
+    color, style = _top(profile.colors), _top_style(profile.styles)
     categories = [c for c, _ in profile.categories.most_common()
                   if CATEGORY_SYNONYMS[c][0] == department]
+
+    queries: list[tuple[str, str]] = []
+
+    def add(text: str, category: str) -> None:
+        if text not in (q for q, _ in queries):
+            queries.append((text, category))
+
+    for category in categories:
+        matching = [pin for pin in world_pins
+                    if category in find_terms(pin_text(pin), CATEGORY_PATTERNS)]
+        sub = build_style_profile(matching)
+        add(_query(_top(sub.colors) or color, _top_style(sub.styles) or style, category), category)
+
+    # Ein freier Platz? Dann das Lieblingsteil auch in der zweitliebsten Farbe
+    second_colors = [c for c, _ in profile.colors.most_common(2)][1:]
+    if categories and second_colors:
+        add(_query(second_colors[0], style, categories[0]), categories[0])
+
     for fallback in DEFAULT_CATEGORIES[department]:
-        if fallback not in categories:
-            categories.append(fallback)
-    color = next(iter(profile.colors.most_common(1)), (None,))[0]
-    style = next(iter(profile.styles.most_common(1)), (None,))[0]
-    queries = []
-    for category in categories[:QUERIES_PER_DEPARTMENT]:
-        words = [w for w in (color, style, SEARCH_WORDS[category]) if w]
-        queries.append((" ".join(words), category))
-    return queries
+        add(_query(color, style, fallback), fallback)
+    return queries[:QUERIES_PER_DEPARTMENT]
+
+
+def large_image(url: str) -> str:
+    """eBay-Bilder gibt es in mehreren Größen (…/s-l225.jpg). Größer = bessere Bilderkennung."""
+    return re.sub(r"/s-l\d+\.(jpg|jpeg|png|webp)$", r"/s-l500.\1", url)
 
 
 # --- Suche und Umwandlung in Produkte ---------------------------------------------------------
 
 def search(query: str) -> list[dict]:
     """Eine Suche auf eBay (nur Sofort-Kaufen)."""
-    params = {"q": query, "limit": RESULTS_PER_QUERY, "filter": "buyingOptions:{FIXED_PRICE}"}
+    params = {"q": query, "limit": RESULTS_PER_QUERY,
+              "filter": f"buyingOptions:{{FIXED_PRICE}},price:[{MIN_PRICE}..],priceCurrency:EUR"}
     headers = {
         "Authorization": f"Bearer {app_token()}",
         "X-EBAY-C-MARKETPLACE-ID": os.getenv("EBAY_MARKETPLACE", "").strip() or "EBAY_DE",
@@ -137,10 +191,10 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
         sponsored = "itemAffiliateWebUrl" in item
     except (KeyError, TypeError, ValueError, IndexError):
         return None
-    if not image or not url.startswith("https://") or currency != "EUR":
+    title = item.get("title", "")
+    if not image or not url.startswith("https://") or currency != "EUR" or JUNK_PATTERN.search(title):
         return None
 
-    title = item.get("title", "")
     # Kategorie aus dem Titel – passt sie nicht zur Welt, die der Suche
     categories = [c for c in find_terms(title, CATEGORY_PATTERNS)
                   if CATEGORY_SYNONYMS[c][0] == department]
@@ -156,7 +210,7 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
         category=categories[0] if categories else query_category,
         colors=sorted(find_terms(title, COLOR_PATTERNS)),
         style_tags=sorted(find_terms(title, STYLE_PATTERNS)),
-        image_url=image,
+        image_url=large_image(image),
         affiliate_url=url,
         sponsored=sponsored,  # nur mit Partnerlink ist es Werbung
     )
@@ -173,8 +227,7 @@ class EbayProductSource(ProductSource):
         pins = storage.load_pins()["pins"]
         products, seen = [], set()
         for department in DEPARTMENTS:
-            profile = build_style_profile(pins, department)
-            for query, category in build_queries(profile, department):
+            for query, category in build_queries(pins, department):
                 for item in search(query):
                     product = to_product(item, department, category)
                     if product and product.id not in seen:

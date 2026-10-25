@@ -107,10 +107,14 @@ Sobald `EBAY_CLIENT_ID` und `EBAY_CLIENT_SECRET` in `.env` stehen, zeigt der Sho
 eBay-Angebote** (neu und Second Hand) statt der Beispielprodukte (`backend/ebay.py`):
 
 1. Aus deinem Stilprofil werden Suchbegriffe, z.B. „beige oversized Pullover“ (4 pro Welt).
+   Farbe und Stil kommen aus den Pins mit genau dieser Kategorie: weiße Sneaker-Pins →
+   „weiß streetwear Sneaker“, auch wenn sonst Beige dominiert.
 2. Die offizielle eBay Browse API sucht damit (nur Sofort-Kaufen, Marktplatz `EBAY_MARKETPLACE`).
-3. Farben, Stile und Kategorie liest die App aus dem Titel – Ranking, ♡/👎 und Bilderkennung
+3. Aussortiert werden: unter 5 €, Kinder-/Puppen-/Tiersachen, Sammelpakete, Defektes,
+   Ersatzteile. Fotos werden in größerer Auflösung geladen (bessere Bilderkennung).
+4. Farben, Stile und Kategorie liest die App aus dem Titel – Ranking, ♡/👎 und Bilderkennung
    funktionieren wie vorher.
-4. Ergebnisse werden 1 Stunde in `data/ebay_cache.json` gespeichert (gitignored); neue Pins
+5. Ergebnisse werden 1 Stunde in `data/ebay_cache.json` gespeichert (gitignored); neue Pins
    leeren den Speicher. So bleibt man weit unter dem Gratis-Limit von eBay.
 
 **Schlüssel holen:** https://developer.ebay.com → kostenloses Konto → „Application Keys“ →

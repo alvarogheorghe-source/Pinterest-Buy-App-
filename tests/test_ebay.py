@@ -9,7 +9,6 @@ import httpx
 import pytest
 
 from backend import ebay, products, storage
-from backend.matching import build_style_profile
 
 
 def item(item_id, title, price="24.99", condition="Gebraucht", affiliate=False, currency="EUR"):
@@ -72,17 +71,25 @@ def save_pins(*titles):
 # --- Suchbegriffe -----------------------------------------------------------------------------
 
 def test_queries_follow_the_style_profile():
-    profile = build_style_profile([{"title": "beige oversized hoodie"},
-                                   {"title": "beige hoodie"}, {"title": "cargo pants"}], "mode")
-    queries = ebay.build_queries(profile, "mode")
+    pins = [{"title": "beige oversized hoodie"}, {"title": "beige hoodie"},
+            {"title": "black cargo pants"}]
+    queries = ebay.build_queries(pins, "mode")
     assert queries[0] == ("beige oversized Pullover", "Oberteile")   # meistgepinnt zuerst
-    assert queries[1] == ("beige oversized Hose", "Hosen")
+    # Farbe/Stil aus den Hosen-Pins, nicht vom Hoodie übernommen; "utility" -> "Cargo"
+    assert queries[1] == ("schwarz Cargo Hose", "Hosen")
+    assert queries[2] == ("schwarz oversized Pullover", "Oberteile")  # zweitliebste Farbe
     assert len(queries) == ebay.QUERIES_PER_DEPARTMENT
+    assert len({q for q, _ in queries}) == len(queries)                # keine doppelte Suche
 
 
 def test_queries_without_pins_use_defaults():
-    queries = ebay.build_queries(build_style_profile([], "wohnen"), "wohnen")
+    queries = ebay.build_queries([], "wohnen")
     assert [q for q, _ in queries] == ["Vase", "Lampe", "Kissen", "Beistelltisch"]
+
+
+def test_style_words_ebay_sellers_use():
+    queries = ebay.build_queries([{"title": "cozy goth vase"}], "wohnen")
+    assert queries[0] == ("Gothic Vase", "Deko")
 
 
 # --- eBay-Ergebnis -> Produkt -------------------------------------------------------------------
@@ -103,6 +110,25 @@ def test_affiliate_link_makes_it_sponsored():
     product = ebay.to_product(item("2", "Hoodie neu", condition="Neu", affiliate=True), "mode", "Oberteile")
     assert product.affiliate_url.endswith("campid=123")
     assert product.sponsored is True and product.shop == "eBay"
+
+
+def test_bigger_images_for_image_recognition():
+    product = ebay.to_product(item("4", "Vase"), "wohnen", "Deko")
+    assert product.image_url == "https://i.ebayimg.com/images/4.jpg"            # unverändert
+    assert ebay.large_image("https://i.ebayimg.com/images/g/abc/s-l225.jpg") == \
+        "https://i.ebayimg.com/images/g/abc/s-l500.jpg"
+
+
+@pytest.mark.parametrize("title", [
+    "Baby Strampler beige", "Kinder Hoodie Gr. 128", "Barbie Kleid", "Hundepullover",
+    "Konvolut 10 Teile Damen Pullover", "Lampe defekt für Bastler", "Schnittmuster Kleid",
+])
+def test_junk_is_filtered(title):
+    assert ebay.to_product(item("5", title), "mode", "Oberteile") is None
+
+
+def test_houndstooth_is_not_junk():
+    assert ebay.to_product(item("6", "Blazer Hundezahn Muster"), "mode", "Jacken") is not None
 
 
 def test_unusable_items_are_skipped():
@@ -161,4 +187,5 @@ def test_marketplace_and_affiliate_headers(fake_ebay, monkeypatch):
     request = fake_ebay.requests[-1]
     assert request.headers["X-EBAY-C-MARKETPLACE-ID"] == "EBAY_AT"
     assert request.headers["X-EBAY-C-ENDUSERCTX"] == "affiliateCampaignId=5338"
-    assert parse_qs(request.url.query.decode())["filter"] == ["buyingOptions:{FIXED_PRICE}"]
+    assert parse_qs(request.url.query.decode())["filter"] == [
+        "buyingOptions:{FIXED_PRICE},price:[5..],priceCurrency:EUR"]
