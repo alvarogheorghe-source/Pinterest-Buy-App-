@@ -3,7 +3,7 @@
 Eine Webapp, die sich mit deinem Pinterest-Konto verbindet, aus deinen Boards deinen
 Stil ableitet und passende Kleidung aus Partnershops vorschlägt.
 
-**Stand:** Phase 1, Schritt 1–4 (Projektgerüst, Pinterest-Login mit Board-Auswahl, Pins laden, Produktdaten).
+**Stand:** Phase 1, Schritt 1–5 (Projektgerüst, Pinterest-Login mit Board-Auswahl, Pins laden, Produktdaten, Matching).
 
 ## Aufbau
 
@@ -13,6 +13,8 @@ backend/
   config.py     liest Einstellungen aus .env
   pinterest.py  OAuth 2.0 + Pinterest API v5 (Login, Token-Refresh, Boards)
   pins.py       lädt die Pins der ausgewählten Boards (max. 250 pro Board)
+  matching.py   Stilprofil aus Pin-Texten + Produkt-Ranking mit Begründung
+  demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
   products.py   Produktmodell, austauschbare Produktquelle, Preis-/Kategoriefilter
   storage.py    speichert Daten als JSON in data/
 frontend/       index.html, style.css, app.js
@@ -69,6 +71,23 @@ Farben und Stil-Tags sind feste, kleingeschriebene Begriffe (`beige`, `streetwea
 schreiben, die von `ProductSource` erbt und in `load()` den Feed in `Product`-Objekte
 umwandelt. Dann in `get_product_source()` diese Klasse zurückgeben – der Rest der App
 bleibt unverändert.
+
+## Matching (ohne KI)
+
+1. In Titel + Beschreibung jedes Pins werden Farb- und Stilwörter gesucht (Deutsch + Englisch,
+   Synonyme in `COLOR_SYNONYMS` / `STYLE_SYNONYMS` in `backend/matching.py`).
+2. Jeder Begriff zählt höchstens einmal pro Pin → Stilprofil, z.B. „beige in 7 von 12 Pins“.
+3. Produkte bekommen Punkte für jede passende Farbe/jeden Stil (häufige Begriffe zählen mehr).
+   Bei Gleichstand gewinnt das günstigere Produkt.
+
+- http://localhost:8000/api/profile – dein Stilprofil
+- http://localhost:8000/api/recommendations?max_price=40 – Empfehlungen mit Begründung
+
+**Ohne Pinterest-Login testen:** `python -m backend.demo_pins` schreibt 12 Beispiel-Pins
+nach `data/pins.json`. Echte Pins („Pins laden“) überschreiben sie.
+
+**Phase 2:** `build_style_profile()` durch eine Bilderkennung ersetzen, die dasselbe
+`StyleProfile` liefert – `rank_products()` bleibt gleich.
 
 ## Testen
 

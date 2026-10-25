@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import pins, pinterest, products, storage
+from backend import matching, pins, pinterest, products, storage
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Style App")
@@ -161,6 +161,27 @@ def get_products(min_price: float | None = None, max_price: float | None = None,
 @app.get("/api/categories")
 def get_categories():
     return products.list_categories(products.get_product_source().load())
+
+
+# --- Matching (Schritt 5) ---------------------------------------------------------------
+
+@app.get("/api/profile")
+def get_profile():
+    """Das Stilprofil aus den gespeicherten Pins."""
+    return matching.build_style_profile(storage.load_pins()["pins"]).to_dict()
+
+
+@app.get("/api/recommendations")
+def get_recommendations(min_price: float | None = None, max_price: float | None = None,
+                        category: str | None = None):
+    """Produkte im Budget, sortiert nach Passung zum Stilprofil, mit Begründung."""
+    profile = matching.build_style_profile(storage.load_pins()["pins"])
+    all_products = products.get_product_source().load()
+    selection = products.filter_products(all_products, min_price, max_price, category)
+    return {
+        "profile": profile.to_dict(),
+        "products": matching.rank_products(selection, profile),
+    }
 
 
 # Das Frontend (HTML/CSS/JS) wird direkt vom Backend ausgeliefert.

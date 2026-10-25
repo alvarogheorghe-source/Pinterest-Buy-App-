@@ -98,6 +98,13 @@ async function showSavedPins() {
   const date = new Date(data.fetched_at * 1000).toLocaleString("de-AT");
   pinsMessage.textContent = `${data.pins.length} Pins gespeichert (Stand: ${date})`;
 
+  // Stilprofil (Schritt 5): die häufigsten Farben und Stile
+  const profile = await fetch("/api/profile").then((r) => r.json());
+  const terms = [...profile.top_colors, ...profile.top_styles];
+  document.getElementById("profile-text").textContent = terms.length
+    ? `Dein Stil: ${terms.join(" · ")}`
+    : "In deinen Pins wurden noch keine Farb- oder Stilwörter gefunden.";
+
   // Vorschau: die ersten 24 Bilder
   pinGrid.innerHTML = "";
   for (const pin of data.pins.slice(0, 24)) {
