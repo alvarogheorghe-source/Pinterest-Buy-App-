@@ -67,6 +67,29 @@ def test_api_pin_items(fake, client):
     assert [(i["id"], i["platform"]) for i in items] == [("1", "Vinted")]
 
 
+def test_pin_items_get_price_from_text():
+    items = find_pin_items([
+        {"id": "1", "title": "Cargo 25€", "link": "https://www.depop.com/products/a/"},
+        {"id": "2", "title": "Jacke", "description": "£18 vintage",
+         "link": "https://www.depop.com/products/b/"},
+        {"id": "3", "title": "Hoodie", "link": "https://www.depop.com/products/c/"},
+    ])
+    assert [(i["price"], i["currency"]) for i in items] == [
+        (25.0, "EUR"), (18.0, "GBP"), (None, None)]
+
+
+def test_budget_hides_only_items_surely_too_expensive(fake, client):
+    storage.save_pins({"fetched_at": 1, "board_ids": ["111"], "pins": [
+        {"id": "billig", "title": "Top 15€", "link": "https://www.vinted.at/items/1"},
+        {"id": "teuer", "title": "Mantel 80€", "link": "https://www.vinted.at/items/2"},
+        {"id": "pfund", "title": "Jacke £80", "link": "https://www.vinted.at/items/3"},
+        {"id": "ohne", "title": "Hoodie", "link": "https://www.vinted.at/items/4"},
+    ]})
+    ids = [i["id"] for i in client.get("/api/pin-items?max_price=30").json()]
+    assert ids == ["billig", "pfund", "ohne"]  # nur "teuer" ist sicher über dem Budget
+    assert len(client.get("/api/pin-items").json()) == 4
+
+
 def test_old_pins_without_link_field_still_work(fake, client):
     """Pins, die vor diesem Update gespeichert wurden, haben noch kein "link"-Feld."""
     storage.save_pins({"fetched_at": 1, "board_ids": ["111"], "pins": [{"id": "1", "title": "Alt"}]})

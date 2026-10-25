@@ -150,9 +150,11 @@ def get_pins():
 
 
 @app.get("/api/pin-items")
-def get_pin_items():
-    """Pins, die direkt zu einem Shop oder Marktplatz (z.B. Depop) führen."""
-    return shop_links.find_pin_items(storage.load_pins()["pins"])
+def get_pin_items(max_price: float | None = None):
+    """Pins, die direkt zu einem Shop oder Marktplatz (z.B. Depop) führen.
+    Beispiel: /api/pin-items?max_price=30"""
+    items = shop_links.find_pin_items(storage.load_pins()["pins"])
+    return shop_links.filter_by_budget(items, max_price)
 
 
 # --- Produkte (Schritt 4) -------------------------------------------------------------

@@ -10,6 +10,8 @@ Shop-Seiten selbst nicht ab (kein Scraping).
 import re
 from urllib.parse import urlparse
 
+from backend.prices import extract_price
+
 SECOND_HAND = "Second Hand"
 SHOP = "Shop"
 
@@ -75,10 +77,31 @@ def detect_platform(url: str | None) -> dict | None:
 
 
 def find_pin_items(pins: list[dict]) -> list[dict]:
-    """Alle Pins, deren Link zu einem Shop/Marktplatz führt, mit Plattform-Infos."""
+    """Alle Pins, deren Link zu einem Shop/Marktplatz führt – mit Plattform und Preis.
+
+    Der Preis wird aus Titel + Beschreibung gelesen. Steht keiner drin,
+    sind "price" und "currency" None (-> "Preis im Shop").
+    """
     items = []
     for pin in pins:
         platform = detect_platform(pin.get("link"))
-        if platform:
-            items.append({**pin, **platform})
+        if not platform:
+            continue
+        text = f"{pin.get('title', '')} {pin.get('description', '')}"
+        price = extract_price(text) or {"price": None, "currency": None}
+        items.append({**pin, **platform, **price})
     return items
+
+
+def filter_by_budget(items: list[dict], max_price: float | None) -> list[dict]:
+    """Blendet nur Teile aus, deren Preis SICHER über dem Budget liegt.
+
+    Ohne Preis oder in fremder Währung (£, $ ...) können wir es nicht wissen,
+    deshalb bleiben diese Teile sichtbar.
+    """
+    if max_price is None:
+        return items
+    return [
+        item for item in items
+        if item["currency"] != "EUR" or item["price"] <= max_price
+    ]
