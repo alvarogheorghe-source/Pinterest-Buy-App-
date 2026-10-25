@@ -14,6 +14,8 @@ backend/
   pinterest.py  OAuth 2.0 + Pinterest API v5 (Login, Token-Refresh, Boards)
   pins.py       lädt die Pins der ausgewählten Boards (max. 250 pro Board)
   matching.py   Stilprofil aus Pin-Texten + Produkt-Ranking mit Begründung
+  shop_links.py erkennt Pins mit Link zu Shops/Second-Hand (Depop, Vinted …)
+  prices.py     liest Preise aus Pin-Texten („25€“, „£18“ …)
   demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
   products.py   Produktmodell, austauschbare Produktquelle, Preis-/Kategoriefilter
   storage.py    speichert Daten als JSON in data/
@@ -82,6 +84,22 @@ bleibt unverändert.
 - „Zum Shop“ öffnet den Affiliate-Link im neuen Tab (`rel="sponsored noopener"`),
   daneben die Kennzeichnung **Werbung**; im Footer ein Werbehinweis
 - Links in Produktdaten müssen mit `http(s)://` beginnen (Schutz vor `javascript:`-Links)
+
+## Tab „Aus meinen Pins“
+
+Viele bewerben ihre Kleidung (z.B. ihren Depop-Shop) auf Pinterest. Führt ein Pin
+direkt zu einem Angebot, ist das genau das Teil aus dem Bild.
+
+- `shop_links.py` prüft den Ziel-Link jedes Pins: Second Hand (Depop, Vinted, willhaben,
+  eBay, Kleinanzeigen, Etsy, Sellpy), Shops (Zalando, ASOS, H&M, Zara, About You) und
+  unbekannte Shops mit Produkt-Adresse (`/products/…`). Social Media, gefälschte
+  Adressen (`depop.com.betrug.net`) und Nicht-Web-Links werden ignoriert.
+  Neue Plattform = eine Zeile in `PLATFORMS`.
+- `prices.py` liest den ersten Preis mit Währung aus Titel/Beschreibung („ca. 25 €“).
+- Budgetfilter blendet nur aus, was sicher zu teuer ist (ohne Preis / £ / $ bleibt sichtbar).
+- Diese Links sind **keine Werbung** (wir verdienen nichts) → Hinweis „Link aus deinem Pin“,
+  `rel="nofollow"`. Shop-Seiten werden nicht abgerufen (kein Scraping).
+- http://localhost:8000/#pins öffnet den Tab direkt; API: `/api/pin-items?max_price=30`
 
 ## Matching (ohne KI)
 

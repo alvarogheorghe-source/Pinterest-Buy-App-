@@ -132,6 +132,32 @@ main {
   font-size: 0.85rem;
 }
 
+/* --- Tabs ----------------------------------------------------------------------------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;   /* Unterstrich liegt genau auf der grauen Linie */
+  background: none;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab.active {
+  border-bottom-color: var(--text);
+  color: var(--text);
+}
+
 /* --- Filter --------------------------------------------------------------------------- */
 
 .filters {
@@ -258,6 +284,12 @@ select {
   margin: 4px 0 10px;
   font-size: 0.85rem;
   color: var(--muted);
+  /* Lange Pin-Beschreibungen nach 3 Zeilen mit "…" abschneiden */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
 }
 
 .card-actions {
@@ -273,6 +305,12 @@ select {
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 600;
+  color: var(--muted);
+}
+
+/* Herkunft "Link aus deinem Pin" – bewusst anders als "Werbung" */
+.source-label {
+  font-size: 0.75rem;
   color: var(--muted);
 }
 

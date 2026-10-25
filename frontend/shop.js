@@ -1,44 +1,77 @@
-// Shop-Seite (Schritt 6): Stilprofil, Filter und Produktraster.
+// Shop-Seite: Stilprofil, Tabs ("Für dich" / "Aus meinen Pins"), Filter und Raster.
 
 const grid = document.getElementById("product-grid");
 const resultCount = document.getElementById("result-count");
 const banner = document.getElementById("profile-banner");
 const categorySelect = document.getElementById("category-select");
+const categoryFilter = document.getElementById("category-filter");
 const sortSelect = document.getElementById("sort-select");
 const budgetChips = document.getElementById("budget-chips");
+const pinItemsCount = document.getElementById("pin-items-count");
+const tabButtons = document.querySelectorAll(".tab");
 
-// Aktueller Zustand der Filter
-const filters = { maxPrice: "", category: "", sort: "match" };
+// Aktueller Zustand. Der Tab steht auch in der Adresse (#pins), damit Links
+// und der Zurück-Button funktionieren.
+const filters = {
+  tab: location.hash === "#pins" ? "pins" : "products",
+  maxPrice: "",
+  category: "",
+  sort: "match",
+};
 
 // Preise schön formatieren, z.B. 34.99 -> "34,99 €"
 function formatPrice(price, currency) {
   return new Intl.NumberFormat("de-AT", { style: "currency", currency }).format(price);
 }
 
-// Lädt Empfehlungen vom Backend (Filter werden als ?max_price=...&category=... angehängt)
-async function loadProducts() {
-  const params = new URLSearchParams();
-  if (filters.maxPrice) params.set("max_price", filters.maxPrice);
-  if (filters.category) params.set("category", filters.category);
-
-  const response = await fetch(`/api/recommendations?${params}`);
-  if (!response.ok) {
-    resultCount.textContent = "Produkte konnten nicht geladen werden.";
-    return;
-  }
-  const data = await response.json();
-
-  renderBanner(data.profile);
-
-  let items = data.products;
-  if (filters.sort === "price") {
-    // Kopie sortieren, damit die Original-Reihenfolge (nach Passung) erhalten bleibt
-    items = [...items].sort((a, b) => a.price - b.price);
-  }
-  renderProducts(items, data.profile.pin_count > 0);
+// Sortiert nach Preis. Teile ohne Preis oder in fremder Währung (£, $) kommen ans
+// Ende – £35 ist nicht dasselbe wie 35 € und ohne Wechselkurs nicht vergleichbar.
+function sortByPrice(items) {
+  const euroPrice = (item) =>
+    item.price != null && item.currency === "EUR" ? item.price : Infinity;
+  return [...items].sort((a, b) => euroPrice(a) - euroPrice(b));
 }
 
-// Oben: Stilprofil anzeigen – oder zum Verbinden einladen
+// --- Daten laden ---------------------------------------------------------------------------
+
+async function load() {
+  const budget = filters.maxPrice ? `max_price=${filters.maxPrice}` : "";
+  const productParams = new URLSearchParams(budget);
+  if (filters.category) productParams.set("category", filters.category);
+
+  // Beide Abfragen gleichzeitig starten und auf beide warten
+  const [recResponse, pinResponse] = await Promise.all([
+    fetch(`/api/recommendations?${productParams}`),
+    fetch(`/api/pin-items?${budget}`),
+  ]);
+  if (!recResponse.ok || !pinResponse.ok) {
+    resultCount.textContent = "Daten konnten nicht geladen werden.";
+    return;
+  }
+  const recommendations = await recResponse.json();
+  const pinItems = await pinResponse.json();
+
+  renderBanner(recommendations.profile);
+  pinItemsCount.textContent = pinItems.length ? `(${pinItems.length})` : "";
+
+  if (filters.tab === "pins") {
+    const items = filters.sort === "price" ? sortByPrice(pinItems) : pinItems;
+    renderGrid(items.map(pinItemToCard), "Teil", "Teile",
+      recommendations.profile.pin_count > 0
+        ? "Keine Pins mit Shop-Link gefunden (oder alle über deinem Budget)."
+        : "Lade zuerst deine Pins unter „Mein Pinterest“.");
+  } else {
+    const hasProfile = recommendations.profile.pin_count > 0;
+    const items = filters.sort === "price"
+      ? sortByPrice(recommendations.products)
+      : recommendations.products;
+    renderGrid(items.map((p) => productToCard(p, hasProfile)), "Produkt", "Produkte",
+      "Keine Produkte in diesem Budget. Probier einen höheren Betrag.");
+  }
+}
+
+// --- Oben: Stilprofil ---------------------------------------------------------------------
+
 function renderBanner(profile) {
   banner.innerHTML = "";
   const title = document.createElement("h1");
@@ -70,90 +103,141 @@ function renderBanner(profile) {
   banner.appendChild(tags);
 }
 
-function renderProducts(items, hasProfile) {
-  grid.innerHTML = "";
-  resultCount.textContent = `${items.length} ${items.length === 1 ? "Produkt" : "Produkte"}`;
+// --- Raster und Kacheln -------------------------------------------------------------------
 
-  if (items.length === 0) {
+function renderGrid(cards, singular, plural, emptyText) {
+  grid.innerHTML = "";
+  resultCount.textContent = `${cards.length} ${cards.length === 1 ? singular : plural}`;
+  if (cards.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty muted";
-    empty.textContent = "Keine Produkte in diesem Budget. Probier einen höheren Betrag.";
+    empty.textContent = emptyText;
     grid.appendChild(empty);
     return;
   }
-  for (const product of items) {
-    grid.appendChild(renderCard(product, hasProfile));
-  }
+  for (const card of cards) grid.appendChild(createCard(card));
 }
 
-// Eine Produktkachel. Alle Texte über textContent -> kein HTML aus den Daten wird ausgeführt.
-function renderCard(product, hasProfile) {
+// Produkt aus dem Katalog -> Daten für eine Kachel (mit "Werbung", da Affiliate-Link)
+function productToCard(product, hasProfile) {
+  return {
+    imageUrl: product.image_url,
+    topLine: product.shop,
+    title: product.name,
+    price: formatPrice(product.price, product.currency),
+    note: hasProfile ? product.reason : "",
+    buttonText: "Zum Shop",
+    href: product.affiliate_url,
+    // sponsored = bezahlter Link (für Suchmaschinen), noopener = Shop kann unsere Seite nicht steuern
+    rel: "sponsored noopener",
+    label: "Werbung",
+    labelClass: "ad-label",
+  };
+}
+
+// Pin mit Shop-Link -> Daten für eine Kachel (KEINE Werbung: wir verdienen daran nichts)
+function pinItemToCard(item) {
+  return {
+    imageUrl: item.image_url,
+    topLine: `${item.platform} · ${item.platform_type}`,
+    title: item.title || "Ohne Titel",
+    // "ca.", weil der Preis nur aus dem Pin-Text gelesen wurde
+    price: item.price != null ? `ca. ${formatPrice(item.price, item.currency)}` : "Preis im Shop",
+    note: item.description,
+    buttonText: "Zum Angebot",
+    href: item.link,
+    // nofollow = fremder, nicht von uns geprüfter Link
+    rel: "nofollow noopener",
+    label: "Link aus deinem Pin",
+    labelClass: "source-label",
+  };
+}
+
+// Baut EINE Kachel. Alle Texte über textContent -> kein HTML aus den Daten wird ausgeführt.
+function createCard(data) {
   const card = document.createElement("article");
   card.className = "card";
 
-  // Bild (mit Ersatz, falls es nicht lädt)
+  // Bild – mit Ersatz, falls es fehlt oder nicht lädt
   const imageBox = document.createElement("div");
   imageBox.className = "card-image";
-  const img = document.createElement("img");
-  img.src = product.image_url;
-  img.alt = product.name;
-  img.loading = "lazy"; // erst laden, wenn die Kachel ins Bild scrollt
-  img.addEventListener("error", () => {
+  const showFallback = () => {
     imageBox.classList.add("fallback");
-    imageBox.textContent = product.name;
-  });
-  imageBox.appendChild(img);
+    imageBox.textContent = data.title;
+  };
+  if (data.imageUrl) {
+    const img = document.createElement("img");
+    img.src = data.imageUrl;
+    img.alt = data.title;
+    img.loading = "lazy"; // erst laden, wenn die Kachel ins Bild scrollt
+    img.addEventListener("error", showFallback);
+    imageBox.appendChild(img);
+  } else {
+    showFallback();
+  }
 
   const body = document.createElement("div");
   body.className = "card-body";
 
-  const shop = document.createElement("p");
-  shop.className = "card-shop";
-  shop.textContent = product.shop;
+  const topLine = document.createElement("p");
+  topLine.className = "card-shop";
+  topLine.textContent = data.topLine;
 
-  const name = document.createElement("h3");
-  name.className = "card-name";
-  name.textContent = product.name;
+  const title = document.createElement("h3");
+  title.className = "card-name";
+  title.textContent = data.title;
 
   const price = document.createElement("p");
   price.className = "card-price";
-  price.textContent = formatPrice(product.price, product.currency);
+  price.textContent = data.price;
 
-  body.append(shop, name, price);
+  // Begründung bzw. Beschreibung (füllt den Platz, damit Buttons unten bündig sind)
+  const note = document.createElement("p");
+  note.className = "card-reason";
+  note.textContent = data.note || "";
 
-  // Begründung nur zeigen, wenn es ein Stilprofil gibt
-  if (hasProfile) {
-    const reason = document.createElement("p");
-    reason.className = "card-reason";
-    reason.textContent = product.reason;
-    body.appendChild(reason);
-  } else {
-    const spacer = document.createElement("div");
-    spacer.className = "card-reason";
-    body.appendChild(spacer);
-  }
-
-  // "Zum Shop" + Kennzeichnung "Werbung" (in der EU Pflicht bei Affiliate-Links)
   const actions = document.createElement("div");
   actions.className = "card-actions";
   const link = document.createElement("a");
   link.className = "button";
-  link.textContent = "Zum Shop";
-  link.href = product.affiliate_url;
+  link.textContent = data.buttonText;
+  link.href = data.href;
   link.target = "_blank"; // neuer Tab
-  // sponsored = bezahlter Link (für Suchmaschinen), noopener = Shop kann unsere Seite nicht steuern
-  link.rel = "sponsored noopener";
-  const adLabel = document.createElement("span");
-  adLabel.className = "ad-label";
-  adLabel.textContent = "Werbung";
-  actions.append(link, adLabel);
-  body.appendChild(actions);
+  link.rel = data.rel;
+  const label = document.createElement("span");
+  label.className = data.labelClass;
+  label.textContent = data.label;
+  actions.append(link, label);
 
+  body.append(topLine, title, price, note, actions);
   card.append(imageBox, body);
   return card;
 }
 
-// --- Filter-Bedienung -----------------------------------------------------------------
+// --- Bedienung ------------------------------------------------------------------------------
+
+function showTab(tab) {
+  filters.tab = tab;
+  for (const button of tabButtons) {
+    const active = button.dataset.tab === tab;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", active);
+  }
+  // Pins haben keine Kategorie -> Filter dort ausblenden
+  categoryFilter.hidden = tab === "pins";
+  load();
+}
+
+for (const button of tabButtons) {
+  button.addEventListener("click", () => {
+    // Adresse ändern -> löst "hashchange" aus -> showTab()
+    location.hash = button.dataset.tab === "pins" ? "pins" : "";
+  });
+}
+
+window.addEventListener("hashchange", () => {
+  showTab(location.hash === "#pins" ? "pins" : "products");
+});
 
 budgetChips.addEventListener("click", (event) => {
   const chip = event.target.closest(".chip");
@@ -161,17 +245,17 @@ budgetChips.addEventListener("click", (event) => {
   for (const c of budgetChips.querySelectorAll(".chip")) c.classList.remove("active");
   chip.classList.add("active");
   filters.maxPrice = chip.dataset.max;
-  loadProducts();
+  load();
 });
 
 categorySelect.addEventListener("change", () => {
   filters.category = categorySelect.value;
-  loadProducts();
+  load();
 });
 
 sortSelect.addEventListener("change", () => {
   filters.sort = sortSelect.value;
-  loadProducts();
+  load();
 });
 
 // Kategorien für die Auswahlliste holen
@@ -186,4 +270,4 @@ async function loadCategories() {
 }
 
 loadCategories();
-loadProducts();
+showTab(filters.tab);

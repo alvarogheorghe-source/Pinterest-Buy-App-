@@ -16,6 +16,14 @@
     <!-- Stilprofil oder Hinweis zum Verbinden (wird von shop.js gefüllt) -->
     <section id="profile-banner" class="profile-banner"></section>
 
+    <!-- Tabs: Empfehlungen aus dem Katalog vs. Teile direkt aus den Pins -->
+    <nav class="tabs" role="tablist">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="products">Für dich</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="pins">
+        Aus meinen Pins <span id="pin-items-count"></span>
+      </button>
+    </nav>
+
     <section class="filters">
       <div>
         <span class="filter-label">Budget</span>
@@ -27,7 +35,7 @@
           <button class="chip active" data-max="">Alle</button>
         </div>
       </div>
-      <div>
+      <div id="category-filter">
         <label class="filter-label" for="category-select">Kategorie</label>
         <select id="category-select">
           <option value="">Alle Kategorien</option>
@@ -50,6 +58,7 @@
     <p>
       <strong>Werbehinweis:</strong> Die Links „Zum Shop“ sind Affiliate-Links. Wenn du darüber
       etwas kaufst, erhalten wir eine Provision vom Shop. Für dich ändert sich der Preis nicht.
+      Links im Tab „Aus meinen Pins“ stammen aus deinen eigenen Pins und sind keine Werbung.
     </p>
     <p>
       Prototyp mit erfundenen Beispielprodukten ·
