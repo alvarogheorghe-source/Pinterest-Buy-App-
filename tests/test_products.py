@@ -123,3 +123,22 @@ def test_broken_product_file_gives_500_with_message(client, monkeypatch, tmp_pat
     response = client.get("/api/products")
     assert response.status_code == 500
     assert "nicht gefunden" in response.json()["detail"]
+
+
+def test_own_image_paths_are_allowed_but_not_other_sites():
+    assert make_product(image_url="/img/products/prod-001.png").image_url.startswith("/img/")
+    with pytest.raises(ValueError):
+        make_product(image_url="//andere-seite.com/bild.png")   # sieht eigen aus, ist fremd
+    with pytest.raises(ValueError):
+        make_product(affiliate_url="/img/products/prod-001.png")  # Shop-Links bleiben https
+
+
+def test_every_example_image_exists():
+    from backend.config import FRONTEND_DIR
+    for product in JsonProductSource().load():
+        assert (FRONTEND_DIR / product.image_url.lstrip("/")).is_file(), product.id
+
+
+def test_example_images_are_served(client):
+    response = client.get("/img/products/prod-001.png")
+    assert response.status_code == 200 and response.headers["content-type"] == "image/png"

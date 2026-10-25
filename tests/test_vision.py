@@ -20,6 +20,16 @@ from backend.similar import similar_products
 from tests.test_products import make_product
 
 
+# Eigene Produktbilder ("/img/products/prod-001.png") haben keine Farbe in der Adresse.
+# Der Test-Ersatz schlägt sie deshalb über die Hauptfarbe des Produkts nach.
+from scripts.make_placeholders import COLORS  # noqa: E402
+
+PRODUCT_IMAGE_COLORS = {
+    p.image_url: "{:02x}{:02x}{:02x}".format(*COLORS[p.colors[0]])
+    for p in JsonProductSource().load()
+}
+
+
 class FakeEmbedder:
     name = "fake-model"
 
@@ -30,6 +40,7 @@ class FakeEmbedder:
         self.calls += len(urls)
         result = []
         for url in urls:
+            url = PRODUCT_IMAGE_COLORS.get(url, url)  # eigene Produktbilder -> ihre Farbe
             match = re.search(r"([0-9a-f]{6})", url or "")
             if not match or "kaputt" in url:
                 result.append(None)  # Bild nicht ladbar

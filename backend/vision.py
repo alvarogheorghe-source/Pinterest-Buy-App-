@@ -98,8 +98,15 @@ class ClipEmbedder:
 
     @staticmethod
     def download(url: str):
-        """Lädt ein Bild herunter. Nur http(s)-Adressen, z.B. vom Pinterest-CDN."""
+        """Lädt ein Bild: eigene Bilder der App ("/img/...") direkt von der Festplatte,
+        sonst per http(s), z.B. vom Pinterest-CDN."""
         from PIL import Image
+        if url.startswith("/") and not url.startswith("//"):
+            from backend.config import FRONTEND_DIR
+            path = (FRONTEND_DIR / url.lstrip("/")).resolve()
+            if FRONTEND_DIR.resolve() not in path.parents:  # nicht aus frontend/ ausbrechen
+                raise ValueError("Pfad außerhalb von frontend/")
+            return Image.open(path).convert("RGB")
         if not url.startswith(("https://", "http://")):
             raise ValueError("keine Web-Adresse")
         response = httpx.get(url, timeout=15, follow_redirects=True)

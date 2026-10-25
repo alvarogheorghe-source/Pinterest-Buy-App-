@@ -35,13 +35,23 @@ class Product(BaseModel):
     image_url: str
     affiliate_url: str
 
-    @field_validator("image_url", "affiliate_url")
+    @field_validator("affiliate_url")
     @classmethod
     def must_be_web_link(cls, url: str) -> str:
         """Nur echte Web-Links erlauben. Ein "javascript:..."-Link aus einem
         fremden Feed könnte sonst beim Klick Code im Browser ausführen."""
         if not url.startswith(("https://", "http://")):
             raise ValueError("Link muss mit http:// oder https:// beginnen")
+        return url
+
+    @field_validator("image_url")
+    @classmethod
+    def must_be_image_link(cls, url: str) -> str:
+        """Web-Link oder ein eigenes Bild der App (z.B. "/img/products/prod-001.png").
+        "//andere-seite.com/..." sieht aus wie ein eigener Pfad, führt aber woanders hin."""
+        own_image = url.startswith("/") and not url.startswith("//")
+        if not (own_image or url.startswith(("https://", "http://"))):
+            raise ValueError("Bild muss ein http(s)-Link oder ein eigener Pfad (/img/...) sein")
         return url
 
 
