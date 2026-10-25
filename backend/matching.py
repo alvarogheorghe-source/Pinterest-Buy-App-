@@ -121,10 +121,9 @@ def _word_pattern(word: str) -> str:
     return re.escape(word)
 
 
-def _compile(synonyms: dict[str, list[str]], plural: bool = False) -> dict[str, re.Pattern]:
+def _compile(synonyms: dict[str, list[str]], suffix: str = "") -> dict[str, re.Pattern]:
     """Baut pro Begriff einen Suchausdruck. \\b = Wortgrenze, damit z.B. "red"
-    nicht in "redesign" gefunden wird. plural=True erlaubt zusätzlich -s/-es."""
-    suffix = "(?:s|es)?" if plural else ""
+    nicht in "redesign" gefunden wird. suffix erlaubt Endungen (Plural, Adjektiv)."""
     return {
         term: re.compile(r"\b(?:" + "|".join(_word_pattern(w) for w in words) + r")"
                          + suffix + r"\b")
@@ -132,10 +131,14 @@ def _compile(synonyms: dict[str, list[str]], plural: bool = False) -> dict[str, 
     }
 
 
-COLOR_PATTERNS = _compile(COLOR_SYNONYMS)
+PLURAL = "(?:s|es)?"
+# Deutsche Adjektiv-Endungen: "schwarze Jacke", "beiger Pullover", "weißes Regal"
+ADJECTIVE = "e?[rsnm]?"  # schwarz-e, schwarz-er, beige-r, weiß-es ...
+
+COLOR_PATTERNS = _compile(COLOR_SYNONYMS, suffix=ADJECTIVE)
 STYLE_PATTERNS = _compile(STYLE_SYNONYMS)
 CATEGORY_PATTERNS = _compile({c: words for c, (_, words) in CATEGORY_SYNONYMS.items()},
-                             plural=True)
+                             suffix=PLURAL)
 DEPARTMENT_PATTERNS = _compile(DEPARTMENT_WORDS)
 
 

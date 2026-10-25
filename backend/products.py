@@ -7,6 +7,7 @@ Klasse, die von ProductSource erbt, und gibst sie in get_product_source() zurüc
 """
 
 import json
+import os
 from pathlib import Path
 from typing import Literal
 
@@ -34,6 +35,8 @@ class Product(BaseModel):
     style_tags: list[str] = []        # feste Begriffe wie "streetwear", "oversized"
     image_url: str
     affiliate_url: str
+    # True = wir verdienen am Link (Affiliate) -> Kennzeichnung "Werbung"
+    sponsored: bool = True
 
     @field_validator("affiliate_url")
     @classmethod
@@ -83,10 +86,22 @@ class JsonProductSource(ProductSource):
 
 
 def get_product_source() -> ProductSource:
-    """HIER wird entschieden, woher die Produkte kommen. Später z.B.:
-    return AffiliateFeedSource(url=get_setting("AFFILIATE_FEED_URL"))
+    """HIER wird entschieden, woher die Produkte kommen:
+    - eBay (echte Angebote), wenn EBAY_CLIENT_ID/EBAY_CLIENT_SECRET in .env stehen
+    - sonst die Beispielprodukte aus data/products.json
+    PRODUCT_SOURCE=demo in .env erzwingt die Beispielprodukte.
+    Später kommen weitere Quellen dazu (z.B. ein Awin-Feed).
     """
+    from backend import ebay  # erst hier, sonst importieren sich die Dateien gegenseitig
+    if os.getenv("PRODUCT_SOURCE", "").strip().lower() != "demo" and ebay.configured():
+        return ebay.EbayProductSource()
     return JsonProductSource()
+
+
+def source_name() -> str:
+    """Für die Anzeige im Shop: "ebay" oder "demo"."""
+    from backend import ebay
+    return "ebay" if isinstance(get_product_source(), ebay.EbayProductSource) else "demo"
 
 
 def filter_products(products: list[Product], min_price: float | None = None,

@@ -58,7 +58,11 @@ async function load() {
     fetch(`/api/pin-items?${common}`),
   ]);
   if (!recResponse.ok || !pinResponse.ok) {
-    resultCount.textContent = "Daten konnten nicht geladen werden.";
+    // Genaue Meldung vom Server zeigen (z.B. "eBay-Anmeldung fehlgeschlagen ...")
+    const failed = recResponse.ok ? pinResponse : recResponse;
+    const detail = await failed.json().then((d) => d.detail).catch(() => null);
+    resultCount.textContent = detail || "Daten konnten nicht geladen werden.";
+    grid.innerHTML = "";
     return;
   }
   const recommendations = await recResponse.json();
@@ -81,6 +85,10 @@ async function load() {
       : recommendations.products;
     renderGrid(items.map((p) => productToCard(p, hasProfile)), "Produkt", "Produkte",
       "Keine Produkte in diesem Budget. Probier einen höheren Betrag.");
+    // Woher kommen die Produkte?
+    resultCount.textContent += recommendations.source === "ebay"
+      ? " · echte Angebote von eBay (stündlich aktualisiert)"
+      : " · Beispielprodukte (erfunden)";
   }
 }
 
@@ -184,10 +192,11 @@ function productToCard(product, hasProfile) {
       : product.feedback_hint ? "Ähnlich wie etwas, das dir gefallen hat" : "",
     buttonText: "Zum Shop",
     href: product.affiliate_url,
+    // Nur wenn wir am Link verdienen (Affiliate), ist es Werbung – sonst "Link zu eBay"
     // sponsored = bezahlter Link (für Suchmaschinen), noopener = Shop kann unsere Seite nicht steuern
-    rel: "sponsored noopener",
-    label: "Werbung",
-    labelClass: "ad-label",
+    rel: product.sponsored ? "sponsored noopener" : "noopener",
+    label: product.sponsored ? "Werbung" : `Link zu ${product.shop.split(" · ")[0]}`,
+    labelClass: product.sponsored ? "ad-label" : "source-label",
   };
 }
 

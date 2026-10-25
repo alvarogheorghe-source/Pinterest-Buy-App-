@@ -101,7 +101,30 @@ Farben und Stil-Tags sind feste, kleingeschriebene Begriffe (`beige`, `streetwea
 - http://localhost:8000/api/products?department=wohnen – nur Wohnen & Deko
 - http://localhost:8000/api/categories?department=wohnen – Kategorien einer Welt
 
-**Echten Affiliate-Feed einbinden (später):** In `backend/products.py` eine neue Klasse
+### Echte Produkte von eBay (kostenlos)
+
+Sobald `EBAY_CLIENT_ID` und `EBAY_CLIENT_SECRET` in `.env` stehen, zeigt der Shop **echte
+eBay-Angebote** (neu und Second Hand) statt der Beispielprodukte (`backend/ebay.py`):
+
+1. Aus deinem Stilprofil werden Suchbegriffe, z.B. „beige oversized Pullover“ (4 pro Welt).
+2. Die offizielle eBay Browse API sucht damit (nur Sofort-Kaufen, Marktplatz `EBAY_MARKETPLACE`).
+3. Farben, Stile und Kategorie liest die App aus dem Titel – Ranking, ♡/👎 und Bilderkennung
+   funktionieren wie vorher.
+4. Ergebnisse werden 1 Stunde in `data/ebay_cache.json` gespeichert (gitignored); neue Pins
+   leeren den Speicher. So bleibt man weit unter dem Gratis-Limit von eBay.
+
+**Schlüssel holen:** https://developer.ebay.com → kostenloses Konto → „Application Keys“ →
+beim **Production**-Keyset: *App ID (Client ID)* → `EBAY_CLIENT_ID`, *Cert ID (Client Secret)*
+→ `EBAY_CLIENT_SECRET`.
+
+**Werbung oder nicht?** Ohne Partnerprogramm verdienst du nichts, die Links heißen
+„Link zu eBay“. Mit dem eBay Partner Network (https://partnernetwork.ebay.com) trägst du die
+Kampagnen-ID als `EBAY_EPN_CAMPAIGN_ID` ein – eBay liefert dann Partnerlinks und die App
+markiert sie als „Werbung“.
+
+`PRODUCT_SOURCE=demo` in `.env` erzwingt wieder die Beispielprodukte (Tests machen das immer).
+
+**Weitere Affiliate-Feeds einbinden (später):** In `backend/products.py` eine neue Klasse
 schreiben, die von `ProductSource` erbt und in `load()` den Feed in `Product`-Objekte
 umwandelt. Dann in `get_product_source()` diese Klasse zurückgeben – der Rest der App
 bleibt unverändert.

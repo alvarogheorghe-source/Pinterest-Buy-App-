@@ -37,8 +37,11 @@ function shopButton(product) {
   const link = el("a", "button", "Zum Shop");
   link.href = product.affiliate_url;
   link.target = "_blank";
-  link.rel = "sponsored noopener";
-  actions.append(link, el("span", "ad-label", "Werbung"));
+  // Nur Affiliate-Links sind Werbung (siehe shop.js)
+  link.rel = product.sponsored ? "sponsored noopener" : "noopener";
+  actions.append(link, product.sponsored
+    ? el("span", "ad-label", "Werbung")
+    : el("span", "source-label", `Link zu ${product.shop.split(" · ")[0]}`));
   return actions;
 }
 

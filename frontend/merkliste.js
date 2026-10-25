@@ -65,8 +65,12 @@ function card(item) {
   titleLink.appendChild(el("h3", "card-name", item.name));
   const actions = el("div", "card-actions");
   const shopLink = Object.assign(el("a", "button", "Zum Shop"),
-    { href: item.affiliate_url, target: "_blank", rel: "sponsored noopener" });
-  actions.append(shopLink, el("span", "ad-label", "Werbung"));
+    { href: item.affiliate_url, target: "_blank",
+      rel: item.sponsored ? "sponsored noopener" : "noopener" });
+  // Nur Affiliate-Links sind Werbung
+  actions.append(shopLink, item.sponsored
+    ? el("span", "ad-label", "Werbung")
+    : el("span", "source-label", `Link zu ${item.shop.split(" · ")[0]}`));
   body.append(
     el("p", "card-shop", `${item.shop} · ${item.category}`),
     titleLink,

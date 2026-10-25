@@ -80,3 +80,5 @@ def load_pins() -> dict:
 
 def save_pins(data: dict) -> None:
     write_json(PINS_FILE, data)
+    # Neue Pins = neues Stilprofil -> zwischengespeicherte eBay-Suche verwerfen
+    delete_json("ebay_cache.json")

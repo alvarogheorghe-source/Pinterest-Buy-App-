@@ -226,3 +226,11 @@ def test_image_color_counts_once_per_pin():
         {"title": "", "dominant_color": "#f4f2ee"},            # weißer Hintergrund
     ]
     assert build_style_profile(pins).colors == {"beige": 2}
+
+
+def test_german_color_endings():
+    """eBay-Titel sind Deutsch: "Schwarze Jacke", "beiger Pullover", "weißes Regal"."""
+    from backend.matching import COLOR_PATTERNS, find_terms
+    assert find_terms("Schwarze Jacke", COLOR_PATTERNS) == {"schwarz"}
+    assert find_terms("beiger Pullover, weißes Regal", COLOR_PATTERNS) == {"beige", "weiß"}
+    assert find_terms("Rotkehlchen Rotor", COLOR_PATTERNS) == set()   # keine Fehltreffer

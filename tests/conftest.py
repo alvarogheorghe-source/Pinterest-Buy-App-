@@ -74,6 +74,12 @@ class FakePinterest:
         return httpx.Response(404)
 
 
+@pytest.fixture(autouse=True)
+def demo_products(monkeypatch):
+    """Tests nutzen IMMER die Beispielprodukte – auch wenn in .env eBay-Schlüssel stehen."""
+    monkeypatch.setenv("PRODUCT_SOURCE", "demo")
+
+
 @pytest.fixture
 def fake(monkeypatch, tmp_path):
     """Richtet für jeden Test eine saubere Umgebung ein."""
