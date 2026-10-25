@@ -1,0 +1,7 @@
+# Optional: Bilderkennung (FashionCLIP). Installieren mit:
+#   pip install -r requirements-ai.txt
+# Groß (ca. 1-2 GB inkl. PyTorch). Ohne diese Pakete funktioniert die App wie bisher.
+-r requirements.txt
+torch>=2.2
+transformers>=4.40
+pillow>=10.0

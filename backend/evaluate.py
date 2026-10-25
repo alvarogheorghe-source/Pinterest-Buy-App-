@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 from typing import Callable
 
-from backend import matching
+from backend import matching, vision
 from backend.config import BASE_DIR
 from backend.products import Product, filter_products, get_product_source
 
@@ -51,6 +51,50 @@ RECOMMENDERS = {
     "Nur Pin-Text": pin_text_only_recommender,
     "Text + Board + Bildfarbe": text_recommender,
 }
+
+
+def make_visual_recommenders(store: "vision.EmbeddingStore",
+                             embedder: "vision.Embedder | None") -> dict[str, Recommender]:
+    """Empfehler mit Bildern. Braucht pin["image_url"] im Testset und berechnete
+    Produkt-Vektoren (python -m backend.vision). Pin-Bilder des Testsets werden bei
+    Bedarf mit `embedder` berechnet und im Speicher gemerkt."""
+    product_vectors = store.vectors("product:")
+
+    def pin_vector(pin: dict) -> list[float] | None:
+        url = pin.get("image_url")
+        if not url:
+            return None
+        key = f"testpin:{url}"
+        if store.get(key, url) is None and embedder is not None:
+            vision.index(store, embedder, [(key, url)])
+        return store.get(key, url)
+
+    def visual(pin: dict, department: str, products: list[Product]) -> list[str]:
+        """Nur Bilder: Produkte, deren Bild dem Pin-Bild am ähnlichsten ist."""
+        vector = pin_vector(pin)
+        if vector is None:
+            return []
+        scored = [(vision.cosine(vector, product_vectors[p.id]), p.price, p.id)
+                  for p in filter_products(products, department=department)
+                  if p.id in product_vectors]
+        scored.sort(key=lambda t: (-t[0], t[1]))
+        return [pid for _, _, pid in scored]
+
+    def hybrid(pin: dict, department: str, products: list[Product]) -> list[str]:
+        """Text-Punkte (wie im Shop) + Bild-Punkte."""
+        vector = pin_vector(pin)
+        profile = matching.build_style_profile([pin])
+        ranked = matching.rank_products(filter_products(products, department=department), profile)
+        scored = []
+        for r in ranked:
+            looks = 0.0
+            if vector is not None and r["id"] in product_vectors:
+                looks = vision.visual_score(vision.cosine(vector, product_vectors[r["id"]]))
+            scored.append((r["score"] + vision.VISUAL_WEIGHT * looks, r["price"], r["id"]))
+        scored.sort(key=lambda t: (-t[0], t[1]))
+        return [pid for score, _, pid in scored if score > 0]
+
+    return {"Bilder": visual, "Text + Bilder": hybrid}
 
 
 def load_testset(path: Path = DEMO_TESTSET) -> list[dict]:
@@ -120,10 +164,31 @@ def print_comparison(reports: dict[str, dict]) -> None:
 
 
 def main() -> None:
-    path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEMO_TESTSET
+    """python -m backend.evaluate [--bilder] [testset.json]"""
+    args = [a for a in sys.argv[1:] if a != "--bilder"]
+    path = Path(args[0]) if args else DEMO_TESTSET
     products = get_product_source().load()
     cases = load_testset(path)
-    reports = {name: evaluate(cases, rec, products) for name, rec in RECOMMENDERS.items()}
+    recommenders = dict(RECOMMENDERS)
+
+    if "--bilder" in sys.argv:
+        store = vision.EmbeddingStore.load_existing()
+        if store is None:
+            print("Keine Bild-Vektoren gefunden. Zuerst: python -m backend.vision")
+            sys.exit(1)
+        try:
+            embedder = vision.ClipEmbedder(store.model)  # für die Pin-Bilder des Testsets
+        except vision.VisionUnavailable as err:
+            print(f"Hinweis: {err} – nur bereits berechnete Pin-Bilder werden genutzt.")
+            embedder = None
+        recommenders.update(make_visual_recommenders(store, embedder))
+        if not any(case["pin"].get("image_url") for case in cases):
+            print("Hinweis: Das Testset enthält keine Bild-URLs (pin.image_url) – "
+                  "für Bilder braucht es ein Testset mit echten Pins.")
+
+    reports = {name: evaluate(cases, rec, products) for name, rec in recommenders.items()}
+    if "--bilder" in sys.argv:
+        store.save()  # neu berechnete Testset-Bilder merken
     # Ausführlich nur für den besten (letzten) Empfehler, dann der Vergleich
     last = list(reports)[-1]
     print_report(reports[last], products, name=last)

@@ -171,7 +171,9 @@ function productToCard(product, hasProfile) {
     // 👍/👎 (nur bei Katalog-Produkten)
     productId: product.id,
     vote: product.vote,
-    hint: product.feedback_hint ? "Ähnlich wie etwas, das dir gefallen hat" : "",
+    // Hinweis: Bilderkennung ("sieht aus wie deine Pins") oder 👍 ("ähnlich wie ein Like")
+    hint: product.looks_like_pins ? "Sieht aus wie deine Pins"
+      : product.feedback_hint ? "Ähnlich wie etwas, das dir gefallen hat" : "",
     buttonText: "Zum Shop",
     href: product.affiliate_url,
     // sponsored = bezahlter Link (für Suchmaschinen), noopener = Shop kann unsere Seite nicht steuern

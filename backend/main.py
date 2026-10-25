@@ -13,7 +13,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import feedback, matching, pins, pinterest, products, shop_links, similar, storage
+from backend import (feedback, matching, pins, pinterest, products, shop_links, similar,
+                     storage, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Style App")
@@ -189,7 +190,11 @@ def get_product_detail(product_id: str, limit: int = Query(12, ge=1, le=48)):
     votes = feedback.load_feedback()
     detail["vote"] = votes.get(product_id, {}).get("vote")
     disliked = feedback.ids_with_vote(votes, "dislike")
-    similar_items = [item for item in similar.similar_products(product, all_products, limit=48)
+    # Bild-Vektoren, falls schon berechnet (python -m backend.vision) – sonst nur Text
+    store = vision.EmbeddingStore.load_existing()
+    vectors = store.vectors("product:") if store else None
+    similar_items = [item for item in similar.similar_products(product, all_products, limit=48,
+                                                               vectors=vectors)
                      if item["id"] not in disliked][:limit]
     for item in similar_items:
         item["vote"] = votes.get(item["id"], {}).get("vote")
@@ -223,11 +228,15 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
                         category: str | None = None,
                         department: products.Department = "mode"):
     """Produkte einer Welt im Budget, sortiert nach Passung zum Stilprofil dieser Welt."""
-    profile = matching.build_style_profile(storage.load_pins()["pins"], department)
+    pins_list = storage.load_pins()["pins"]
+    profile = matching.build_style_profile(pins_list, department)
     all_products = products.get_product_source().load()
     selection = products.filter_products(all_products, min_price, max_price, category,
                                          department)
     ranked = matching.rank_products(selection, profile)
+    # Bilder: "sieht aus wie deine Pins" (nur wenn Vektoren berechnet wurden)
+    ranked = vision.apply_visual(ranked, pins_list, department,
+                                 vision.EmbeddingStore.load_existing())
     return {
         "profile": profile.to_dict(),
         # 👍/👎 einrechnen: Dislikes raus, Ähnliches zu Likes nach oben

@@ -23,6 +23,7 @@ backend/
   similar.py    ähnliche Artikel (gleiche Welt, Kategorie, Farben, Stile)
   evaluate.py   misst die Genauigkeit der Vorschläge mit einem Testset
   feedback.py   👍/👎: blendet Dislikes aus, schiebt Ähnliches zu Likes nach oben
+  vision.py     Bilderkennung (FashionCLIP): Bild-Vektoren berechnen und vergleichen
 eval/           demo_testset.json: Beispiel-Pins mit von Hand gewählten passenden Produkten
   demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
   products.py   Produktmodell, austauschbare Produktquelle, Preis-/Kategoriefilter
@@ -147,6 +148,34 @@ der **Alt-Text** des Pins und die **Hauptfarbe des Bildes** (`color_from_hex()` 
 **Achtung:** Das Demo-Testset ist erfunden und eher „leicht“ (die Pins enthalten
 meist passende Wörter, der Katalog ist klein). Aussagekräftig wird die Messung erst
 mit echten Pins und echten Produkten.
+
+## Bilderkennung (FashionCLIP, optional)
+
+Ein KI-Modell wandelt jedes Bild in einen „Fingerabdruck“ (Vektor aus 512 Zahlen) um.
+Ähnlich aussehende Kleidung hat ähnliche Vektoren – so versteht die App auch Pins ohne
+Text, Schnitte und Muster. Läuft **lokal auf deinem Mac, kostenlos**.
+
+**Einrichten (einmalig):**
+```bash
+pip install -r requirements-ai.txt     # PyTorch + transformers (groß, dauert etwas)
+python -m backend.vision               # lädt beim ersten Mal ~600 MB Modell herunter
+```
+`python -m backend.vision` berechnet die Vektoren aller Produkt- und Pin-Bilder und
+speichert sie in `data/embeddings.json`. **Nach „Pins laden“ oder neuen Produkten erneut
+ausführen** – es rechnet nur Neues nach. Die App selbst vergleicht danach nur noch die
+gespeicherten Zahlen (das Modell muss nicht laufen).
+
+**Wirkung** (nur wenn `data/embeddings.json` existiert, sonst alles wie bisher):
+- Shop: Zusatzpunkte, wenn ein Produkt wie einige deiner Pins **aussieht**
+  („Sieht aus wie deine Pins“)
+- „Mehr wie das“: Bild-Ähnlichkeit zählt mit, auch ohne gemeinsame Wörter („Sieht ähnlich aus“)
+- Messen: `python -m backend.evaluate --bilder` vergleicht zusätzlich „Bilder“ und
+  „Text + Bilder“ (braucht ein Testset mit `image_url` – also echte Pins)
+
+**Einstellungen:** Modell per `.env` wählbar (`CLIP_MODEL=…`, Standard
+`patrickjohncyh/fashion-clip`; für Wohnen & Deko evtl. `openai/clip-vit-base-patch32`).
+Gewichte oben in `vision.py` (`VISUAL_WEIGHT`, `VISUAL_FLOOR`). Vor kommerzieller Nutzung
+die **Lizenz des Modells** prüfen.
 
 ## 👍 / 👎 Feedback
 

@@ -99,6 +99,9 @@ function renderSimilar(items) {
       el("p", "pin-card-name", item.name),
       el("p", "pin-card-price", formatPrice(item.price, item.currency)),
     );
+    if (item.looks_similar) {
+      body.appendChild(el("p", "card-hint", "Sieht ähnlich aus")); // Bilderkennung
+    }
     if (item.shared.length) {
       body.appendChild(el("p", "pin-card-shared", `Auch ${item.shared.slice(0, 3).join(" · ")}`));
     }
