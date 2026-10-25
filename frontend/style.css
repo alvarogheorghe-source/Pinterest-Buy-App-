@@ -18,6 +18,11 @@
   box-sizing: border-box;
 }
 
+/* "hidden" muss immer gewinnen – sonst überschreibt z.B. .button { display: inline-block } es */
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -640,4 +645,109 @@ section + section {
   .card-reason {
     font-size: 0.8rem;
   }
+}
+
+/* --- 👍 / 👎 Buttons (feedback.js) -------------------------------------------------------- */
+
+.card,
+.detail-image,
+.pin-card-wrap {
+  position: relative;
+}
+
+.pin-card-wrap {
+  margin-bottom: 14px;
+  break-inside: avoid;   /* Masonry: Kachel nicht auf zwei Spalten aufteilen */
+}
+
+.pin-card-wrap .pin-card {
+  margin-bottom: 0;
+}
+
+.vote-buttons {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  opacity: 0;            /* am Computer erst beim Drüberfahren sichtbar ... */
+  transition: opacity 0.2s;
+}
+
+.card:hover .vote-buttons,
+.pin-card-wrap:hover .vote-buttons,
+.detail-image .vote-buttons,
+.vote-buttons:focus-within,
+.vote-buttons:has(.active) {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .vote-buttons {
+    opacity: 1;          /* ... auf dem Handy (kein Drüberfahren) immer sichtbar */
+  }
+}
+
+.vote-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(28, 27, 26, 0.18);
+  cursor: pointer;
+}
+
+.vote-button .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.vote-button:hover {
+  background: #fff;
+}
+
+.vote-button.active {
+  background: var(--text);
+  color: var(--accent-text);
+}
+
+/* Platzhalter nach 👎 */
+.dismissed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 180px;
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.dismissed p {
+  margin: 0;
+}
+
+.button.small {
+  padding: 7px 14px;
+  font-size: 0.85rem;
+}
+
+/* "Ähnlich wie etwas, das dir gefallen hat" */
+.card-hint {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94452a;
 }

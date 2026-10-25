@@ -22,6 +22,7 @@ backend/
   prices.py     liest Preise aus Pin-Texten („25€“, „£18“ …)
   similar.py    ähnliche Artikel (gleiche Welt, Kategorie, Farben, Stile)
   evaluate.py   misst die Genauigkeit der Vorschläge mit einem Testset
+  feedback.py   👍/👎: blendet Dislikes aus, schiebt Ähnliches zu Likes nach oben
 eval/           demo_testset.json: Beispiel-Pins mit von Hand gewählten passenden Produkten
   demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
   products.py   Produktmodell, austauschbare Produktquelle, Preis-/Kategoriefilter
@@ -30,6 +31,7 @@ frontend/
   index.html + landing.css  Startseite: stellt die App vor, „Kostenlos starten“
   shop.html + shop.js     Shop: Stilprofil, Tabs, Filter, Produktraster
   produkt.html + produkt.js  Detailseite mit „Mehr wie das“ (ähnliche Artikel)
+  feedback.js             👍/👎-Buttons (Shop und Detailseite)
   konto.html + konto.js   Mein Pinterest: verbinden, Boards wählen, Pins laden
   style.css               gemeinsames Design (Farben als Variablen ganz oben)
 data/           products.json (Beispielprodukte) + Laufzeitdaten (tokens.json etc. – nicht im Git)
@@ -145,6 +147,17 @@ der **Alt-Text** des Pins und die **Hauptfarbe des Bildes** (`color_from_hex()` 
 **Achtung:** Das Demo-Testset ist erfunden und eher „leicht“ (die Pins enthalten
 meist passende Wörter, der Katalog ist klein). Aussagekräftig wird die Messung erst
 mit echten Pins und echten Produkten.
+
+## 👍 / 👎 Feedback
+
+Auf jeder Produktkachel (Shop und Detailseite) oben rechts. Gespeichert in
+`data/feedback.json` (nicht im Git).
+
+- 👎 blendet das Produkt aus (mit „Rückgängig“) und schiebt **ähnliche** Produkte nach unten.
+- 👍 schiebt **ähnliche** Produkte nach oben („Ähnlich wie etwas, das dir gefallen hat“).
+- „Ähnlich“ kommt aus `similar.py`; wie stark Feedback wirkt, steht oben in `feedback.py`
+  (`LIKE_BOOST`, `DISLIKE_PENALTY`).
+- Zurücksetzen unter „Mein Pinterest“. API: `GET/POST/DELETE /api/feedback`
 
 ## Matching (ohne KI)
 

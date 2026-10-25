@@ -5,6 +5,7 @@ Starten mit:  uvicorn backend.main:app --reload
 
 import os
 import secrets
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -12,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import matching, pins, pinterest, products, shop_links, similar, storage
+from backend import feedback, matching, pins, pinterest, products, shop_links, similar, storage
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Style App")
@@ -183,10 +184,19 @@ def get_product_detail(product_id: str, limit: int = Query(12, ge=1, le=48)):
     # Begründung wie im Shop: mit dem Stilprofil der passenden Welt
     profile = matching.build_style_profile(storage.load_pins()["pins"], product.department)
     detail = matching.rank_products([product], profile)[0]
+
+    # 👍/👎: eigene Bewertung anzeigen, mit 👎 bewertete Produkte nicht vorschlagen
+    votes = feedback.load_feedback()
+    detail["vote"] = votes.get(product_id, {}).get("vote")
+    disliked = feedback.ids_with_vote(votes, "dislike")
+    similar_items = [item for item in similar.similar_products(product, all_products, limit=48)
+                     if item["id"] not in disliked][:limit]
+    for item in similar_items:
+        item["vote"] = votes.get(item["id"], {}).get("vote")
     return {
         "product": detail,
         "has_profile": profile.pin_count > 0,
-        "similar": similar.similar_products(product, all_products, limit=limit),
+        "similar": similar_items,
     }
 
 
@@ -217,10 +227,41 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     all_products = products.get_product_source().load()
     selection = products.filter_products(all_products, min_price, max_price, category,
                                          department)
+    ranked = matching.rank_products(selection, profile)
     return {
         "profile": profile.to_dict(),
-        "products": matching.rank_products(selection, profile),
+        # 👍/👎 einrechnen: Dislikes raus, Ähnliches zu Likes nach oben
+        "products": feedback.apply_feedback(ranked, all_products, feedback.load_feedback()),
     }
+
+
+# --- 👍 / 👎 Feedback -------------------------------------------------------------------
+
+class Vote(BaseModel):
+    """{"product_id": "prod-001", "vote": "like"}  –  vote: null löscht die Bewertung"""
+    product_id: str
+    vote: Literal["like", "dislike"] | None
+
+
+@app.post("/api/feedback")
+def post_feedback(vote: Vote):
+    known_ids = {p.id for p in products.get_product_source().load()}
+    if vote.product_id not in known_ids:
+        raise HTTPException(404, "Produkt nicht gefunden.")
+    feedback.set_vote(vote.product_id, vote.vote)
+    return {"product_id": vote.product_id, "vote": vote.vote}
+
+
+@app.get("/api/feedback")
+def get_feedback():
+    return feedback.load_feedback()
+
+
+@app.delete("/api/feedback")
+def delete_feedback():
+    """Alle Bewertungen zurücksetzen."""
+    feedback.clear_feedback()
+    return {"ok": True}
 
 
 # Das Frontend (HTML/CSS/JS) wird direkt vom Backend ausgeliefert.

@@ -5,6 +5,7 @@
 data/tokens.json
 data/pins.json
 data/selected_boards.json
+data/feedback.json
 
 # Python-Kram
 __pycache__/

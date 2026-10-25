@@ -140,4 +140,25 @@ document.getElementById("logout-button").addEventListener("click", async () => {
   location.href = "/konto.html";
 });
 
+// --- Bewertungen (👍/👎) ---
+
+const feedbackText = document.getElementById("feedback-text");
+const feedbackReset = document.getElementById("feedback-reset");
+
+async function showFeedback() {
+  const votes = Object.values(await fetch("/api/feedback").then((r) => r.json()));
+  const likes = votes.filter((v) => v.vote === "like").length;
+  const dislikes = votes.length - likes;
+  feedbackText.textContent = votes.length
+    ? `${likes} × 👍 und ${dislikes} × 👎. Damit sortieren wir deine Vorschläge.`
+    : "Noch keine Bewertungen. Bewerte Produkte im Shop mit 👍 oder 👎.";
+  feedbackReset.hidden = votes.length === 0;
+}
+
+feedbackReset.addEventListener("click", async () => {
+  await fetch("/api/feedback", { method: "DELETE" });
+  showFeedback();
+});
+
 init();
+showFeedback();

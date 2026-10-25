@@ -17,7 +17,8 @@ function el(tag, className, text) {
   return element;
 }
 
-// Bild mit Ersatz, falls es nicht lädt
+// Bild mit Ersatz, falls es nicht lädt. Ersetzt NUR das Bild (nicht den ganzen
+// Kasten), sonst würden z.B. die 👍/👎-Buttons im Kasten mit gelöscht.
 function image(url, alt, box) {
   const img = document.createElement("img");
   img.src = url;
@@ -25,7 +26,7 @@ function image(url, alt, box) {
   img.loading = "lazy";
   img.addEventListener("error", () => {
     box.classList.add("fallback");
-    box.textContent = alt;
+    img.replaceWith(document.createTextNode(alt));
   });
   return img;
 }
@@ -48,6 +49,9 @@ function renderDetail(product, hasProfile) {
 
   const imageBox = el("div", "detail-image");
   imageBox.appendChild(image(product.image_url, product.name, imageBox));
+  // 👍/👎 oben rechts auf dem großen Bild. card = null: 👎 blendet hier nichts aus
+  // (man ist ja auf der Seite des Produkts), der Button zeigt nur den Zustand.
+  imageBox.appendChild(createVoteButtons(product.id, product.vote, null));
 
   const info = el("div", "detail-info");
   info.append(
@@ -99,7 +103,12 @@ function renderSimilar(items) {
       body.appendChild(el("p", "pin-card-shared", `Auch ${item.shared.slice(0, 3).join(" · ")}`));
     }
     card.append(imageBox, body);
-    masonry.appendChild(card);
+
+    // Hülle, damit die 👍/👎-Buttons NICHT im Link liegen (sonst würde ein Klick
+    // darauf zur Detailseite springen). Bei 👎 wird die ganze Hülle ersetzt.
+    const wrap = el("div", "pin-card-wrap");
+    wrap.append(card, createVoteButtons(item.id, item.vote, wrap));
+    masonry.appendChild(wrap);
   }
 }
 

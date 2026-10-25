@@ -168,6 +168,10 @@ function productToCard(product, hasProfile) {
     note: hasProfile ? product.reason : "",
     // Klick auf Bild oder Name -> Detailseite mit "Mehr wie das"
     detailUrl: `/produkt.html?id=${encodeURIComponent(product.id)}`,
+    // 👍/👎 (nur bei Katalog-Produkten)
+    productId: product.id,
+    vote: product.vote,
+    hint: product.feedback_hint ? "Ähnlich wie etwas, das dir gefallen hat" : "",
     buttonText: "Zum Shop",
     href: product.affiliate_url,
     // sponsored = bezahlter Link (für Suchmaschinen), noopener = Shop kann unsere Seite nicht steuern
@@ -251,7 +255,10 @@ function createCard(data) {
   label.textContent = data.label;
   actions.append(link, label);
 
-  body.append(topLine, title, price, note, actions);
+  body.append(topLine, title, price);
+  if (data.hint) body.appendChild(Object.assign(document.createElement("p"),
+    { className: "card-hint", textContent: data.hint }));
+  body.append(note, actions);
 
   // Bild und Name als Link zur Detailseite (nur bei Katalog-Produkten)
   if (data.detailUrl) {
@@ -268,6 +275,8 @@ function createCard(data) {
   } else {
     card.append(imageBox, body);
   }
+  // 👍/👎 oben rechts auf dem Bild (feedback.js)
+  if (data.productId) card.appendChild(createVoteButtons(data.productId, data.vote, card));
   return card;
 }
 
