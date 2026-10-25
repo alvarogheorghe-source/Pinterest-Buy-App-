@@ -21,6 +21,8 @@ backend/
   shop_links.py erkennt Pins mit Link zu Shops/Second-Hand (Depop, Vinted …)
   prices.py     liest Preise aus Pin-Texten („25€“, „£18“ …)
   similar.py    ähnliche Artikel (gleiche Welt, Kategorie, Farben, Stile)
+  evaluate.py   misst die Genauigkeit der Vorschläge mit einem Testset
+eval/           demo_testset.json: Beispiel-Pins mit von Hand gewählten passenden Produkten
   demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
   products.py   Produktmodell, austauschbare Produktquelle, Preis-/Kategoriefilter
   storage.py    speichert Daten als JSON in data/
@@ -121,6 +123,23 @@ Artikel in Spalten wie bei Pinterest. Jede Kachel ist wieder klickbar.
 **Phase 2:** `similar_products()` durch einen Bildvergleich (FashionCLIP) ersetzen.
 
 - http://localhost:8000/api/products/prod-001 – Produkt + ähnliche Artikel
+
+## Genauigkeit messen
+
+```bash
+python -m backend.evaluate                 # Demo-Testset
+python -m backend.evaluate mein_test.json  # eigenes Testset
+```
+
+Ein Testset enthält Pins und von Hand ausgewählte passende Produkte (`relevant`).
+Gemessen werden **Treffer@1** (erster Vorschlag passt), **Treffer@5** (mind. ein
+passender unter den ersten 5), **Ø Platz** des ersten Treffers und wie viele Pins
+**kein Signal** liefern (kein bekanntes Wort). Der Empfehler ist austauschbar, damit sich
+z.B. Text und Bilderkennung mit demselben Testset vergleichen lassen.
+
+**Achtung:** Das Demo-Testset ist erfundenen und eher „leicht“ (die Pins enthalten
+meist passende Wörter, der Katalog ist klein). Aussagekräftig wird die Messung erst
+mit echten Pins und echten Produkten.
 
 ## Matching (ohne KI)
 
