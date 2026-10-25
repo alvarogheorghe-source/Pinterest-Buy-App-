@@ -303,21 +303,22 @@
 
   window.addEventListener("resize", () => { if (!bubble.hidden) placeBubble(); });
 
-  // --- 4. Begrüßung beim Öffnen der Website (einmal pro Besuch) -----------------------------
+  // --- 4. Begrüßung beim allerersten Besuch der Website ------------------------------------
   // Rosa Bildschirm, großer Lucifer hüpft herein, Text tippt sich ein, dann fliegt
   // Lucifer klein an seinen Platz unten. Geht von selbst weg (Antippen überspringt).
 
   const WELCOME = [
-    `Hi, ich bin ${NAME}! 🐰`,
-    "Keine Sorge – ich bin nur teuflisch süß. 😈",
-    "Ich finde Mode & Deko für deinen Vibe. Los geht's! 🥕",
+    `Hi, ich bin ${NAME} – teuflisch süß, versprochen! 😈🐰`,
+    "Ich schnupper durch deine Pinterest-Boards und finde Mode & Deko, die zu dir passt. 💕",
+    "Und ich pass auf dein Budget auf – Karotten-Ehrenwort! 🥕",
   ];
-  const TYPE_SPEED = 22;   // ms pro Buchstabe
+  const TYPE_SPEED = 18;   // ms pro Buchstabe
   const LINE_PAUSE = 750;  // Pause nach jeder Zeile
 
   async function welcome() {
-    if (el.hidden || recall(sessionStorage, "lucifer-welcome") === "done") return;
-    remember(sessionStorage, "lucifer-welcome", "done");
+    // Nur beim allerersten Besuch: localStorage bleibt auch nach dem Schließen des Browsers
+    if (el.hidden || recall(localStorage, "lucifer-welcome") === "done") return;
+    remember(localStorage, "lucifer-welcome", "done");
 
     // Aufbau: Bildschirm > Bühne > großer Lucifer, Name, Text
     const overlay = document.createElement("div");
@@ -518,7 +519,7 @@
   window.lucifer = {
     tanzen: dance, essen: eatCarrot, schlafen: nap, freuen: happyJump,
     hoppeln: (targetX) => hopTo(targetX), vibe: showVibe,
-    begruessen: () => { remember(sessionStorage, "lucifer-welcome", ""); return welcome(); },
+    begruessen: () => { remember(localStorage, "lucifer-welcome", ""); return welcome(); },
   };
 
   life();

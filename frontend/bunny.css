@@ -224,7 +224,7 @@ body {
   }
 }
 
-/* --- Begrüßung beim Öffnen der Website (bunny.js: welcome) ------------------------------- */
+/* --- Begrüßung beim allerersten Besuch (bunny.js: welcome) ------------------------------- */
 
 /* Scrollen sperren, solange die Begrüßung läuft */
 html.splash-open {
@@ -293,7 +293,7 @@ html.splash-open {
 }
 
 .splash-text {
-  min-height: 2.6em;          /* Platz für zwei Zeilen – nichts springt beim Tippen */
+  min-height: 3.9em;          /* Platz für drei Zeilen – nichts springt beim Tippen */
   margin: 0;
   font-family: var(--serif, Georgia, serif);
   font-size: clamp(1.35rem, 3.6vw, 2rem);
