@@ -2,6 +2,9 @@
    Alle Farben stehen hier als Variablen – so lässt sich der Look an EINER Stelle ändern. */
 
 :root {
+  /* Schrift für Überschriften und Logo. Cochin ist auf Mac/iPhone installiert;
+     auf Windows/Android springen die Ersatzschriften dahinter ein. */
+  --serif: "Cochin", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --bg: #faf8f5;          /* warmes Off-White */
   --surface: #ffffff;     /* Kacheln, Kästen */
   --text: #1c1b1a;
@@ -49,8 +52,16 @@ a {
   border-bottom: 1px solid var(--border);
 }
 
+/* Überschriften und Logo in der Serifenschrift (siehe --serif oben) */
+h1,
+h2,
+.logo,
+.detail-name {
+  font-family: var(--serif);
+}
+
 .logo {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-decoration: none;

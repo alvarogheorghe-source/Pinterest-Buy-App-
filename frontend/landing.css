@@ -2,8 +2,7 @@
    Grundbausteine (Buttons, Kopfzeile, Tags) kommen aus style.css. */
 
 :root {
-  /* Serifenschrift für Überschriften – vom Gerät, KEINE Google Fonts (Datenschutz) */
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  /* --serif (Überschriften) steht in style.css */
 
   /* Akzentfarben: je eine kräftigere Farbe (Icons, Linien) und eine helle Fläche */
   --terracotta: #c0643f;
