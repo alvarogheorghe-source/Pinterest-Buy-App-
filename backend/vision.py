@@ -120,6 +120,10 @@ class ClipEmbedder:
             with torch.no_grad():  # nur rechnen, nicht trainieren
                 inputs = self.processor(images=images, return_tensors="pt")
                 features = self.model.get_image_features(**inputs)
+            # transformers 4.x liefert direkt die Zahlen (Tensor), 5.x ein Objekt,
+            # in dem sie unter "pooler_output" stecken
+            if not isinstance(features, torch.Tensor):
+                features = features.pooler_output
             for position, feature in zip(positions, features):
                 results[position] = normalize(feature.tolist())
         return results
