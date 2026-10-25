@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import pins, pinterest, storage
+from backend import pins, pinterest, products, storage
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Style App")
@@ -31,6 +31,11 @@ app.add_middleware(SessionMiddleware, secret_key=session_secret, same_site="lax"
 @app.exception_handler(pinterest.NotConnectedError)
 def not_connected(request: Request, exc: pinterest.NotConnectedError):
     return JSONResponse(status_code=401, content={"detail": str(exc)})
+
+
+@app.exception_handler(products.ProductSourceError)
+def products_broken(request: Request, exc: products.ProductSourceError):
+    return JSONResponse(status_code=500, content={"detail": str(exc)})
 
 
 @app.exception_handler(ConfigError)
@@ -141,6 +146,21 @@ def refresh_pins():
 def get_pins():
     """Die zuletzt gespeicherten Pins (ohne neue Anfrage an Pinterest)."""
     return storage.load_pins()
+
+
+# --- Produkte (Schritt 4) -------------------------------------------------------------
+
+@app.get("/api/products")
+def get_products(min_price: float | None = None, max_price: float | None = None,
+                 category: str | None = None):
+    """Produkte, optional gefiltert. Beispiel: /api/products?max_price=30&category=Hosen"""
+    all_products = products.get_product_source().load()
+    return products.filter_products(all_products, min_price, max_price, category)
+
+
+@app.get("/api/categories")
+def get_categories():
+    return products.list_categories(products.get_product_source().load())
 
 
 # Das Frontend (HTML/CSS/JS) wird direkt vom Backend ausgeliefert.

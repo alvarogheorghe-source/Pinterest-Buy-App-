@@ -3,7 +3,7 @@
 Eine Webapp, die sich mit deinem Pinterest-Konto verbindet, aus deinen Boards deinen
 Stil ableitet und passende Kleidung aus Partnershops vorschlägt.
 
-**Stand:** Phase 1, Schritt 1–3 (Projektgerüst, Pinterest-Login mit Board-Auswahl, Pins laden).
+**Stand:** Phase 1, Schritt 1–4 (Projektgerüst, Pinterest-Login mit Board-Auswahl, Pins laden, Produktdaten).
 
 ## Aufbau
 
@@ -13,9 +13,10 @@ backend/
   config.py     liest Einstellungen aus .env
   pinterest.py  OAuth 2.0 + Pinterest API v5 (Login, Token-Refresh, Boards)
   pins.py       lädt die Pins der ausgewählten Boards (max. 250 pro Board)
+  products.py   Produktmodell, austauschbare Produktquelle, Preis-/Kategoriefilter
   storage.py    speichert Daten als JSON in data/
 frontend/       index.html, style.css, app.js
-data/           Laufzeitdaten (tokens.json etc. – nicht im Git)
+data/           products.json (Beispielprodukte) + Laufzeitdaten (tokens.json etc. – nicht im Git)
 tests/          pytest-Tests; conftest.py simuliert den Pinterest-Server
 ```
 
@@ -54,6 +55,20 @@ Die Pins landen in `data/pins.json` (Titel, Beschreibung, Bild-URL, Hauptfarbe).
 
 - http://localhost:8000/health → `{"status":"ok"}`
 - http://localhost:8000/docs → automatische API-Doku von FastAPI (zum Ausprobieren)
+
+## Produkte
+
+`data/products.json` enthält 30 **erfundene** Produkte (Shops, Preise und Links sind nicht echt).
+Farben und Stil-Tags sind feste, kleingeschriebene Begriffe (`beige`, `streetwear` …).
+
+- http://localhost:8000/api/products – alle Produkte
+- http://localhost:8000/api/products?max_price=30&category=Hosen – gefiltert
+- http://localhost:8000/api/categories – alle Kategorien
+
+**Echten Affiliate-Feed einbinden (später):** In `backend/products.py` eine neue Klasse
+schreiben, die von `ProductSource` erbt und in `load()` den Feed in `Product`-Objekte
+umwandelt. Dann in `get_product_source()` diese Klasse zurückgeben – der Rest der App
+bleibt unverändert.
 
 ## Testen
 

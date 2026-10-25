@@ -1,0 +1,537 @@
+{
+  "_hinweis": "Erfundene Beispieldaten. Shops, Produkte und Links sind nicht echt.",
+  "products": [
+    {
+      "id": "prod-001",
+      "name": "Oversized Hoodie Sand",
+      "shop": "Nordfaden",
+      "price": 34.99,
+      "currency": "EUR",
+      "category": "Oberteile",
+      "colors": [
+        "beige"
+      ],
+      "style_tags": [
+        "oversized",
+        "streetwear",
+        "casual"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Oversized+Hoodie+Sand",
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-001"
+    },
+    {
+      "id": "prod-002",
+      "name": "Basic T-Shirt Weiß",
+      "shop": "Basics & Co",
+      "price": 9.99,
+      "currency": "EUR",
+      "category": "Oberteile",
+      "colors": [
+        "weiß"
+      ],
+      "style_tags": [
+        "minimalistisch",
+        "casual",
+        "clean"
+      ],
+      "image_url": "https://placehold.co/600x750/f2f2f0/333333?text=Basic+T-Shirt+Wei%C3%9F",
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-002"
+    },
+    {
+      "id": "prod-003",
+      "name": "Cargohose Oliv",
+      "shop": "Urban Loop",
+      "price": 39.99,
+      "currency": "EUR",
+      "category": "Hosen",
+      "colors": [
+        "oliv"
+      ],
+      "style_tags": [
+        "streetwear",
+        "utility",
+        "oversized"
+      ],
+      "image_url": "https://placehold.co/600x750/6b7048/ffffff?text=Cargohose+Oliv",
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-003"
+    },
+    {
+      "id": "prod-004",
+      "name": "Wide Leg Jeans Hellblau",
+      "shop": "Kleiderkiste",
+      "price": 44.99,
+      "currency": "EUR",
+      "category": "Hosen",
+      "colors": [
+        "blau"
+      ],
+      "style_tags": [
+        "vintage",
+        "casual",
+        "y2k"
+      ],
+      "image_url": "https://placehold.co/600x750/8fb3d9/333333?text=Wide+Leg+Jeans+Hellblau",
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-004"
+    },
+    {
+      "id": "prod-005",
+      "name": "Strickpullover Creme",
+      "shop": "Mode Mint",
+      "price": 29.99,
+      "currency": "EUR",
+      "category": "Oberteile",
+      "colors": [
+        "beige",
+        "weiß"
+      ],
+      "style_tags": [
+        "minimalistisch",
+        "cozy",
+        "clean"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Strickpullover+Creme",
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-005"
+    },
+    {
+      "id": "prod-006",
+      "name": "Bomberjacke Schwarz",
+      "shop": "Urban Loop",
+      "price": 59.99,
+      "currency": "EUR",
+      "category": "Jacken",
+      "colors": [
+        "schwarz"
+      ],
+      "style_tags": [
+        "streetwear",
+        "casual"
+      ],
+      "image_url": "https://placehold.co/600x750/222222/ffffff?text=Bomberjacke+Schwarz",
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-006"
+    },
+    {
+      "id": "prod-007",
+      "name": "Trenchcoat Beige",
+      "shop": "Nordfaden",
+      "price": 89.99,
+      "currency": "EUR",
+      "category": "Jacken",
+      "colors": [
+        "beige"
+      ],
+      "style_tags": [
+        "elegant",
+        "minimalistisch",
+        "klassisch"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Trenchcoat+Beige",
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-007"
+    },
+    {
+      "id": "prod-008",
+      "name": "Leinenhemd Weiß",
+      "shop": "Mode Mint",
+      "price": 27.99,
+      "currency": "EUR",
+      "category": "Oberteile",
+      "colors": [
+        "weiß"
+      ],
+      "style_tags": [
+        "minimalistisch",
+        "sommer",
+        "clean"
+      ],
+      "image_url": "https://placehold.co/600x750/f2f2f0/333333?text=Leinenhemd+Wei%C3%9F",
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-008"
+    },
+    {
+      "id": "prod-009",
+      "name": "Midikleid Geblümt",
+      "shop": "Kleiderkiste",
+      "price": 35.99,
+      "currency": "EUR",
+      "category": "Kleider & Röcke",
+      "colors": [
+        "rosa",
+        "grün"
+      ],
+      "style_tags": [
+        "boho",
+        "sommer",
+        "romantisch"
+      ],
+      "image_url": "https://placehold.co/600x750/e8b4bc/333333?text=Midikleid+Gebl%C3%BCmt",
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-009"
+    },
+    {
+      "id": "prod-010",
+      "name": "Slip Dress Schwarz",
+      "shop": "Mode Mint",
+      "price": 32.99,
+      "currency": "EUR",
+      "category": "Kleider & Röcke",
+      "colors": [
+        "schwarz"
+      ],
+      "style_tags": [
+        "elegant",
+        "minimalistisch"
+      ],
+      "image_url": "https://placehold.co/600x750/222222/ffffff?text=Slip+Dress+Schwarz",
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-010"
+    },
+    {
+      "id": "prod-011",
+      "name": "Chunky Sneaker Weiß",
+      "shop": "Urban Loop",
+      "price": 64.99,
+      "currency": "EUR",
+      "category": "Schuhe",
+      "colors": [
+        "weiß",
+        "grau"
+      ],
+      "style_tags": [
+        "streetwear",
+        "sportlich"
+      ],
+      "image_url": "https://placehold.co/600x750/f2f2f0/333333?text=Chunky+Sneaker+Wei%C3%9F",
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-011"
+    },
+    {
+      "id": "prod-012",
+      "name": "Chelsea Boots Braun",
+      "shop": "Nordfaden",
+      "price": 79.99,
+      "currency": "EUR",
+      "category": "Schuhe",
+      "colors": [
+        "braun"
+      ],
+      "style_tags": [
+        "klassisch",
+        "vintage"
+      ],
+      "image_url": "https://placehold.co/600x750/7b5a3c/ffffff?text=Chelsea+Boots+Braun",
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-012"
+    },
+    {
+      "id": "prod-013",
+      "name": "Canvas Tote Bag",
+      "shop": "Basics & Co",
+      "price": 12.99,
+      "currency": "EUR",
+      "category": "Accessoires",
+      "colors": [
+        "beige"
+      ],
+      "style_tags": [
+        "minimalistisch",
+        "casual"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Canvas+Tote+Bag",
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-013"
+    },
+    {
+      "id": "prod-014",
+      "name": "Beanie Grau",
+      "shop": "Basics & Co",
+      "price": 11.99,
+      "currency": "EUR",
+      "category": "Accessoires",
+      "colors": [
+        "grau"
+      ],
+      "style_tags": [
+        "streetwear",
+        "casual",
+        "cozy"
+      ],
+      "image_url": "https://placehold.co/600x750/9e9e9e/333333?text=Beanie+Grau",
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-014"
+    },
+    {
+      "id": "prod-015",
+      "name": "Jogginghose Grau",
+      "shop": "Basics & Co",
+      "price": 24.99,
+      "currency": "EUR",
+      "category": "Hosen",
+      "colors": [
+        "grau"
+      ],
+      "style_tags": [
+        "sportlich",
+        "casual",
+        "cozy"
+      ],
+      "image_url": "https://placehold.co/600x750/9e9e9e/333333?text=Jogginghose+Grau",
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-015"
+    },
+    {
+      "id": "prod-016",
+      "name": "Lederjacke Vintage Braun",
+      "shop": "Kleiderkiste",
+      "price": 74.99,
+      "currency": "EUR",
+      "category": "Jacken",
+      "colors": [
+        "braun"
+      ],
+      "style_tags": [
+        "vintage",
+        "klassisch"
+      ],
+      "image_url": "https://placehold.co/600x750/7b5a3c/ffffff?text=Lederjacke+Vintage+Braun",
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-016"
+    },
+    {
+      "id": "prod-017",
+      "name": "Crop Top Rippstrick",
+      "shop": "Mode Mint",
+      "price": 14.99,
+      "currency": "EUR",
+      "category": "Oberteile",
+      "colors": [
+        "schwarz"
+      ],
+      "style_tags": [
+        "y2k",
+        "casual"
+      ],
+      "image_url": "https://placehold.co/600x750/222222/ffffff?text=Crop+Top+Rippstrick",
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-017"
+    },
+    {
+      "id": "prod-018",
+      "name": "Plisseerock Salbei",
+      "shop": "Mode Mint",
+      "price": 29.99,
+      "currency": "EUR",
+      "category": "Kleider & Röcke",
+      "colors": [
+        "grün"
+      ],
+      "style_tags": [
+        "elegant",
+        "romantisch"
+      ],
+      "image_url": "https://placehold.co/600x750/7a9e7e/ffffff?text=Plisseerock+Salbei",
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-018"
+    },
+    {
+      "id": "prod-019",
+      "name": "Grafik-Shirt Oversized",
+      "shop": "Urban Loop",
+      "price": 22.99,
+      "currency": "EUR",
+      "category": "Oberteile",
+      "colors": [
+        "schwarz",
+        "weiß"
+      ],
+      "style_tags": [
+        "streetwear",
+        "oversized"
+      ],
+      "image_url": "https://placehold.co/600x750/222222/ffffff?text=Grafik-Shirt+Oversized",
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-019"
+    },
+    {
+      "id": "prod-020",
+      "name": "Bundfaltenhose Beige",
+      "shop": "Nordfaden",
+      "price": 42.99,
+      "currency": "EUR",
+      "category": "Hosen",
+      "colors": [
+        "beige"
+      ],
+      "style_tags": [
+        "elegant",
+        "minimalistisch",
+        "klassisch"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Bundfaltenhose+Beige",
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-020"
+    },
+    {
+      "id": "prod-021",
+      "name": "Pufferjacke Oliv",
+      "shop": "Urban Loop",
+      "price": 69.99,
+      "currency": "EUR",
+      "category": "Jacken",
+      "colors": [
+        "oliv"
+      ],
+      "style_tags": [
+        "streetwear",
+        "oversized",
+        "winter"
+      ],
+      "image_url": "https://placehold.co/600x750/6b7048/ffffff?text=Pufferjacke+Oliv",
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-021"
+    },
+    {
+      "id": "prod-022",
+      "name": "Jeansjacke Vintage Wash",
+      "shop": "Kleiderkiste",
+      "price": 39.99,
+      "currency": "EUR",
+      "category": "Jacken",
+      "colors": [
+        "blau"
+      ],
+      "style_tags": [
+        "vintage",
+        "casual"
+      ],
+      "image_url": "https://placehold.co/600x750/8fb3d9/333333?text=Jeansjacke+Vintage+Wash",
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-022"
+    },
+    {
+      "id": "prod-023",
+      "name": "Rollkragenpullover Schwarz",
+      "shop": "Nordfaden",
+      "price": 34.99,
+      "currency": "EUR",
+      "category": "Oberteile",
+      "colors": [
+        "schwarz"
+      ],
+      "style_tags": [
+        "minimalistisch",
+        "elegant",
+        "klassisch"
+      ],
+      "image_url": "https://placehold.co/600x750/222222/ffffff?text=Rollkragenpullover+Schwarz",
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-023"
+    },
+    {
+      "id": "prod-024",
+      "name": "Häkeltop Creme",
+      "shop": "Kleiderkiste",
+      "price": 19.99,
+      "currency": "EUR",
+      "category": "Oberteile",
+      "colors": [
+        "beige",
+        "weiß"
+      ],
+      "style_tags": [
+        "boho",
+        "sommer",
+        "vintage"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=H%C3%A4keltop+Creme",
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-024"
+    },
+    {
+      "id": "prod-025",
+      "name": "Ledergürtel Braun",
+      "shop": "Nordfaden",
+      "price": 19.99,
+      "currency": "EUR",
+      "category": "Accessoires",
+      "colors": [
+        "braun"
+      ],
+      "style_tags": [
+        "klassisch"
+      ],
+      "image_url": "https://placehold.co/600x750/7b5a3c/ffffff?text=Lederg%C3%BCrtel+Braun",
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-025"
+    },
+    {
+      "id": "prod-026",
+      "name": "Ballerinas Schwarz",
+      "shop": "Mode Mint",
+      "price": 29.99,
+      "currency": "EUR",
+      "category": "Schuhe",
+      "colors": [
+        "schwarz"
+      ],
+      "style_tags": [
+        "elegant",
+        "klassisch"
+      ],
+      "image_url": "https://placehold.co/600x750/222222/ffffff?text=Ballerinas+Schwarz",
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-026"
+    },
+    {
+      "id": "prod-027",
+      "name": "Retro Laufschuh Grün",
+      "shop": "Urban Loop",
+      "price": 54.99,
+      "currency": "EUR",
+      "category": "Schuhe",
+      "colors": [
+        "grün",
+        "weiß"
+      ],
+      "style_tags": [
+        "sportlich",
+        "vintage",
+        "streetwear"
+      ],
+      "image_url": "https://placehold.co/600x750/7a9e7e/ffffff?text=Retro+Laufschuh+Gr%C3%BCn",
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-027"
+    },
+    {
+      "id": "prod-028",
+      "name": "Silberkette Minimal",
+      "shop": "Basics & Co",
+      "price": 14.99,
+      "currency": "EUR",
+      "category": "Accessoires",
+      "colors": [
+        "silber"
+      ],
+      "style_tags": [
+        "minimalistisch",
+        "clean"
+      ],
+      "image_url": "https://placehold.co/600x750/c0c0c0/333333?text=Silberkette+Minimal",
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-028"
+    },
+    {
+      "id": "prod-029",
+      "name": "Fleecejacke Braun",
+      "shop": "Urban Loop",
+      "price": 44.99,
+      "currency": "EUR",
+      "category": "Jacken",
+      "colors": [
+        "braun",
+        "beige"
+      ],
+      "style_tags": [
+        "outdoor",
+        "cozy",
+        "casual"
+      ],
+      "image_url": "https://placehold.co/600x750/7b5a3c/ffffff?text=Fleecejacke+Braun",
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-029"
+    },
+    {
+      "id": "prod-030",
+      "name": "Maxikleid Terracotta",
+      "shop": "Kleiderkiste",
+      "price": 39.99,
+      "currency": "EUR",
+      "category": "Kleider & Röcke",
+      "colors": [
+        "orange"
+      ],
+      "style_tags": [
+        "boho",
+        "sommer"
+      ],
+      "image_url": "https://placehold.co/600x750/c8693f/ffffff?text=Maxikleid+Terracotta",
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-030"
+    }
+  ]
+}
