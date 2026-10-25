@@ -66,6 +66,45 @@ body.landing {
   transform: translateX(3px);
 }
 
+/* --- "Mit Pinterest verbinden"-Buttons (Grund-Look steht in style.css) -------------------- */
+
+/* Unter "Zwei Welten": Text + Button in einer Zeile */
+.connect-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px 22px;
+  margin-top: 30px;
+  padding: 22px;
+  border: 1px dashed var(--border);
+  border-radius: 20px;
+  text-align: center;
+}
+
+.connect-row p {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.25rem;
+}
+
+.step-button {
+  margin-top: 16px;
+}
+
+.band-button {
+  margin-top: 24px;
+}
+
+.privacy .button.connect {
+  margin-top: 4px;
+}
+
+/* Leiste unten – nur auf dem Handy sichtbar (siehe Media Query unten) */
+.mobile-connect {
+  display: none;
+}
+
 /* --- Hero ----------------------------------------------------------------------------------- */
 
 .hero {
@@ -839,5 +878,41 @@ details p {
     margin-left: 16px;
     margin-right: 16px;
     padding: 56px 20px;
+  }
+
+  .connect-row .button {
+    width: 100%;
+  }
+
+  /* Feste Leiste unten mit Glas-Effekt */
+  .mobile-connect {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    display: block;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); /* iPhone-Home-Balken */
+    background: rgba(250, 248, 245, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    transition: transform 0.3s, opacity 0.3s;
+  }
+
+  .mobile-connect .button {
+    width: 100%;
+    padding: 13px;
+  }
+
+  .mobile-connect.hidden {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Platz lassen, damit die Leiste das Seitenende nicht verdeckt */
+  body.landing {
+    padding-bottom: 76px;
   }
 }

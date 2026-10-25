@@ -100,6 +100,24 @@ main {
   background: var(--pinterest);
 }
 
+/* "Mit Pinterest verbinden" – überall gleich: Link-Icon + Text */
+.button.connect {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.button.connect .icon {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s;
+}
+
+.button.connect:hover .icon {
+  transform: rotate(-12deg);   /* kleine Bewegung beim Drüberfahren */
+}
+
 .muted {
   color: var(--muted);
   font-size: 0.9rem;
@@ -146,6 +164,10 @@ main {
 
 .banner-sub {
   margin-top: 12px !important;
+}
+
+.banner-button {
+  margin-top: 14px;
 }
 
 /* --- Icons (SVG im HTML, Farbe = Textfarbe) ------------------------------------------- */

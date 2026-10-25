@@ -98,11 +98,8 @@ function renderBanner(profile) {
     title.textContent = filters.department === "wohnen"
       ? "Deko und Möbel, die zu deinem Pinterest passen"
       : "Mode, die zu deinem Pinterest passt";
-    text.textContent = "Verbinde dein Pinterest-Konto, dann sortieren wir alles nach deinem Stil. ";
-    const link = document.createElement("a");
-    link.href = "/konto.html";
-    link.textContent = "Jetzt verbinden →";
-    text.appendChild(link);
+    text.textContent = "Verbinde dein Pinterest-Konto, dann sortieren wir alles nach deinem Stil.";
+    banner.appendChild(connectButton());
     return;
   }
 
@@ -118,6 +115,20 @@ function renderBanner(profile) {
     label.textContent = "Du pinnst oft:";
     banner.append(label, tagList(profile.top_categories, "tag outline"));
   }
+}
+
+// Button "Mit Pinterest verbinden" mit Link-Icon (gleich wie auf der Startseite).
+// innerHTML ist hier unbedenklich: der Inhalt ist fester Text, keine Daten von außen.
+function connectButton() {
+  const button = document.createElement("a");
+  button.href = "/konto.html";
+  button.className = "button connect banner-button";
+  button.innerHTML =
+    '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' +
+    '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/>' +
+    '<path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>' +
+    "Mit Pinterest verbinden";
+  return button;
 }
 
 function tagList(terms, className = "tag") {

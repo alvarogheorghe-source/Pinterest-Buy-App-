@@ -17,3 +17,12 @@ def test_start_page_presents_the_app(client):
                                   "/landing.css", "/shop.js", "/konto.js"])
 def test_pages_and_files_exist(client, path):
     assert client.get(path).status_code == 200
+
+
+def test_many_connect_buttons_all_lead_to_konto(client):
+    """Die Startseite lädt an mehreren Stellen zum Verbinden ein – alle führen zu /konto.html."""
+    import re
+    html = client.get("/").text
+    buttons = re.findall(r'<a href="([^"]+)" class="button[^"]*connect[^"]*">', html)
+    assert len(buttons) >= 6
+    assert set(buttons) == {"/konto.html"}

@@ -59,8 +59,8 @@
         Kleidung und Deko aus vielen Shops und Second Hand. Sortiert nach deinem Budget.
       </p>
       <div class="hero-actions">
-        <a href="/konto.html" class="button large">
-          Kostenlos starten <svg class="icon"><use href="#i-arrow"/></svg>
+        <a href="/konto.html" class="button large connect">
+          <svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden
         </a>
         <a href="/shop.html" class="button large outline">Shop ansehen</a>
       </div>
@@ -134,6 +134,11 @@
         <span class="world-link">Wohnen entdecken <svg class="icon"><use href="#i-arrow"/></svg></span>
       </a>
     </div>
+
+    <div class="connect-row">
+      <p>Deine Pins entscheiden, was du siehst.</p>
+      <a href="/konto.html" class="button connect"><svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden</a>
+    </div>
   </section>
 
   <!-- 3. So funktioniert's ------------------------------------------------------------- -->
@@ -146,6 +151,7 @@
         <span class="step-number">01</span>
         <h3>Pinterest verbinden</h3>
         <p>Du meldest dich direkt bei Pinterest an. Wir sehen dein Passwort nie und können nichts verändern.</p>
+        <a href="/konto.html" class="button connect small step-button"><svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden</a>
       </li>
       <li class="step">
         <span class="step-icon tint-butter"><svg class="icon"><use href="#i-grid"/></svg></span>
@@ -206,6 +212,7 @@
       <div>
         <h2>Wir sprechen deinen Stil</h2>
         <p>Auf Deutsch und Englisch, von „cozy“ bis „Japandi“. Aus „cream knit“ wird beige, aus „baggy“ wird oversized.</p>
+        <a href="/konto.html" class="button connect light band-button"><svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden</a>
       </div>
       <ul class="style-words">
         <li class="w-blush">streetwear</li>
@@ -231,6 +238,7 @@
         <p class="section-kicker">Datenschutz</p>
         <h2 class="section-title">Deine Daten bleiben deine</h2>
         <p class="section-lead">Wir nutzen nur, was wir für deine Vorschläge brauchen, und verkaufen nichts davon.</p>
+        <a href="/konto.html" class="button connect"><svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden</a>
       </div>
       <ul class="checklist">
         <li><span class="check"><svg class="icon"><use href="#i-check"/></svg></span>Nur Lesezugriff auf Konto, Boards und Pins</li>
@@ -246,8 +254,8 @@
     <span class="cta-glow" aria-hidden="true"></span>
     <h2>Starte in einer Minute</h2>
     <p>Dein Konto ist dein Pinterest-Login. Kein neues Passwort, kein Formular.</p>
-    <a href="/konto.html" class="button large light">
-      Mit Pinterest verbinden <svg class="icon"><use href="#i-arrow"/></svg>
+    <a href="/konto.html" class="button large light connect">
+      <svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden
     </a>
   </section>
 
@@ -277,6 +285,11 @@
     </details>
   </section>
 
+  <!-- Nur auf dem Handy: Leiste unten, verschwindet bei Hero, Start-Bereich und Footer -->
+  <div class="mobile-connect" id="mobile-connect">
+    <a href="/konto.html" class="button connect"><svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden</a>
+  </div>
+
   <footer class="site-footer landing-footer">
     <div class="footer-top">
       <a href="/" class="logo">STYLE APP</a>
@@ -293,5 +306,23 @@
     </p>
     <p>Prototyp mit Beispieldaten · Impressum folgt</p>
   </footer>
+
+  <script>
+    // Handy-Leiste ausblenden, solange ein anderer großer Verbinden-Button sichtbar ist
+    // (Hero, Start-Bereich) oder der Footer – sonst stünde der Button doppelt da.
+    // IntersectionObserver meldet, welche Elemente gerade im Bild sind.
+    const bar = document.getElementById("mobile-connect");
+    const visible = new Set();
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) visible.add(entry.target);
+        else visible.delete(entry.target);
+      }
+      bar.classList.toggle("hidden", visible.size > 0);
+    });
+    observer.observe(document.querySelector(".hero-actions"));
+    observer.observe(document.getElementById("konto"));
+    observer.observe(document.querySelector(".landing-footer"));
+  </script>
 </body>
 </html>
