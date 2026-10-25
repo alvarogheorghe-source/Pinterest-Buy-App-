@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
 from backend import (feedback, matching, pins, pinterest, products, shop_links, similar,
-                     storage, vision)
+                     storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Style App")
@@ -242,6 +242,14 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
         # 👍/👎 einrechnen: Dislikes raus, Ähnliches zu Likes nach oben
         "products": feedback.apply_feedback(ranked, all_products, feedback.load_feedback()),
     }
+
+
+# --- Hoppels Vibe-Check -------------------------------------------------------------------
+
+@app.get("/api/vibe")
+def get_vibe():
+    """Welchen Vibe gibt dein Pinterest ab? Immer positiv, jedes Mal ein anderer Spruch."""
+    return vibe.vibe_check(storage.load_pins()["pins"])
 
 
 # --- 👍 / 👎 Feedback -------------------------------------------------------------------
