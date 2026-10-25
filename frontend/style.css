@@ -5,10 +5,10 @@
   /* Schrift für Überschriften und Logo. Cochin ist auf Mac/iPhone installiert;
      auf Windows/Android springen die Ersatzschriften dahinter ein. */
   --serif: "Cochin", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-  /* Weiß & Rosa – passend zu Lucifer 🐰 */
+  /* Weiß & Rosa – passend zu Mali 🐰 */
   --bg: #fff8fa;          /* Weiß mit einem Hauch Rosa */
   --surface: #ffffff;     /* Kacheln, Kästen */
-  --text: #3a2a30;        /* warmes Pflaumenbraun statt Schwarz (wie Lucifers Umriss) */
+  --text: #3a2a30;        /* warmes Pflaumenbraun statt Schwarz (wie Malis Umriss) */
   --muted: #7a606a;
   --border: #f5dfe6;
   --accent: #c93a69;      /* Himbeer-Rosa für Buttons und Akzente */

@@ -1,4 +1,4 @@
-"""Tests für Lucifers Vibe-Check (backend/vibe.py).
+"""Tests für Malis Vibe-Check (backend/vibe.py).
 
 Starten mit:  pytest -v
 """

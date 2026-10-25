@@ -245,7 +245,7 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     }
 
 
-# --- Lucifers Vibe-Check -------------------------------------------------------------------
+# --- Malis Vibe-Check -------------------------------------------------------------------
 
 @app.get("/api/vibe")
 def get_vibe():

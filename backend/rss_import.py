@@ -1,7 +1,7 @@
 """TESTWERKZEUG: Pins eines öffentlichen Pinterest-Boards über dessen RSS-Feed laden.
 
 Solange der API-Zugang von Pinterest noch nicht freigegeben ist, kann man damit
-mit ECHTEN Pins testen (Stilprofil, Shop, Lucifers Vibe, Bilderkennung).
+mit ECHTEN Pins testen (Stilprofil, Shop, Malis Vibe, Bilderkennung).
 
 - Nur für öffentliche Boards. Pinterest stellt dafür einen RSS-Feed bereit
   (https://www.pinterest.com/<benutzer>/<board>.rss), wie ihn z.B. Feed-Reader nutzen.

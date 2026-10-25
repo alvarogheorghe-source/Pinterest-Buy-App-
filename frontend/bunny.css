@@ -1,12 +1,12 @@
-/* Lucifer, das Pixel-Maskottchen (bunny.js) */
+/* Mali, das Pixel-Maskottchen (bunny.js) */
 
-/* Platz am Seitenende: So kann man alles über Lucifer hinaus hochscrollen und er
+/* Platz am Seitenende: So kann man alles über Mali hinaus hochscrollen und er
    verdeckt am Ende keine Buttons (er sitzt ja fest unten am Bildschirm). */
 body {
   padding-bottom: 90px;
 }
 
-.lucifer {
+.mali {
   position: fixed;
   bottom: 14px;
   z-index: 40;
@@ -16,14 +16,14 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-.lucifer:focus-visible {
+.mali:focus-visible {
   outline: 3px solid #f6a5b9;
   outline-offset: 4px;
   border-radius: 8px;
 }
 
-/* Weicher Schatten unter Lucifer */
-.lucifer::after {
+/* Weicher Schatten unter Mali */
+.mali::after {
   content: "";
   position: absolute;
   left: 12px;
@@ -34,14 +34,14 @@ body {
   background: rgba(28, 27, 26, 0.15);
 }
 
-.lucifer-body {
+.mali-body {
   width: 100%;
   height: 100%;
   transform-origin: 50% 100%;
 }
 
 /* 16×16 Pixel groß gezogen – "pixelated" verhindert Weichzeichnen */
-.lucifer-sprite {
+.mali-sprite {
   width: 100%;
   height: 100%;
   image-rendering: pixelated;
@@ -49,30 +49,30 @@ body {
   transition: transform 0.2s;
 }
 
-.lucifer.facing-left .lucifer-sprite {
+.mali.facing-left .mali-sprite {
   transform: rotate(-6deg);
 }
 
-.lucifer.hopping:not(.facing-left) .lucifer-sprite {
+.mali.hopping:not(.facing-left) .mali-sprite {
   transform: rotate(6deg);
 }
 
 /* Hoppeln: hoch und runter, beim Landen etwas platt */
-.lucifer.hopping .lucifer-body {
-  animation: lucifer-hop 0.36s ease-in-out infinite;
+.mali.hopping .mali-body {
+  animation: mali-hop 0.36s ease-in-out infinite;
 }
 
-@keyframes lucifer-hop {
+@keyframes mali-hop {
   0%, 100% { transform: translateY(0) scale(1.08, 0.92); }
   50% { transform: translateY(-14px) scale(0.95, 1.05); }
 }
 
 /* Freudensprung */
-.lucifer.jumping .lucifer-body {
-  animation: lucifer-jump 0.6s ease-out;
+.mali.jumping .mali-body {
+  animation: mali-jump 0.6s ease-out;
 }
 
-@keyframes lucifer-jump {
+@keyframes mali-jump {
   0% { transform: translateY(0) scale(1.1, 0.9); }
   40% { transform: translateY(-26px) scale(0.92, 1.1); }
   70% { transform: translateY(0) scale(1.1, 0.9); }
@@ -80,32 +80,32 @@ body {
 }
 
 /* Tanzen */
-.lucifer.dancing .lucifer-body {
-  animation: lucifer-dance 0.6s ease-in-out infinite;
+.mali.dancing .mali-body {
+  animation: mali-dance 0.6s ease-in-out infinite;
 }
 
-@keyframes lucifer-dance {
+@keyframes mali-dance {
   0%, 100% { transform: rotate(-10deg) translateX(-3px); }
   50% { transform: rotate(10deg) translateX(3px); }
 }
 
 /* Herz, z, ♪ – schweben hoch und verschwinden */
-.lucifer-fx {
+.mali-fx {
   position: absolute;
   top: -10px;
   font: 700 18px/1 "Courier New", monospace;
   color: #6b5656;
   pointer-events: none;
-  animation: lucifer-float 1.4s ease-out forwards;
+  animation: mali-float 1.4s ease-out forwards;
 }
 
-.lucifer-fx canvas {
+.mali-fx canvas {
   width: 21px;
   height: 18px;
   image-rendering: pixelated;
 }
 
-@keyframes lucifer-float {
+@keyframes mali-float {
   0% { transform: translateY(0); opacity: 0; }
   15% { opacity: 1; }
   100% { transform: translateY(-38px); opacity: 0; }
@@ -113,7 +113,7 @@ body {
 
 /* --- Sprechblase im Pixel-Look ---------------------------------------------------------- */
 
-.lucifer-bubble {
+.mali-bubble {
   position: fixed;
   z-index: 41;
   width: min(300px, calc(100vw - 16px));
@@ -126,8 +126,8 @@ body {
   line-height: 1.4;
 }
 
-/* Spitze unten, zeigt auf Lucifer (Position kommt aus bunny.js: --tail-x) */
-.lucifer-bubble::after {
+/* Spitze unten, zeigt auf Mali (Position kommt aus bunny.js: --tail-x) */
+.mali-bubble::after {
   content: "";
   position: absolute;
   bottom: -11px;
@@ -140,31 +140,31 @@ body {
   transform: rotate(45deg);
 }
 
-.lucifer-bubble p {
+.mali-bubble p {
   margin: 0 0 8px;
 }
 
-.lucifer-title {
+.mali-title {
   font: 700 1rem/1.3 "Courier New", monospace;
   color: #c0436b;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
 
-.lucifer-terms {
+.mali-terms {
   font-size: 0.8rem;
   color: #7a6a6a;
 }
 
-.lucifer-buttons {
+.mali-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 4px;
 }
 
-.lucifer-buttons button,
-.lucifer-return {
+.mali-buttons button,
+.mali-return {
   padding: 6px 12px;
   border: 2px solid #2d2326;
   background: #fff;
@@ -174,17 +174,17 @@ body {
   box-shadow: 2px 2px 0 #2d2326;
 }
 
-.lucifer-buttons button.primary {
+.mali-buttons button.primary {
   background: #ffc7d1;
 }
 
-.lucifer-buttons button:active,
-.lucifer-return:active {
+.mali-buttons button:active,
+.mali-return:active {
   transform: translate(2px, 2px);
   box-shadow: none;
 }
 
-.lucifer-close {
+.mali-close {
   position: absolute;
   top: 2px;
   right: 6px;
@@ -197,7 +197,7 @@ body {
 }
 
 /* Kleiner Knopf zum Zurückholen */
-.lucifer-return {
+.mali-return {
   position: fixed;
   left: 12px;
   bottom: 14px;
@@ -208,19 +208,19 @@ body {
 /* --- Handy -------------------------------------------------------------------------------- */
 
 @media (max-width: 640px) {
-  .lucifer {
+  .mali {
     width: 52px;
     height: 52px;
   }
 
   /* Startseite: über der "Mit Pinterest verbinden"-Leiste bleiben */
-  body.landing .lucifer,
-  body.landing .lucifer-return {
+  body.landing .mali,
+  body.landing .mali-return {
     bottom: 90px;
   }
 
   body.landing {
-    padding-bottom: 160px;   /* Leiste + Lucifer */
+    padding-bottom: 160px;   /* Leiste + Mali */
   }
 }
 
@@ -231,13 +231,13 @@ html.splash-open {
   overflow: hidden;
 }
 
-/* Kleiner Lucifer wartet unsichtbar, bis der große an seinen Platz geflogen ist */
-.lucifer.waiting {
+/* Kleiner Mali wartet unsichtbar, bis der große an seinen Platz geflogen ist */
+.mali.waiting {
   opacity: 0;
   pointer-events: none;
 }
 
-.lucifer-splash {
+.mali-splash {
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -247,8 +247,8 @@ html.splash-open {
   cursor: pointer;
 }
 
-/* Rosa Hintergrund als eigene Ebene – so kann er ausblenden, während Lucifer sichtbar bleibt */
-.lucifer-splash::before {
+/* Rosa Hintergrund als eigene Ebene – so kann er ausblenden, während Mali sichtbar bleibt */
+.mali-splash::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -263,7 +263,7 @@ html.splash-open {
   text-align: center;
 }
 
-/* Großer Pixel-Lucifer: hüpft von unten herein und wippt dann sanft */
+/* Großer Pixel-Mali: hüpft von unten herein und wippt dann sanft */
 .splash-sprite {
   width: min(42vw, 176px);
   height: min(42vw, 176px);
@@ -307,7 +307,7 @@ html.splash-open {
   width: 28px;
   height: 24px;
   image-rendering: pixelated;
-  animation: lucifer-float 1.6s ease-out both;
+  animation: mali-float 1.6s ease-out both;
 }
 
 .splash-skip {
@@ -321,16 +321,16 @@ html.splash-open {
   color: var(--muted, #7a606a);
 }
 
-/* Abgang: Hintergrund und Texte blenden aus, Lucifer fliegt (bunny.js) */
-.lucifer-splash.leaving::before,
-.lucifer-splash.leaving .splash-name,
-.lucifer-splash.leaving .splash-text,
-.lucifer-splash.leaving .splash-skip {
+/* Abgang: Hintergrund und Texte blenden aus, Mali fliegt (bunny.js) */
+.mali-splash.leaving::before,
+.mali-splash.leaving .splash-name,
+.mali-splash.leaving .splash-text,
+.mali-splash.leaving .splash-skip {
   opacity: 0;
   transition: opacity 0.6s ease;
 }
 
-.lucifer-splash.leaving .splash-sprite {
+.mali-splash.leaving .splash-sprite {
   animation: none;            /* Wippen stoppen, damit der Flug sauber startet */
 }
 

@@ -24,7 +24,7 @@ backend/
   evaluate.py   misst die Genauigkeit der Vorschläge mit einem Testset
   feedback.py   👍/👎: blendet Dislikes aus, schiebt Ähnliches zu Likes nach oben
   vision.py     Bilderkennung (FashionCLIP): Bild-Vektoren berechnen und vergleichen
-  vibe.py       Lucifers Vibe-Check („Goth Baddie 🖤“, „Clean-Girl-Aesthetic 🤍“ …)
+  vibe.py       Malis Vibe-Check („Goth Baddie 🖤“, „Clean-Girl-Aesthetic 🤍“ …)
 eval/           demo_testset.json: Beispiel-Pins mit von Hand gewählten passenden Produkten
 scripts/        make_placeholders.py: erzeugt die Produkt-Platzhalterbilder (frontend/img/products)
   demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
@@ -38,7 +38,7 @@ frontend/
   feedback.js             ♡/👎-Buttons (Shop und Detailseite)
   merkliste.html + merkliste.js  Merkliste: alle gemerkten Teile mit Summe
   nav.js                  Zähler „♡ Merkliste“ in der Kopfzeile
-  bunny.js + bunny.css    Lucifer, das Pixel-Maskottchen (auf allen Seiten)
+  bunny.js + bunny.css    Mali, das Pixel-Maskottchen (auf allen Seiten)
   konto.html + konto.js   Mein Pinterest: verbinden, Boards wählen, Pins laden
   style.css               gemeinsames Design (Farben als Variablen ganz oben)
 data/           products.json (Beispielprodukte) + Laufzeitdaten (tokens.json etc. – nicht im Git)
@@ -211,24 +211,24 @@ der **Alt-Text** des Pins und die **Hauptfarbe des Bildes** (`color_from_hex()` 
 meist passende Wörter, der Katalog ist klein). Aussagekräftig wird die Messung erst
 mit echten Pins und echten Produkten.
 
-## Lucifer 🐰 – das Maskottchen
+## Mali 🐰 – das Maskottchen
 
 Ein kleiner Pixel-Hase, der unten über jede Seite läuft (`frontend/bunny.js`, `bunny.css`):
 
 - hoppelt herum, isst Karotten, schläft, tanzt und hoppelt manchmal zur Maus
 - merkt sich seine Position über Seitenwechsel hinweg
 - **Begrüßung nur beim allerersten Besuch** (gemerkt in localStorage): rosa Bildschirm,
-  großer Lucifer hüpft herein und erklärt, wie er hilft (Boards durchschnuppern, passende
+  großer Mali hüpft herein und erklärt, wie er hilft (Boards durchschnuppern, passende
   Mode & Deko finden, aufs Budget achten); nach ca. 7 s fliegt er klein an seinen Platz –
-  ganz ohne Klick (Antippen überspringt). Zum Wiederholen: `lucifer.begruessen()`
+  ganz ohne Klick (Antippen überspringt). Zum Wiederholen: `mali.begruessen()`
 - freut sich, wenn du etwas merkst (♡), und reagiert auf 👎
 - **Klick:** verrät, welchen Vibe dein Pinterest abgibt – immer positiv
   (`GET /api/vibe`, Vibes und Sprüche in `backend/vibe.py`)
 - lässt sich verstecken (🐾 holt ihn zurück); bei „Bewegung reduzieren“ sitzt er still
 
-**Umzeichnen:** Lucifer ist ein 16×16-Raster aus Buchstaben in `bunny.js` (`IDLE`),
-Farben in `PALETTE`. **Ausprobieren** in der Browser-Konsole: `lucifer.tanzen()`,
-`lucifer.essen()`, `lucifer.schlafen()`, `lucifer.freuen()`, `lucifer.vibe()`.
+**Umzeichnen:** Mali ist ein 16×16-Raster aus Buchstaben in `bunny.js` (`IDLE`),
+Farben in `PALETTE`. **Ausprobieren** in der Browser-Konsole: `mali.tanzen()`,
+`mali.essen()`, `mali.schlafen()`, `mali.freuen()`, `mali.vibe()`.
 
 ## Bilderkennung (FashionCLIP, optional)
 

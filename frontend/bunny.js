@@ -1,13 +1,13 @@
-// Lucifer – das Pixel-Maskottchen der Style App 🐰
+// Mali – das Pixel-Maskottchen der Style App 🐰
 //
-// Lucifer läuft unten über jede Seite, isst Karotten, schläft, tanzt, folgt dir
+// Mali läuft unten über jede Seite, isst Karotten, schläft, tanzt, folgt dir
 // manchmal, stellt beim ersten Besuch die Website vor, freut sich über 👍 und
 // verrät dir per Klick, welchen Vibe dein Pinterest abgibt (/api/vibe).
 //
 // Wird auf JEDER Seite geladen (nach den anderen Skripten). Aussehen: bunny.css
 
 (() => {
-  const NAME = "Lucifer";
+  const NAME = "Mali";
 
   // --- 1. Pixel-Zeichnung ------------------------------------------------------------------
   // Jede Figur ist ein Raster aus Buchstaben (16 × 16). Jeder Buchstabe = ein Pixel
@@ -101,28 +101,28 @@
     try { return store.getItem(key); } catch { return null; }
   }
 
-  // --- 2. Lucifer auf die Seite setzen ---------------------------------------------------------
+  // --- 2. Mali auf die Seite setzen ---------------------------------------------------------
 
   const el = document.createElement("div");
-  el.className = "lucifer";
+  el.className = "mali";
   el.setAttribute("role", "button");
   el.tabIndex = 0;
   el.setAttribute("aria-label", `${NAME} – klick mich für deinen Pinterest-Vibe`);
   const body = document.createElement("div");
-  body.className = "lucifer-body";
+  body.className = "mali-body";
   const sprite = document.createElement("canvas");
-  sprite.className = "lucifer-sprite";
+  sprite.className = "mali-sprite";
   body.appendChild(sprite);
   el.appendChild(body);
 
   const bubble = document.createElement("div");
-  bubble.className = "lucifer-bubble";
+  bubble.className = "mali-bubble";
   bubble.setAttribute("role", "status");
   bubble.setAttribute("aria-live", "polite");
   bubble.hidden = true;
 
   const returnButton = document.createElement("button");
-  returnButton.className = "lucifer-return";
+  returnButton.className = "mali-return";
   returnButton.textContent = "🐾";
   returnButton.setAttribute("aria-label", `${NAME} zurückholen`);
   returnButton.hidden = true;
@@ -139,7 +139,7 @@
   // Position (x = Abstand vom linken Rand) – über Seiten hinweg gemerkt
   const width = () => el.offsetWidth || 64;
   const maxX = () => Math.max(8, window.innerWidth - width() - 8);
-  let x = Number(recall(sessionStorage, "lucifer-x"));
+  let x = Number(recall(sessionStorage, "mali-x"));
   if (!Number.isFinite(x) || x <= 0) x = random(8, maxX());
   x = Math.min(x, maxX());
   el.style.left = `${x}px`;
@@ -147,19 +147,19 @@
   function setX(newX) {
     x = Math.max(8, Math.min(newX, maxX()));
     el.style.left = `${x}px`;
-    remember(sessionStorage, "lucifer-x", String(Math.round(x)));
+    remember(sessionStorage, "mali-x", String(Math.round(x)));
   }
 
   window.addEventListener("resize", () => setX(x));
 
   // --- Bewegungen -------------------------------------------------------------------------------
 
-  let busy = false; // macht Lucifer gerade etwas?
+  let busy = false; // macht Mali gerade etwas?
 
   // Kleiner Effekt über dem Kopf (Herz, z, ♪), der hochschwebt und verschwindet
   function effect(content) {
     const fx = document.createElement("div");
-    fx.className = "lucifer-fx";
+    fx.className = "mali-fx";
     if (content === "heart") {
       const heart = document.createElement("canvas");
       draw(heart, HEART);
@@ -187,7 +187,7 @@
     el.style.transition = "";
   }
 
-  // Sofort anhalten (z.B. wenn man auf Lucifer klickt, während er hoppelt)
+  // Sofort anhalten (z.B. wenn man auf Mali klickt, während er hoppelt)
   function stop() {
     const current = el.getBoundingClientRect().left;
     el.style.transition = "";
@@ -247,7 +247,7 @@
     show("idle");
   }
 
-  // Maus merken – manchmal hoppelt Lucifer zu dir
+  // Maus merken – manchmal hoppelt Mali zu dir
   let mouse = null;
   window.addEventListener("mousemove", (event) => { mouse = { x: event.clientX, at: Date.now() }; });
 
@@ -262,7 +262,7 @@
     }
     if (buttons.length) {
       const row = document.createElement("div");
-      row.className = "lucifer-buttons";
+      row.className = "mali-buttons";
       for (const { text, onClick, primary } of buttons) {
         const button = document.createElement("button");
         button.textContent = text;
@@ -273,7 +273,7 @@
       bubble.appendChild(row);
     }
     const close = document.createElement("button");
-    close.className = "lucifer-close";
+    close.className = "mali-close";
     close.textContent = "×";
     close.setAttribute("aria-label", "Sprechblase schließen");
     close.addEventListener("click", () => hideBubble());
@@ -290,7 +290,7 @@
     clearTimeout(say.timer);
   }
 
-  // Blase über Lucifer, aber nie über den Bildschirmrand hinaus
+  // Blase über Mali, aber nie über den Bildschirmrand hinaus
   function placeBubble() {
     const rect = el.getBoundingClientRect();
     const bubbleWidth = bubble.offsetWidth;
@@ -298,17 +298,17 @@
     const left = Math.max(8, Math.min(center - bubbleWidth / 2, window.innerWidth - bubbleWidth - 8));
     bubble.style.left = `${left}px`;
     bubble.style.bottom = `${window.innerHeight - rect.top + 10}px`;
-    bubble.style.setProperty("--tail-x", `${center - left}px`); // Spitze zeigt auf Lucifer
+    bubble.style.setProperty("--tail-x", `${center - left}px`); // Spitze zeigt auf Mali
   }
 
   window.addEventListener("resize", () => { if (!bubble.hidden) placeBubble(); });
 
   // --- 4. Begrüßung beim allerersten Besuch der Website ------------------------------------
-  // Rosa Bildschirm, großer Lucifer hüpft herein, Text tippt sich ein, dann fliegt
-  // Lucifer klein an seinen Platz unten. Geht von selbst weg (Antippen überspringt).
+  // Rosa Bildschirm, großer Mali hüpft herein, Text tippt sich ein, dann fliegt
+  // Mali klein an seinen Platz unten. Geht von selbst weg (Antippen überspringt).
 
   const WELCOME = [
-    `Hi, ich bin ${NAME} – teuflisch süß, versprochen! 😈🐰`,
+    `Hi, ich bin ${NAME} – klein, flauschig und voller Stil-Ideen! 🐰`,
     "Ich schnupper durch deine Pinterest-Boards und finde Mode & Deko, die zu dir passt. 💕",
     "Und ich pass auf dein Budget auf – Karotten-Ehrenwort! 🥕",
   ];
@@ -317,12 +317,12 @@
 
   async function welcome() {
     // Nur beim allerersten Besuch: localStorage bleibt auch nach dem Schließen des Browsers
-    if (el.hidden || recall(localStorage, "lucifer-welcome") === "done") return;
-    remember(localStorage, "lucifer-welcome", "done");
+    if (el.hidden || recall(localStorage, "mali-welcome") === "done") return;
+    remember(localStorage, "mali-welcome", "done");
 
-    // Aufbau: Bildschirm > Bühne > großer Lucifer, Name, Text
+    // Aufbau: Bildschirm > Bühne > großer Mali, Name, Text
     const overlay = document.createElement("div");
-    overlay.className = "lucifer-splash";
+    overlay.className = "mali-splash";
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-label", `${NAME} begrüßt dich`);
     const stage = document.createElement("div");
@@ -341,7 +341,7 @@
     overlay.append(stage, spoken, skipHint);
     document.body.appendChild(overlay);
     document.documentElement.classList.add("splash-open"); // Scrollen kurz sperren
-    el.classList.add("waiting");                            // kleiner Lucifer wartet unsichtbar
+    el.classList.add("waiting");                            // kleiner Mali wartet unsichtbar
 
     // Überspringen per Klick/Tippen oder Escape
     let skipped = false;
@@ -386,7 +386,7 @@
     }
     listeners.abort();
 
-    // Abgang: großer Lucifer fliegt an den Platz des kleinen, Hintergrund blendet aus
+    // Abgang: großer Mali fliegt an den Platz des kleinen, Hintergrund blendet aus
     overlay.classList.add("leaving");
     if (!reduceMotion && big.animate) {
       const from = big.getBoundingClientRect();
@@ -423,13 +423,13 @@
     }
 
     const title = document.createElement("p");
-    title.className = "lucifer-title";
+    title.className = "mali-title";
     title.textContent = `Du bist: ${vibe.emoji} ${vibe.title}`;
     const parts = [title, vibe.text];
     if (vibe.second) parts.push(`… mit einer Prise ${vibe.second}`);
     if (vibe.terms.length) {
       const terms = document.createElement("p");
-      terms.className = "lucifer-terms";
+      terms.className = "mali-terms";
       terms.textContent = `Deine Top-Vibes: ${vibe.terms.join(" · ")}`;
       parts.push(terms);
     }
@@ -437,7 +437,7 @@
     const buttons = vibe.pin_count === 0
       ? [{ text: "Pinterest verbinden", primary: true, onClick: () => { location.href = "/konto.html"; } }]
       : [{ text: "Nochmal! 🎲", primary: true, onClick: showVibe }];
-    buttons.push({ text: `${NAME} verstecken`, onClick: hideLucifer });
+    buttons.push({ text: `${NAME} verstecken`, onClick: hideMali });
 
     say(parts, { buttons });
     await happyJump();
@@ -450,32 +450,32 @@
   });
 
   // Ausblenden / zurückholen (gemerkt)
-  function hideLucifer() {
+  function hideMali() {
     hideBubble();
     el.hidden = true;
     returnButton.hidden = false;
-    remember(localStorage, "lucifer-hidden", "1");
+    remember(localStorage, "mali-hidden", "1");
   }
   returnButton.addEventListener("click", () => {
     el.hidden = false;
     returnButton.hidden = true;
-    remember(localStorage, "lucifer-hidden", "0");
+    remember(localStorage, "mali-hidden", "0");
     say(["Da bin ich wieder! 🐰"], { autoClose: 2000 });
     happyJump();
   });
-  if (recall(localStorage, "lucifer-hidden") === "1") {
+  if (recall(localStorage, "mali-hidden") === "1") {
     el.hidden = true;
     returnButton.hidden = false;
   }
 
   // Reaktion auf 👍 / 👎 (feedback.js meldet das)
-  window.addEventListener("lucifer:like", () => {
+  window.addEventListener("mali:like", () => {
     if (el.hidden) return;
     say([pick(["Gemerkt! 💖", "Ooh, das passt sooo zu dir!", "Gute Wahl – iconic! 💅",
       "Ich hätte es auch gewählt. Ehrlich! 🐰"])], { autoClose: 2200 });
     happyJump();
   });
-  window.addEventListener("lucifer:dislike", () => {
+  window.addEventListener("mali:dislike", () => {
     if (el.hidden) return;
     say([pick(["Verstanden – weg damit! 🫡", "Okay, sowas zeig ich dir seltener.",
       "Nicht dein Vibe? Kein Ding! ✌️"])], { autoClose: 2200 });
@@ -514,12 +514,12 @@
   }
 
   // Zum Ausprobieren in der Browser-Konsole (Rechtsklick → Untersuchen → Konsole):
-  //   lucifer.tanzen()   lucifer.essen()   lucifer.schlafen()   lucifer.freuen()
-  //   lucifer.hoppeln(300)   lucifer.vibe()   lucifer.begruessen()
-  window.lucifer = {
+  //   mali.tanzen()   mali.essen()   mali.schlafen()   mali.freuen()
+  //   mali.hoppeln(300)   mali.vibe()   mali.begruessen()
+  window.mali = {
     tanzen: dance, essen: eatCarrot, schlafen: nap, freuen: happyJump,
     hoppeln: (targetX) => hopTo(targetX), vibe: showVibe,
-    begruessen: () => { remember(localStorage, "lucifer-welcome", ""); return welcome(); },
+    begruessen: () => { remember(localStorage, "mali-welcome", ""); return welcome(); },
   };
 
   life();

@@ -30,7 +30,7 @@ def test_many_connect_buttons_all_lead_to_konto(fake, client):
 
 @pytest.mark.parametrize("path", ["/", "/shop.html", "/konto.html", "/produkt.html",
                                   "/merkliste.html"])
-def test_every_page_loads_lucifer(fake, client, path):
+def test_every_page_loads_mali(fake, client, path):
     html = client.get(path).text
     assert '<script src="bunny.js"></script>' in html
     assert 'href="bunny.css"' in html
