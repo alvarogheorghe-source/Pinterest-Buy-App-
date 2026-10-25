@@ -3,7 +3,7 @@
 Eine Webapp, die sich mit deinem Pinterest-Konto verbindet, aus deinen Boards deinen
 Stil ableitet und passende Kleidung aus Partnershops vorschlägt.
 
-**Stand:** Phase 1, Schritt 1 + 2 (Projektgerüst und Pinterest-Login mit Board-Auswahl).
+**Stand:** Phase 1, Schritt 1–3 (Projektgerüst, Pinterest-Login mit Board-Auswahl, Pins laden).
 
 ## Aufbau
 
@@ -12,10 +12,11 @@ backend/
   main.py       FastAPI-App: Routen für Login, Boards, Auswahl; liefert das Frontend aus
   config.py     liest Einstellungen aus .env
   pinterest.py  OAuth 2.0 + Pinterest API v5 (Login, Token-Refresh, Boards)
+  pins.py       lädt die Pins der ausgewählten Boards (max. 250 pro Board)
   storage.py    speichert Daten als JSON in data/
 frontend/       index.html, style.css, app.js
 data/           Laufzeitdaten (tokens.json etc. – nicht im Git)
-tests/          pytest-Tests, Pinterest wird darin simuliert
+tests/          pytest-Tests; conftest.py simuliert den Pinterest-Server
 ```
 
 ## Einrichten
@@ -47,7 +48,9 @@ Neue Apps haben oft nur „Trial Access“. Für dein eigenes Konto reicht das m
 uvicorn backend.main:app --reload
 ```
 
-Dann http://localhost:8000 öffnen → „Mit Pinterest verbinden“ → Boards auswählen → speichern.
+Dann http://localhost:8000 öffnen → „Mit Pinterest verbinden“ → Boards auswählen → speichern → „Pins laden“.
+
+Die Pins landen in `data/pins.json` (Titel, Beschreibung, Bild-URL, Hauptfarbe).
 
 - http://localhost:8000/health → `{"status":"ok"}`
 - http://localhost:8000/docs → automatische API-Doku von FastAPI (zum Ausprobieren)

@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import pinterest, storage
+from backend import pins, pinterest, storage
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Style App")
@@ -117,10 +117,30 @@ def get_selection():
 
 @app.post("/api/boards/selection")
 def save_selection(selection: BoardSelection):
+    # Pinterest-Board-IDs bestehen nur aus Ziffern. Wir prüfen das, weil die ID
+    # später in die Adresse der API-Abfrage eingesetzt wird (/boards/<id>/pins).
+    if not all(board_id.isdigit() for board_id in selection.board_ids):
+        raise HTTPException(400, "Ungültige Board-ID.")
     # dict.fromkeys entfernt Duplikate und behält die Reihenfolge
     board_ids = list(dict.fromkeys(selection.board_ids))
     storage.save_selected_boards(board_ids)
     return {"board_ids": board_ids}
+
+
+@app.post("/api/pins/refresh")
+def refresh_pins():
+    """Lädt die Pins der ausgewählten Boards neu von Pinterest."""
+    try:
+        data = pins.load_pins_for_selected_boards()
+    except ValueError as err:
+        raise HTTPException(400, str(err))
+    return {"count": len(data["pins"]), "board_count": len(data["board_ids"])}
+
+
+@app.get("/api/pins")
+def get_pins():
+    """Die zuletzt gespeicherten Pins (ohne neue Anfrage an Pinterest)."""
+    return storage.load_pins()
 
 
 # Das Frontend (HTML/CSS/JS) wird direkt vom Backend ausgeliefert.

@@ -1,7 +1,6 @@
 """Tests für Schritt 2: Pinterest-Login, Token-Refresh und Boards.
 
-Pinterest wird hier SIMULIERT (httpx.MockTransport) – es wird nichts ins Internet
-geschickt und man braucht keine echten Zugangsdaten.
+Der simulierte Pinterest-Server und die Fixtures stehen in conftest.py.
 
 Starten mit:  pytest -v
 """
@@ -10,87 +9,8 @@ import base64
 import time
 from urllib.parse import parse_qs, urlparse
 
-import httpx
-import pytest
-from fastapi.testclient import TestClient
-
 from backend import pinterest, storage
-from backend.main import app
-
-
-class FakePinterest:
-    """Spielt den Pinterest-Server. Merkt sich alle Anfragen, die ankommen."""
-
-    def __init__(self):
-        self.requests = []
-        self.valid_token = "access-1"   # welchen Access Token die "API" gerade akzeptiert
-        self.refresh_ok = True          # schlägt der Refresh fehl?
-        self.board_pages = [[{"id": "b1", "name": "Sommer Looks", "pin_count": 12}]]
-
-    def handler(self, request: httpx.Request) -> httpx.Response:
-        self.requests.append(request)
-        path = request.url.path
-
-        if path == "/v5/oauth/token":
-            form = parse_qs(request.content.decode())
-            if form["grant_type"] == ["refresh_token"] and not self.refresh_ok:
-                return httpx.Response(400, json={"error": "invalid_grant"})
-            # Bei jedem Token-Tausch gibt es einen neuen Access Token
-            self.valid_token = f"access-{len(self.requests)}"
-            return httpx.Response(200, json={
-                "access_token": self.valid_token,
-                "refresh_token": "refresh-xyz",
-                "expires_in": 30 * 24 * 3600,
-                "refresh_token_expires_in": 365 * 24 * 3600,
-                "scope": pinterest.SCOPES,
-            })
-
-        # Alle anderen Endpunkte brauchen einen gültigen Bearer Token
-        if request.headers.get("Authorization") != f"Bearer {self.valid_token}":
-            return httpx.Response(401, json={"message": "unauthorized"})
-
-        if path == "/v5/user_account":
-            return httpx.Response(200, json={"username": "testuser"})
-
-        if path == "/v5/boards":
-            # Seitenweise Antwort: "bookmark" zeigt auf die nächste Seite
-            page_index = int(request.url.params.get("bookmark") or 0)
-            has_more = page_index + 1 < len(self.board_pages)
-            return httpx.Response(200, json={
-                "items": self.board_pages[page_index],
-                "bookmark": str(page_index + 1) if has_more else None,
-            })
-
-        return httpx.Response(404)
-
-
-@pytest.fixture
-def fake(monkeypatch, tmp_path):
-    """Richtet für jeden Test eine saubere Umgebung ein."""
-    monkeypatch.setattr(storage, "DATA_DIR", tmp_path)  # Daten in Temp-Ordner
-    monkeypatch.setenv("PINTEREST_CLIENT_ID", "test-client-id")
-    monkeypatch.setenv("PINTEREST_CLIENT_SECRET", "test-secret")
-    monkeypatch.setenv("PINTEREST_REDIRECT_URI", "http://localhost:8000/auth/callback")
-
-    fake = FakePinterest()
-    transport = httpx.MockTransport(fake.handler)
-    monkeypatch.setattr(pinterest, "_http", lambda: httpx.Client(transport=transport))
-    return fake
-
-
-@pytest.fixture
-def client():
-    return TestClient(app, follow_redirects=False)
-
-
-def save_tokens(access="access-1", expires_in=10 * 24 * 3600, refresh_expires_in=300 * 24 * 3600):
-    """Hilfsfunktion: legt gespeicherte Tokens an, als wäre man schon eingeloggt."""
-    storage.save_tokens({
-        "access_token": access,
-        "expires_at": time.time() + expires_in,
-        "refresh_token": "refresh-xyz",
-        "refresh_expires_at": time.time() + refresh_expires_in,
-    })
+from tests.conftest import save_tokens
 
 
 # --- Login ---------------------------------------------------------------------------
@@ -206,9 +126,9 @@ def test_boards_are_loaded_across_pages(fake, client):
 
 def test_board_selection_is_saved(fake, client):
     save_tokens()
-    response = client.post("/api/boards/selection", json={"board_ids": ["b1", "b1"]})
-    assert response.json() == {"board_ids": ["b1"]}
-    assert client.get("/api/boards/selection").json() == {"board_ids": ["b1"]}
+    response = client.post("/api/boards/selection", json={"board_ids": ["111", "111"]})
+    assert response.json() == {"board_ids": ["111"]}
+    assert client.get("/api/boards/selection").json() == {"board_ids": ["111"]}
     assert client.get("/api/boards").json()[0]["selected"] is True
 
 

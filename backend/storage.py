@@ -66,3 +66,17 @@ def load_selected_boards() -> list[str]:
 
 def save_selected_boards(board_ids: list[str]) -> None:
     write_json(SELECTION_FILE, board_ids)
+
+
+# --- Pins ---------------------------------------------------------------------
+
+PINS_FILE = "pins.json"
+
+
+def load_pins() -> dict:
+    """Gibt {"fetched_at": ..., "pins": [...]} zurück (leer, wenn noch nichts geladen)."""
+    return read_json(PINS_FILE, default={"fetched_at": None, "pins": []})
+
+
+def save_pins(data: dict) -> None:
+    write_json(PINS_FILE, data)

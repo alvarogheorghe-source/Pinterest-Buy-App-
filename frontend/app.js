@@ -21,6 +21,7 @@ async function init() {
   statusText.textContent = `Verbunden als ${me.username}`;
   boardsSection.hidden = false;
   await loadBoards();
+  await showSavedPins();
 }
 
 async function loadBoards() {
@@ -80,6 +81,44 @@ document.getElementById("save-button").addEventListener("click", async () => {
   saveMessage.textContent = response.ok
     ? `${boardIds.length} Board(s) gespeichert.`
     : "Speichern fehlgeschlagen.";
+});
+
+// --- Pins (Schritt 3) ---
+
+const pinsMessage = document.getElementById("pins-message");
+const pinGrid = document.getElementById("pin-grid");
+
+// Zeigt die schon gespeicherten Pins (fragt Pinterest NICHT neu an)
+async function showSavedPins() {
+  const data = await fetch("/api/pins").then((r) => r.json());
+  if (data.pins.length === 0) {
+    pinsMessage.textContent = "Noch keine Pins geladen.";
+    return;
+  }
+  const date = new Date(data.fetched_at * 1000).toLocaleString("de-AT");
+  pinsMessage.textContent = `${data.pins.length} Pins gespeichert (Stand: ${date})`;
+
+  // Vorschau: die ersten 24 Bilder
+  pinGrid.innerHTML = "";
+  for (const pin of data.pins.slice(0, 24)) {
+    if (!pin.image_url) continue;
+    const img = document.createElement("img");
+    img.src = pin.image_url;
+    img.alt = pin.title;
+    img.title = pin.title;
+    pinGrid.appendChild(img);
+  }
+}
+
+document.getElementById("pins-button").addEventListener("click", async () => {
+  pinsMessage.textContent = "Lade Pins von Pinterest…";
+  const response = await fetch("/api/pins/refresh", { method: "POST" });
+  const result = await response.json();
+  if (!response.ok) {
+    pinsMessage.textContent = result.detail; // z.B. "Keine Boards ausgewählt."
+    return;
+  }
+  await showSavedPins();
 });
 
 document.getElementById("logout-button").addEventListener("click", async () => {
