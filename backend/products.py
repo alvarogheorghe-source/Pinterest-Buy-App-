@@ -8,12 +8,17 @@ Klasse, die von ProductSource erbt, und gibst sie in get_product_source() zurüc
 
 import json
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from backend.config import BASE_DIR
 
 PRODUCTS_FILE = BASE_DIR / "data" / "products.json"
+
+# Die zwei "Welten" der App: Kleidung und Gegenstände
+DEPARTMENTS = ("mode", "wohnen")
+Department = Literal["mode", "wohnen"]  # Literal: nur genau diese Werte sind erlaubt
 
 
 class Product(BaseModel):
@@ -23,6 +28,7 @@ class Product(BaseModel):
     shop: str
     price: float = Field(ge=0)        # ge=0: Preis darf nicht negativ sein
     currency: str = "EUR"
+    department: Department = "mode"   # "mode" = Kleidung, "wohnen" = Gegenstände
     category: str
     colors: list[str] = []            # feste Begriffe wie "beige", "schwarz"
     style_tags: list[str] = []        # feste Begriffe wie "streetwear", "oversized"
@@ -74,11 +80,13 @@ def get_product_source() -> ProductSource:
 
 
 def filter_products(products: list[Product], min_price: float | None = None,
-                    max_price: float | None = None,
-                    category: str | None = None) -> list[Product]:
-    """Behält nur Produkte im Budget und (optional) in einer Kategorie."""
+                    max_price: float | None = None, category: str | None = None,
+                    department: str | None = None) -> list[Product]:
+    """Behält nur Produkte im Budget und (optional) in einer Welt/Kategorie."""
     result = []
     for product in products:
+        if department and product.department != department:
+            continue
         if min_price is not None and product.price < min_price:
             continue
         if max_price is not None and product.price > max_price:
@@ -89,6 +97,6 @@ def filter_products(products: list[Product], min_price: float | None = None,
     return result
 
 
-def list_categories(products: list[Product]) -> list[str]:
-    """Alle vorkommenden Kategorien, alphabetisch sortiert (für den Filter)."""
-    return sorted({product.category for product in products})
+def list_categories(products: list[Product], department: str | None = None) -> list[str]:
+    """Alle vorkommenden Kategorien (optional einer Welt), alphabetisch sortiert."""
+    return sorted({p.category for p in products if not department or p.department == department})

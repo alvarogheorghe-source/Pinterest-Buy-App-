@@ -107,4 +107,89 @@ def test_api_recommendations_use_saved_pins_and_budget(fake, client):
 
 
 def test_api_profile_without_pins(fake, client):
-    assert client.get("/api/profile").json()["pin_count"] == 0
+    profiles = client.get("/api/profile").json()
+    assert profiles["mode"]["pin_count"] == 0
+    assert profiles["wohnen"]["pin_count"] == 0
+
+
+# --- Mode und Wohnen trennen -----------------------------------------------------------------
+
+def test_every_product_category_is_known():
+    """Jede Kategorie aus products.json braucht eine Wortliste in der richtigen Welt."""
+    for product in JsonProductSource().load():
+        assert product.category in matching.CATEGORY_SYNONYMS, product.category
+        assert matching.CATEGORY_SYNONYMS[product.category][0] == product.department
+
+
+def test_categories_are_found_with_plural():
+    found = find_terms("Ceramic vases and two lamps on a shelf", matching.CATEGORY_PATTERNS)
+    assert found == {"Deko", "Leuchten", "Möbel"}
+    assert find_terms("Baggy jeans + white sneakers", matching.CATEGORY_PATTERNS) == {
+        "Hosen", "Schuhe"}
+    assert find_terms("Tee am Morgen", matching.CATEGORY_PATTERNS) == set()  # Getränk!
+
+
+def test_german_compound_words():
+    found = find_terms("Keramikvase, Stehlampe und Blumentopf", matching.CATEGORY_PATTERNS)
+    assert found == {"Deko", "Leuchten", "Pflanzen & Töpfe"}
+    assert find_terms("Regenjacke und Jogginghose", matching.CATEGORY_PATTERNS) == {
+        "Jacken", "Hosen"}
+    # Diese Fallen dürfen NICHT erkannt werden:
+    for text in ["Praktisch für den Laptop", "Entdecke praktische Ideen", "Barock-Stil",
+                 "Vom Hersteller", "im Rahmen des Projekts"]:
+        assert find_terms(text, matching.CATEGORY_PATTERNS) == set(), text
+    assert find_terms("Strickdecke und Minirock", matching.CATEGORY_PATTERNS) == {
+        "Textilien", "Kleider & Röcke"}
+
+
+def test_classify_pin():
+    assert matching.classify_pin(pin("Beige oversized hoodie")) == {"mode"}
+    assert matching.classify_pin(pin("Japandi living room")) == {"wohnen"}
+    assert matching.classify_pin(pin("Keramikvase", "minimalistisch")) == {"wohnen"}
+    assert matching.classify_pin(pin("Outfit mit Vase als Requisite")) == {"mode", "wohnen"}
+    assert matching.classify_pin(pin("Neutral tones beige")) == {"mode", "wohnen"}  # unklar
+
+
+def test_profiles_are_separated_by_department():
+    pins = [
+        pin("Streetwear outfit", "black hoodie"),          # nur Mode
+        pin("Japandi living room", "beige linen sofa"),    # nur Wohnen
+        pin("Ceramic vase", "minimal, sand"),              # nur Wohnen
+        pin("Neutral tones", "beige and cream"),           # beide
+    ]
+    mode = build_style_profile(pins, "mode")
+    home = build_style_profile(pins, "wohnen")
+
+    assert mode.pin_count == 2 and home.pin_count == 3
+    assert "streetwear" in mode.styles and "streetwear" not in home.styles
+    assert "japandi" in home.styles and "japandi" not in mode.styles
+    assert mode.categories == {"Oberteile": 1}
+    assert home.categories == {"Möbel": 1, "Deko": 1}
+    assert home.colors["beige"] == 3
+
+
+def test_category_bonus_in_ranking():
+    profile = build_style_profile([pin("vase"), pin("vases on a shelf"), pin("beige")], "wohnen")
+    ranked = rank_products([
+        make_product(id="kissen", department="wohnen", category="Textilien", colors=["beige"]),
+        make_product(id="vase", department="wohnen", category="Deko", colors=["beige"]),
+    ], profile)
+    assert [r["id"] for r in ranked] == ["vase", "kissen"]
+    assert ranked[0]["reason"] == ("Passt zu dir, weil Deko (2 Pins) und beige (1 Pin) "
+                                   "oft in deinen Pins vorkommen.")
+
+
+def test_api_recommendations_per_department(fake, client):
+    storage.save_pins({"fetched_at": 1, "board_ids": ["111"], "pins": [
+        pin("Ceramic vase", "japandi, sand"),
+        pin("Japandi bedroom", "linen and wood"),
+        pin("Streetwear outfit", "beige oversized hoodie"),
+    ]})
+    home = client.get("/api/recommendations?department=wohnen").json()
+    assert home["profile"]["pin_count"] == 2
+    assert all(p["department"] == "wohnen" for p in home["products"])
+    assert home["products"][0]["name"] == "Keramikvase Sand"
+
+    fashion = client.get("/api/recommendations").json()  # Standard: Mode
+    assert all(p["department"] == "mode" for p in fashion["products"])
+    assert fashion["products"][0]["name"] == "Oversized Hoodie Sand"

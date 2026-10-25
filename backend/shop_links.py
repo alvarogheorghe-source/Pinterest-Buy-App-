@@ -10,6 +10,7 @@ Shop-Seiten selbst nicht ab (kein Scraping).
 import re
 from urllib.parse import urlparse
 
+from backend.matching import classify_pin, pin_text
 from backend.prices import extract_price
 
 SECOND_HAND = "Second Hand"
@@ -29,7 +30,18 @@ PLATFORMS = {
     "hm": ("H&M", SHOP),
     "zara": ("Zara", SHOP),
     "aboutyou": ("About You", SHOP),
+    # Wohnen & Deko
+    "ikea": ("IKEA", SHOP),
+    "westwing": ("Westwing", SHOP),
+    "butlers": ("Butlers", SHOP),
+    "jysk": ("JYSK", SHOP),
+    "maisonsdumonde": ("Maisons du Monde", SHOP),
+    "kavehome": ("Kave Home", SHOP),
 }
+
+# Plattformen, die (fast) nur Gegenstände verkaufen. Steht im Pin-Text nicht,
+# ob es Kleidung oder ein Gegenstand ist, entscheidet die Plattform.
+HOME_PLATFORMS = {"IKEA", "Westwing", "Butlers", "JYSK", "Maisons du Monde", "Kave Home"}
 
 # Erlaubte Länder-Endungen, z.B. vinted.at, zalando.de, ebay.co.uk
 TLDS = r"(com|at|de|ch|co\.uk|fr|it|es|nl|pl|be|se|dk)"
@@ -76,8 +88,21 @@ def detect_platform(url: str | None) -> dict | None:
     return None
 
 
+def pin_department(pin: dict, platform_name: str) -> str:
+    """Kleidung ("mode") oder Gegenstand ("wohnen")?
+
+    1. Steht es im Pin-Text eindeutig da (z.B. "vase" oder "hoodie"), gilt das.
+    2. Sonst entscheidet die Plattform (IKEA -> wohnen).
+    3. Sonst "mode" – die meisten Second-Hand-Angebote auf Pinterest sind Kleidung.
+    """
+    departments = classify_pin(pin)
+    if len(departments) == 1:
+        return next(iter(departments))
+    return "wohnen" if platform_name in HOME_PLATFORMS else "mode"
+
+
 def find_pin_items(pins: list[dict]) -> list[dict]:
-    """Alle Pins, deren Link zu einem Shop/Marktplatz führt – mit Plattform und Preis.
+    """Alle Pins, deren Link zu einem Shop/Marktplatz führt – mit Plattform, Welt und Preis.
 
     Der Preis wird aus Titel + Beschreibung gelesen. Steht keiner drin,
     sind "price" und "currency" None (-> "Preis im Shop").
@@ -87,9 +112,9 @@ def find_pin_items(pins: list[dict]) -> list[dict]:
         platform = detect_platform(pin.get("link"))
         if not platform:
             continue
-        text = f"{pin.get('title', '')} {pin.get('description', '')}"
-        price = extract_price(text) or {"price": None, "currency": None}
-        items.append({**pin, **platform, **price})
+        price = extract_price(pin_text(pin)) or {"price": None, "currency": None}
+        department = pin_department(pin, platform["platform"])
+        items.append({**pin, **platform, **price, "department": department})
     return items
 
 

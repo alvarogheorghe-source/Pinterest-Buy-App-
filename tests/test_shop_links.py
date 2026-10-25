@@ -90,6 +90,26 @@ def test_budget_hides_only_items_surely_too_expensive(fake, client):
     assert len(client.get("/api/pin-items").json()) == 4
 
 
+def test_pin_items_get_department():
+    items = find_pin_items([
+        {"id": "vase", "title": "Keramikvase", "link": "https://www.etsy.com/listing/1/vase"},
+        {"id": "hoodie", "title": "Hoodie", "link": "https://www.depop.com/products/a/"},
+        {"id": "ikea", "title": "So schön!", "link": "https://www.ikea.com/at/de/p/x/"},
+        {"id": "unklar", "title": "So schön!", "link": "https://www.vinted.at/items/1"},
+    ])
+    assert {i["id"]: i["department"] for i in items} == {
+        "vase": "wohnen", "hoodie": "mode", "ikea": "wohnen", "unklar": "mode"}
+
+
+def test_api_pin_items_by_department(fake, client):
+    storage.save_pins({"fetched_at": 1, "board_ids": ["111"], "pins": [
+        {"id": "1", "title": "Rattan lamp", "link": "https://www.etsy.com/listing/1/lamp"},
+        {"id": "2", "title": "Cargo pants", "link": "https://www.vinted.at/items/2"},
+    ]})
+    assert [i["id"] for i in client.get("/api/pin-items?department=wohnen").json()] == ["1"]
+    assert [i["id"] for i in client.get("/api/pin-items?department=mode").json()] == ["2"]
+
+
 def test_old_pins_without_link_field_still_work(fake, client):
     """Pins, die vor diesem Update gespeichert wurden, haben noch kein "link"-Feld."""
     storage.save_pins({"fetched_at": 1, "board_ids": ["111"], "pins": [{"id": "1", "title": "Alt"}]})

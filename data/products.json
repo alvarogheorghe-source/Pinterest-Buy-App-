@@ -17,7 +17,8 @@
         "casual"
       ],
       "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Oversized+Hoodie+Sand",
-      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-001"
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-001",
+      "department": "mode"
     },
     {
       "id": "prod-002",
@@ -35,7 +36,8 @@
         "clean"
       ],
       "image_url": "https://placehold.co/600x750/f2f2f0/333333?text=Basic+T-Shirt+Wei%C3%9F",
-      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-002"
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-002",
+      "department": "mode"
     },
     {
       "id": "prod-003",
@@ -53,7 +55,8 @@
         "oversized"
       ],
       "image_url": "https://placehold.co/600x750/6b7048/ffffff?text=Cargohose+Oliv",
-      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-003"
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-003",
+      "department": "mode"
     },
     {
       "id": "prod-004",
@@ -71,7 +74,8 @@
         "y2k"
       ],
       "image_url": "https://placehold.co/600x750/8fb3d9/333333?text=Wide+Leg+Jeans+Hellblau",
-      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-004"
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-004",
+      "department": "mode"
     },
     {
       "id": "prod-005",
@@ -90,7 +94,8 @@
         "clean"
       ],
       "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Strickpullover+Creme",
-      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-005"
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-005",
+      "department": "mode"
     },
     {
       "id": "prod-006",
@@ -107,7 +112,8 @@
         "casual"
       ],
       "image_url": "https://placehold.co/600x750/222222/ffffff?text=Bomberjacke+Schwarz",
-      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-006"
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-006",
+      "department": "mode"
     },
     {
       "id": "prod-007",
@@ -125,7 +131,8 @@
         "klassisch"
       ],
       "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Trenchcoat+Beige",
-      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-007"
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-007",
+      "department": "mode"
     },
     {
       "id": "prod-008",
@@ -143,7 +150,8 @@
         "clean"
       ],
       "image_url": "https://placehold.co/600x750/f2f2f0/333333?text=Leinenhemd+Wei%C3%9F",
-      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-008"
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-008",
+      "department": "mode"
     },
     {
       "id": "prod-009",
@@ -162,7 +170,8 @@
         "romantisch"
       ],
       "image_url": "https://placehold.co/600x750/e8b4bc/333333?text=Midikleid+Gebl%C3%BCmt",
-      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-009"
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-009",
+      "department": "mode"
     },
     {
       "id": "prod-010",
@@ -179,7 +188,8 @@
         "minimalistisch"
       ],
       "image_url": "https://placehold.co/600x750/222222/ffffff?text=Slip+Dress+Schwarz",
-      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-010"
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-010",
+      "department": "mode"
     },
     {
       "id": "prod-011",
@@ -197,7 +207,8 @@
         "sportlich"
       ],
       "image_url": "https://placehold.co/600x750/f2f2f0/333333?text=Chunky+Sneaker+Wei%C3%9F",
-      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-011"
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-011",
+      "department": "mode"
     },
     {
       "id": "prod-012",
@@ -214,7 +225,8 @@
         "vintage"
       ],
       "image_url": "https://placehold.co/600x750/7b5a3c/ffffff?text=Chelsea+Boots+Braun",
-      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-012"
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-012",
+      "department": "mode"
     },
     {
       "id": "prod-013",
@@ -231,7 +243,8 @@
         "casual"
       ],
       "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Canvas+Tote+Bag",
-      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-013"
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-013",
+      "department": "mode"
     },
     {
       "id": "prod-014",
@@ -249,7 +262,8 @@
         "cozy"
       ],
       "image_url": "https://placehold.co/600x750/9e9e9e/333333?text=Beanie+Grau",
-      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-014"
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-014",
+      "department": "mode"
     },
     {
       "id": "prod-015",
@@ -267,7 +281,8 @@
         "cozy"
       ],
       "image_url": "https://placehold.co/600x750/9e9e9e/333333?text=Jogginghose+Grau",
-      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-015"
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-015",
+      "department": "mode"
     },
     {
       "id": "prod-016",
@@ -284,7 +299,8 @@
         "klassisch"
       ],
       "image_url": "https://placehold.co/600x750/7b5a3c/ffffff?text=Lederjacke+Vintage+Braun",
-      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-016"
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-016",
+      "department": "mode"
     },
     {
       "id": "prod-017",
@@ -301,7 +317,8 @@
         "casual"
       ],
       "image_url": "https://placehold.co/600x750/222222/ffffff?text=Crop+Top+Rippstrick",
-      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-017"
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-017",
+      "department": "mode"
     },
     {
       "id": "prod-018",
@@ -318,7 +335,8 @@
         "romantisch"
       ],
       "image_url": "https://placehold.co/600x750/7a9e7e/ffffff?text=Plisseerock+Salbei",
-      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-018"
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-018",
+      "department": "mode"
     },
     {
       "id": "prod-019",
@@ -336,7 +354,8 @@
         "oversized"
       ],
       "image_url": "https://placehold.co/600x750/222222/ffffff?text=Grafik-Shirt+Oversized",
-      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-019"
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-019",
+      "department": "mode"
     },
     {
       "id": "prod-020",
@@ -354,7 +373,8 @@
         "klassisch"
       ],
       "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Bundfaltenhose+Beige",
-      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-020"
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-020",
+      "department": "mode"
     },
     {
       "id": "prod-021",
@@ -372,7 +392,8 @@
         "winter"
       ],
       "image_url": "https://placehold.co/600x750/6b7048/ffffff?text=Pufferjacke+Oliv",
-      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-021"
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-021",
+      "department": "mode"
     },
     {
       "id": "prod-022",
@@ -389,7 +410,8 @@
         "casual"
       ],
       "image_url": "https://placehold.co/600x750/8fb3d9/333333?text=Jeansjacke+Vintage+Wash",
-      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-022"
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-022",
+      "department": "mode"
     },
     {
       "id": "prod-023",
@@ -407,7 +429,8 @@
         "klassisch"
       ],
       "image_url": "https://placehold.co/600x750/222222/ffffff?text=Rollkragenpullover+Schwarz",
-      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-023"
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-023",
+      "department": "mode"
     },
     {
       "id": "prod-024",
@@ -426,7 +449,8 @@
         "vintage"
       ],
       "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=H%C3%A4keltop+Creme",
-      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-024"
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-024",
+      "department": "mode"
     },
     {
       "id": "prod-025",
@@ -442,7 +466,8 @@
         "klassisch"
       ],
       "image_url": "https://placehold.co/600x750/7b5a3c/ffffff?text=Lederg%C3%BCrtel+Braun",
-      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-025"
+      "affiliate_url": "https://example.com/affiliate?shop=nordfaden&product=prod-025",
+      "department": "mode"
     },
     {
       "id": "prod-026",
@@ -459,7 +484,8 @@
         "klassisch"
       ],
       "image_url": "https://placehold.co/600x750/222222/ffffff?text=Ballerinas+Schwarz",
-      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-026"
+      "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-026",
+      "department": "mode"
     },
     {
       "id": "prod-027",
@@ -478,7 +504,8 @@
         "streetwear"
       ],
       "image_url": "https://placehold.co/600x750/7a9e7e/ffffff?text=Retro+Laufschuh+Gr%C3%BCn",
-      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-027"
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-027",
+      "department": "mode"
     },
     {
       "id": "prod-028",
@@ -495,7 +522,8 @@
         "clean"
       ],
       "image_url": "https://placehold.co/600x750/c0c0c0/333333?text=Silberkette+Minimal",
-      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-028"
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-028",
+      "department": "mode"
     },
     {
       "id": "prod-029",
@@ -514,7 +542,8 @@
         "casual"
       ],
       "image_url": "https://placehold.co/600x750/7b5a3c/ffffff?text=Fleecejacke+Braun",
-      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-029"
+      "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-029",
+      "department": "mode"
     },
     {
       "id": "prod-030",
@@ -531,7 +560,379 @@
         "sommer"
       ],
       "image_url": "https://placehold.co/600x750/c8693f/ffffff?text=Maxikleid+Terracotta",
-      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-030"
+      "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-030",
+      "department": "mode"
+    },
+    {
+      "id": "prod-031",
+      "name": "Keramikvase Sand",
+      "shop": "Tonwerk",
+      "price": 24.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Deko",
+      "colors": [
+        "beige"
+      ],
+      "style_tags": [
+        "minimalistisch",
+        "natur",
+        "japandi"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Keramikvase+Sand",
+      "affiliate_url": "https://example.com/affiliate?shop=tonwerk&product=prod-031"
+    },
+    {
+      "id": "prod-032",
+      "name": "Duftkerze Feige",
+      "shop": "Hausfreude",
+      "price": 12.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Deko",
+      "colors": [
+        "weiß"
+      ],
+      "style_tags": [
+        "cozy",
+        "minimalistisch"
+      ],
+      "image_url": "https://placehold.co/600x750/f2f2f0/333333?text=Duftkerze+Feige",
+      "affiliate_url": "https://example.com/affiliate?shop=hausfreude&product=prod-032"
+    },
+    {
+      "id": "prod-033",
+      "name": "Rattan-Pendelleuchte",
+      "shop": "Raumglück",
+      "price": 59.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Leuchten",
+      "colors": [
+        "beige",
+        "braun"
+      ],
+      "style_tags": [
+        "boho",
+        "natur"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Rattan-Pendelleuchte",
+      "affiliate_url": "https://example.com/affiliate?shop=raumgl%C3%BCck&product=prod-033"
+    },
+    {
+      "id": "prod-034",
+      "name": "Tischlampe Schwarz Matt",
+      "shop": "Raumglück",
+      "price": 39.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Leuchten",
+      "colors": [
+        "schwarz"
+      ],
+      "style_tags": [
+        "modern",
+        "industrial",
+        "minimalistisch"
+      ],
+      "image_url": "https://placehold.co/600x750/222222/ffffff?text=Tischlampe+Schwarz+Matt",
+      "affiliate_url": "https://example.com/affiliate?shop=raumgl%C3%BCck&product=prod-034"
+    },
+    {
+      "id": "prod-035",
+      "name": "Leinen-Kissenbezug Salbei",
+      "shop": "Hausfreude",
+      "price": 14.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Textilien",
+      "colors": [
+        "grün"
+      ],
+      "style_tags": [
+        "natur",
+        "skandinavisch",
+        "cozy"
+      ],
+      "image_url": "https://placehold.co/600x750/7a9e7e/333333?text=Leinen-Kissenbezug+Salbei",
+      "affiliate_url": "https://example.com/affiliate?shop=hausfreude&product=prod-035"
+    },
+    {
+      "id": "prod-036",
+      "name": "Strickdecke Creme",
+      "shop": "Hausfreude",
+      "price": 34.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Textilien",
+      "colors": [
+        "beige",
+        "weiß"
+      ],
+      "style_tags": [
+        "cozy",
+        "skandinavisch"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Strickdecke+Creme",
+      "affiliate_url": "https://example.com/affiliate?shop=hausfreude&product=prod-036"
+    },
+    {
+      "id": "prod-037",
+      "name": "Steingut-Tassen 2er Set",
+      "shop": "Tonwerk",
+      "price": 19.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Küche & Tisch",
+      "colors": [
+        "weiß",
+        "beige"
+      ],
+      "style_tags": [
+        "japandi",
+        "natur",
+        "minimalistisch"
+      ],
+      "image_url": "https://placehold.co/600x750/f2f2f0/333333?text=Steingut-Tassen+2er+Set",
+      "affiliate_url": "https://example.com/affiliate?shop=tonwerk&product=prod-037"
+    },
+    {
+      "id": "prod-038",
+      "name": "Holz-Servierbrett",
+      "shop": "Tonwerk",
+      "price": 17.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Küche & Tisch",
+      "colors": [
+        "braun"
+      ],
+      "style_tags": [
+        "natur",
+        "skandinavisch"
+      ],
+      "image_url": "https://placehold.co/600x750/7b5a3c/ffffff?text=Holz-Servierbrett",
+      "affiliate_url": "https://example.com/affiliate?shop=tonwerk&product=prod-038"
+    },
+    {
+      "id": "prod-039",
+      "name": "Poster Abstrakte Formen",
+      "shop": "Raumglück",
+      "price": 16.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Wandgestaltung",
+      "colors": [
+        "orange",
+        "beige"
+      ],
+      "style_tags": [
+        "modern",
+        "minimalistisch"
+      ],
+      "image_url": "https://placehold.co/600x750/c8693f/ffffff?text=Poster+Abstrakte+Formen",
+      "affiliate_url": "https://example.com/affiliate?shop=raumgl%C3%BCck&product=prod-039"
+    },
+    {
+      "id": "prod-040",
+      "name": "Runder Spiegel Gold",
+      "shop": "Raumglück",
+      "price": 44.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Wandgestaltung",
+      "colors": [
+        "gold"
+      ],
+      "style_tags": [
+        "elegant",
+        "vintage"
+      ],
+      "image_url": "https://placehold.co/600x750/c9a54a/333333?text=Runder+Spiegel+Gold",
+      "affiliate_url": "https://example.com/affiliate?shop=raumgl%C3%BCck&product=prod-040"
+    },
+    {
+      "id": "prod-041",
+      "name": "Pflanztopf Terracotta",
+      "shop": "Tonwerk",
+      "price": 9.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Pflanzen & Töpfe",
+      "colors": [
+        "orange"
+      ],
+      "style_tags": [
+        "natur",
+        "boho"
+      ],
+      "image_url": "https://placehold.co/600x750/c8693f/ffffff?text=Pflanztopf+Terracotta",
+      "affiliate_url": "https://example.com/affiliate?shop=tonwerk&product=prod-041"
+    },
+    {
+      "id": "prod-042",
+      "name": "Kunstpflanze Olivenbaum",
+      "shop": "Hausfreude",
+      "price": 49.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Pflanzen & Töpfe",
+      "colors": [
+        "grün"
+      ],
+      "style_tags": [
+        "natur",
+        "modern"
+      ],
+      "image_url": "https://placehold.co/600x750/7a9e7e/333333?text=Kunstpflanze+Olivenbaum",
+      "affiliate_url": "https://example.com/affiliate?shop=hausfreude&product=prod-042"
+    },
+    {
+      "id": "prod-043",
+      "name": "Jute-Teppich rund",
+      "shop": "Hausfreude",
+      "price": 69.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Textilien",
+      "colors": [
+        "beige"
+      ],
+      "style_tags": [
+        "boho",
+        "natur"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Jute-Teppich+rund",
+      "affiliate_url": "https://example.com/affiliate?shop=hausfreude&product=prod-043"
+    },
+    {
+      "id": "prod-044",
+      "name": "Beistelltisch Eiche",
+      "shop": "Raumglück",
+      "price": 79.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Möbel",
+      "colors": [
+        "braun"
+      ],
+      "style_tags": [
+        "skandinavisch",
+        "japandi",
+        "minimalistisch"
+      ],
+      "image_url": "https://placehold.co/600x750/7b5a3c/ffffff?text=Beistelltisch+Eiche",
+      "affiliate_url": "https://example.com/affiliate?shop=raumgl%C3%BCck&product=prod-044"
+    },
+    {
+      "id": "prod-045",
+      "name": "Metallregal Schwarz",
+      "shop": "Basics & Co",
+      "price": 54.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Möbel",
+      "colors": [
+        "schwarz"
+      ],
+      "style_tags": [
+        "industrial",
+        "modern"
+      ],
+      "image_url": "https://placehold.co/600x750/222222/ffffff?text=Metallregal+Schwarz",
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-045"
+    },
+    {
+      "id": "prod-046",
+      "name": "Bettwäsche Leinen Sand",
+      "shop": "Hausfreude",
+      "price": 49.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Textilien",
+      "colors": [
+        "beige"
+      ],
+      "style_tags": [
+        "natur",
+        "cozy",
+        "minimalistisch"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Bettw%C3%A4sche+Leinen+Sand",
+      "affiliate_url": "https://example.com/affiliate?shop=hausfreude&product=prod-046"
+    },
+    {
+      "id": "prod-047",
+      "name": "Glasvase Rauchgrau",
+      "shop": "Tonwerk",
+      "price": 21.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Deko",
+      "colors": [
+        "grau"
+      ],
+      "style_tags": [
+        "modern",
+        "minimalistisch",
+        "vintage"
+      ],
+      "image_url": "https://placehold.co/600x750/9e9e9e/333333?text=Glasvase+Rauchgrau",
+      "affiliate_url": "https://example.com/affiliate?shop=tonwerk&product=prod-047"
+    },
+    {
+      "id": "prod-048",
+      "name": "Lichterkette Warmweiß",
+      "shop": "Basics & Co",
+      "price": 11.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Leuchten",
+      "colors": [
+        "weiß"
+      ],
+      "style_tags": [
+        "cozy"
+      ],
+      "image_url": "https://placehold.co/600x750/f2f2f0/333333?text=Lichterkette+Warmwei%C3%9F",
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-048"
+    },
+    {
+      "id": "prod-049",
+      "name": "Bilderrahmen Holz 3er Set",
+      "shop": "Basics & Co",
+      "price": 22.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Wandgestaltung",
+      "colors": [
+        "braun"
+      ],
+      "style_tags": [
+        "skandinavisch",
+        "natur"
+      ],
+      "image_url": "https://placehold.co/600x750/7b5a3c/ffffff?text=Bilderrahmen+Holz+3er+Set",
+      "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-049"
+    },
+    {
+      "id": "prod-050",
+      "name": "Wandregal Rattan",
+      "shop": "Raumglück",
+      "price": 29.99,
+      "currency": "EUR",
+      "department": "wohnen",
+      "category": "Möbel",
+      "colors": [
+        "beige",
+        "braun"
+      ],
+      "style_tags": [
+        "boho",
+        "natur"
+      ],
+      "image_url": "https://placehold.co/600x750/d8c3a5/333333?text=Wandregal+Rattan",
+      "affiliate_url": "https://example.com/affiliate?shop=raumgl%C3%BCck&product=prod-050"
     }
   ]
 }

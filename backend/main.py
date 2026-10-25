@@ -150,10 +150,13 @@ def get_pins():
 
 
 @app.get("/api/pin-items")
-def get_pin_items(max_price: float | None = None):
+def get_pin_items(max_price: float | None = None,
+                  department: products.Department | None = None):
     """Pins, die direkt zu einem Shop oder Marktplatz (z.B. Depop) führen.
-    Beispiel: /api/pin-items?max_price=30"""
+    Beispiel: /api/pin-items?max_price=30&department=wohnen"""
     items = shop_links.find_pin_items(storage.load_pins()["pins"])
+    if department:
+        items = [item for item in items if item["department"] == department]
     return shop_links.filter_by_budget(items, max_price)
 
 
@@ -161,32 +164,40 @@ def get_pin_items(max_price: float | None = None):
 
 @app.get("/api/products")
 def get_products(min_price: float | None = None, max_price: float | None = None,
-                 category: str | None = None):
-    """Produkte, optional gefiltert. Beispiel: /api/products?max_price=30&category=Hosen"""
+                 category: str | None = None,
+                 department: products.Department | None = None):
+    """Produkte, optional gefiltert. Beispiel: /api/products?max_price=30&department=wohnen"""
     all_products = products.get_product_source().load()
-    return products.filter_products(all_products, min_price, max_price, category)
+    return products.filter_products(all_products, min_price, max_price, category, department)
 
 
 @app.get("/api/categories")
-def get_categories():
-    return products.list_categories(products.get_product_source().load())
+def get_categories(department: products.Department | None = None):
+    """Kategorien, z.B. /api/categories?department=wohnen"""
+    return products.list_categories(products.get_product_source().load(), department)
 
 
 # --- Matching (Schritt 5) ---------------------------------------------------------------
 
 @app.get("/api/profile")
 def get_profile():
-    """Das Stilprofil aus den gespeicherten Pins."""
-    return matching.build_style_profile(storage.load_pins()["pins"]).to_dict()
+    """Die Stilprofile aus den gespeicherten Pins – getrennt für Mode und Wohnen."""
+    pins_list = storage.load_pins()["pins"]
+    return {
+        department: matching.build_style_profile(pins_list, department).to_dict()
+        for department in products.DEPARTMENTS
+    }
 
 
 @app.get("/api/recommendations")
 def get_recommendations(min_price: float | None = None, max_price: float | None = None,
-                        category: str | None = None):
-    """Produkte im Budget, sortiert nach Passung zum Stilprofil, mit Begründung."""
-    profile = matching.build_style_profile(storage.load_pins()["pins"])
+                        category: str | None = None,
+                        department: products.Department = "mode"):
+    """Produkte einer Welt im Budget, sortiert nach Passung zum Stilprofil dieser Welt."""
+    profile = matching.build_style_profile(storage.load_pins()["pins"], department)
     all_products = products.get_product_source().load()
-    selection = products.filter_products(all_products, min_price, max_price, category)
+    selection = products.filter_products(all_products, min_price, max_price, category,
+                                         department)
     return {
         "profile": profile.to_dict(),
         "products": matching.rank_products(selection, profile),

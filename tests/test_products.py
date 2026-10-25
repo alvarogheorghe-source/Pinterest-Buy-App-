@@ -20,10 +20,17 @@ def make_product(**changes) -> Product:
 
 # --- Die mitgelieferte Beispieldatei --------------------------------------------------
 
-def test_example_file_has_30_valid_products():
+def test_example_file_has_50_valid_products():
     items = JsonProductSource().load()  # wirft einen Fehler, falls ein Produkt ungültig ist
-    assert len(items) == 30
-    assert len({p.id for p in items}) == 30  # alle IDs eindeutig
+    assert len(items) == 50
+    assert len({p.id for p in items}) == 50  # alle IDs eindeutig
+    assert sum(p.department == "mode" for p in items) == 30
+    assert sum(p.department == "wohnen" for p in items) == 20
+
+
+def test_unknown_department_is_rejected():
+    with pytest.raises(ValueError):
+        make_product(department="auto")
 
 
 def test_example_tags_are_lowercase_and_links_are_placeholders():
@@ -85,9 +92,19 @@ def test_api_products_with_filter(client):
     assert all(p["price"] <= 20 and p["category"] == "Accessoires" for p in result)
 
 
-def test_api_categories(client):
-    assert client.get("/api/categories").json() == [
+def test_api_categories_per_department(client):
+    assert client.get("/api/categories?department=mode").json() == [
         "Accessoires", "Hosen", "Jacken", "Kleider & Röcke", "Oberteile", "Schuhe"]
+    assert client.get("/api/categories?department=wohnen").json() == [
+        "Deko", "Küche & Tisch", "Leuchten", "Möbel", "Pflanzen & Töpfe", "Textilien",
+        "Wandgestaltung"]
+    assert len(client.get("/api/categories").json()) == 13
+
+
+def test_api_products_by_department(client):
+    home = client.get("/api/products?department=wohnen").json()
+    assert len(home) == 20 and all(p["department"] == "wohnen" for p in home)
+    assert client.get("/api/products?department=auto").status_code == 422  # ungültig
 
 
 def test_product_source_can_be_swapped(client, monkeypatch):

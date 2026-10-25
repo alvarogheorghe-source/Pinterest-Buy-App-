@@ -1,10 +1,11 @@
-"""Schritt 5: Einfaches Matching ohne KI.
+"""Einfaches Matching ohne KI – für Kleidung (Mode) und Gegenstände (Wohnen).
 
-Zwei getrennte Teile:
-1. build_style_profile(pins)  -> zählt Farb- und Stilwörter in Titel + Beschreibung
-2. rank_products(products, profile) -> sortiert Produkte nach Überschneidung mit dem Profil
+Teile:
+1. classify_pin(pin)                   -> zeigt der Pin Mode, Wohnen oder beides?
+2. build_style_profile(pins, department) -> zählt Farben, Stile und Kategorien
+3. rank_products(products, profile)   -> sortiert Produkte nach Überschneidung
 
-In Phase 2 kann build_style_profile() durch eine Bilderkennungs-API ersetzt werden.
+In Phase 2 kann build_style_profile() durch eine Bilderkennung ersetzt werden.
 Solange sie ein StyleProfile mit denselben Begriffen zurückgibt, bleibt rank_products() gleich.
 """
 
@@ -12,7 +13,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 
-from backend.products import Product
+from backend.products import DEPARTMENTS, Product
 
 # Feste Begriffe (wie in products.json) -> Wörter, die in Pins dafür stehen können.
 # Pins sind oft Englisch, deshalb Deutsch UND Englisch.
@@ -27,43 +28,108 @@ COLOR_SYNONYMS = {
     "oliv": ["oliv", "olive", "khaki"],
     "rosa": ["rosa", "pink", "rose", "altrosa"],
     "rot": ["rot", "red", "bordeaux", "burgundy", "weinrot"],
-    "orange": ["orange", "terracotta", "rust", "rost"],
+    "orange": ["orange", "terracotta", "terrakotta", "rust", "rost"],
     "gelb": ["gelb", "yellow", "mustard", "senf"],
     "silber": ["silber", "silver"],
+    "gold": ["gold", "golden", "messing", "brass"],
 }
 
 STYLE_SYNONYMS = {
+    # Mode
     "streetwear": ["streetwear", "street style", "streetstyle", "skater", "hypebeast"],
     "oversized": ["oversized", "oversize", "baggy", "loose fit"],
-    "minimalistisch": ["minimalistisch", "minimalist", "minimal", "minimalism"],
-    "clean": ["clean", "clean look", "clean girl"],
-    "vintage": ["vintage", "retro", "90s", "70s", "thrift", "thrifted", "secondhand"],
     "y2k": ["y2k", "2000s", "00s"],
     "casual": ["casual", "lässig", "everyday", "alltag"],
-    "elegant": ["elegant", "chic", "classy", "schick"],
-    "klassisch": ["klassisch", "classic", "timeless", "old money"],
-    "boho": ["boho", "bohemian", "hippie"],
     "sportlich": ["sportlich", "sporty", "athleisure", "gym"],
-    "cozy": ["cozy", "cosy", "gemütlich", "comfy"],
-    "sommer": ["sommer", "summer"],
-    "winter": ["winter"],
     "romantisch": ["romantisch", "romantic", "feminine", "floral", "geblümt"],
     "utility": ["utility", "cargo"],
     "outdoor": ["outdoor", "gorpcore", "hiking"],
+    "sommer": ["sommer", "summer"],
+    "winter": ["winter"],
+    # Mode UND Wohnen
+    "minimalistisch": ["minimalistisch", "minimalist", "minimal", "minimalism"],
+    "clean": ["clean", "clean look", "clean girl"],
+    "vintage": ["vintage", "retro", "90s", "70s", "thrift", "thrifted", "secondhand"],
+    "elegant": ["elegant", "chic", "classy", "schick"],
+    "klassisch": ["klassisch", "classic", "timeless", "old money"],
+    "boho": ["boho", "bohemian", "hippie"],
+    "cozy": ["cozy", "cosy", "gemütlich", "comfy", "hygge"],
+    # Wohnen
+    "skandinavisch": ["skandinavisch", "scandi", "scandinavian", "nordic", "nordisch"],
+    "japandi": ["japandi", "wabi sabi", "wabi-sabi"],
+    "industrial": ["industrial", "industrie", "loft"],
+    "modern": ["modern", "contemporary"],
+    "natur": ["natur", "natural", "rattan", "jute", "holz", "wood", "wooden", "leinen", "linen"],
+}
+
+# Kategorie -> (Welt, Wörter). Englische Mehrzahl mit -s/-es wird automatisch erkannt.
+# "*" = darf am Ende eines deutschen zusammengesetzten Wortes stehen ("*vase" -> "Glasvase").
+# Nur bei Wörtern, die dabei nichts Falsches finden: "*tisch" würde "praktisch",
+# "*decke" "Entdecke", "*rock" "Barock" und "*teller" "Hersteller" finden!
+CATEGORY_SYNONYMS = {
+    # Bewusst ohne "tee": auf Deutsch ist das ein Getränk
+    "Oberteile": ("mode", ["hoodie", "*pullover", "sweater", "*shirt", "t-shirt", "top",
+                           "*bluse", "blouse", "*hemd", "knit", "crop top"]),
+    "Hosen": ("mode", ["*hose", "pants", "*jeans", "trousers", "sweatpants"]),
+    "Jacken": ("mode", ["*jacke", "jacket", "coat", "*mantel", "trench", "puffer", "blazer",
+                        "bomber"]),
+    "Kleider & Röcke": ("mode", ["*kleid", "dress", "rock", "minirock", "jeansrock",
+                                 "faltenrock", "plisseerock", "skirt"]),
+    "Schuhe": ("mode", ["*schuhe", "shoe", "*sneaker", "boot", "*stiefel", "ballerinas",
+                        "loafer"]),
+    "Accessoires": ("mode", ["*tasche", "bag", "tote", "schmuck", "jewelry", "jewellery",
+                             "kette", "necklace", "*gürtel", "belt", "beanie", "*mütze", "cap"]),
+    "Deko": ("wohnen", ["*vase", "*vasen", "*kerze", "*kerzen", "candle", "deko", "decor",
+                        "dekoration"]),
+    "Leuchten": ("wohnen", ["*lampe", "*lampen", "lamp", "*leuchte", "*lichterkette",
+                            "fairy light", "pendant light"]),
+    "Textilien": ("wohnen", ["*kissen", "pillow", "cushion", "decke", "strickdecke", "kuscheldecke", "wolldecke",
+                             "tagesdecke", "bettdecke", "blanket", "throw",
+                             "*teppich", "rug", "*bettwäsche", "bedding", "*vorhang", "curtain"]),
+    "Küche & Tisch": ("wohnen", ["*tasse", "*tassen", "mug", "*geschirr", "teller", "plate",
+                                 "*brett", "tableware", "küche", "kitchen"]),
+    "Möbel": ("wohnen", ["sofa", "couch", "*stuhl", "chair", "tisch", "tische", "table",
+                         "*regal", "shelf", "shelves", "möbel", "furniture", "beistelltisch",
+                         "esstisch", "couchtisch", "*kommode"]),
+    "Pflanzen & Töpfe": ("wohnen", ["*pflanze", "*pflanzen", "plant", "*topf", "pot",
+                                    "planter"]),
+    "Wandgestaltung": ("wohnen", ["poster", "wall art", "*wandbild", "bilderrahmen", "frame",
+                                  "*spiegel", "mirror", "gallery wall"]),
+}
+
+# Allgemeine Wörter, die eine Welt verraten, ohne eine Kategorie zu nennen
+DEPARTMENT_WORDS = {
+    "mode": ["outfit", "ootd", "fashion", "kleidung", "clothing", "streetwear", "fit check"],
+    "wohnen": ["interior", "einrichtung", "home decor", "wohnzimmer", "living room",
+               "schlafzimmer", "bedroom", "wohnung", "apartment", "zuhause", "interior design",
+               "badezimmer", "bathroom"],
 }
 
 
-def _compile(synonyms: dict[str, list[str]]) -> dict[str, re.Pattern]:
+def _word_pattern(word: str) -> str:
+    """Ein Wort als Suchausdruck. Ein * vorne erlaubt deutsche zusammengesetzte
+    Wörter: "*vase" findet auch "Keramikvase" und "Glasvase"."""
+    if word.startswith("*"):
+        return r"\w*" + re.escape(word[1:])
+    return re.escape(word)
+
+
+def _compile(synonyms: dict[str, list[str]], plural: bool = False) -> dict[str, re.Pattern]:
     """Baut pro Begriff einen Suchausdruck. \\b = Wortgrenze, damit z.B. "red"
-    nicht in "redesign" gefunden wird."""
+    nicht in "redesign" gefunden wird. plural=True erlaubt zusätzlich -s/-es."""
+    suffix = "(?:s|es)?" if plural else ""
     return {
-        term: re.compile(r"\b(" + "|".join(re.escape(w) for w in words) + r")\b")
+        term: re.compile(r"\b(?:" + "|".join(_word_pattern(w) for w in words) + r")"
+                         + suffix + r"\b")
         for term, words in synonyms.items()
     }
 
 
 COLOR_PATTERNS = _compile(COLOR_SYNONYMS)
 STYLE_PATTERNS = _compile(STYLE_SYNONYMS)
+CATEGORY_PATTERNS = _compile({c: words for c, (_, words) in CATEGORY_SYNONYMS.items()},
+                             plural=True)
+DEPARTMENT_PATTERNS = _compile(DEPARTMENT_WORDS)
 
 
 @dataclass
@@ -72,23 +138,27 @@ class StyleProfile:
     pin_count: int = 0
     colors: Counter = field(default_factory=Counter)
     styles: Counter = field(default_factory=Counter)
+    categories: Counter = field(default_factory=Counter)  # z.B. "Deko": 3
+
+    def mentions(self, term: str) -> int:
+        """In wie vielen Pins kommt der Begriff (Farbe, Stil oder Kategorie) vor?"""
+        return self.colors[term] + self.styles[term] + self.categories[term]
 
     def weight(self, term: str) -> float:
         """Anteil der Pins mit diesem Begriff (0.0 bis 1.0)."""
         if self.pin_count == 0:
             return 0.0
-        return (self.colors[term] + self.styles[term]) / self.pin_count
-
-    def mentions(self, term: str) -> int:
-        return self.colors[term] + self.styles[term]
+        return self.mentions(term) / self.pin_count
 
     def to_dict(self) -> dict:
         return {
             "pin_count": self.pin_count,
             "colors": dict(self.colors.most_common()),
             "styles": dict(self.styles.most_common()),
+            "categories": dict(self.categories.most_common()),
             "top_colors": [term for term, _ in self.colors.most_common(3)],
             "top_styles": [term for term, _ in self.styles.most_common(3)],
+            "top_categories": [term for term, _ in self.categories.most_common(3)],
         }
 
 
@@ -98,17 +168,43 @@ def find_terms(text: str, patterns: dict[str, re.Pattern]) -> set[str]:
     return {term for term, pattern in patterns.items() if pattern.search(text)}
 
 
-def build_style_profile(pins: list[dict]) -> StyleProfile:
+def pin_text(pin: dict) -> str:
+    return f"{pin.get('title') or ''} {pin.get('description') or ''}"
+
+
+def classify_pin(pin: dict) -> set[str]:
+    """Zeigt der Pin Kleidung ("mode"), Gegenstände ("wohnen") oder beides?
+
+    Ohne klares Wort gehört der Pin zu BEIDEN Welten – z.B. "beige neutral tones":
+    Lieblingsfarben gelten meist für Kleidung und Wohnung.
+    """
+    text = pin_text(pin)
+    departments = find_terms(text, DEPARTMENT_PATTERNS)
+    for category in find_terms(text, CATEGORY_PATTERNS):
+        departments.add(CATEGORY_SYNONYMS[category][0])
+    return departments or set(DEPARTMENTS)
+
+
+def build_style_profile(pins: list[dict], department: str | None = None) -> StyleProfile:
     """Zählt für jeden Begriff, in wie vielen Pins er vorkommt.
 
+    department="mode"/"wohnen": nur Pins dieser Welt zählen. None: alle Pins.
+
     PHASE 2: Diese Funktion kann durch eine Bilderkennung ersetzt werden, die
-    aus pin["image_url"] Farben und Stile erkennt und dasselbe StyleProfile liefert.
+    aus pin["image_url"] Farben, Stile und Gegenstände erkennt und dasselbe
+    StyleProfile liefert.
     """
+    if department:
+        pins = [pin for pin in pins if department in classify_pin(pin)]
     profile = StyleProfile(pin_count=len(pins))
     for pin in pins:
-        text = f"{pin.get('title', '')} {pin.get('description', '')}"
+        text = pin_text(pin)
         profile.colors.update(find_terms(text, COLOR_PATTERNS))
         profile.styles.update(find_terms(text, STYLE_PATTERNS))
+        categories = find_terms(text, CATEGORY_PATTERNS)
+        if department:  # nur Kategorien der gewählten Welt
+            categories = {c for c in categories if CATEGORY_SYNONYMS[c][0] == department}
+        profile.categories.update(categories)
     return profile
 
 
@@ -129,10 +225,14 @@ def explain(matched: list[str], profile: StyleProfile) -> str:
 
 
 def rank_products(products: list[Product], profile: StyleProfile) -> list[dict]:
-    """Sortiert Produkte: beste Übereinstimmung zuerst, bei Gleichstand günstigere zuerst."""
+    """Sortiert Produkte: beste Übereinstimmung zuerst, bei Gleichstand günstigere zuerst.
+
+    Punkte gibt es für passende Farben, Stile UND die Kategorie: Zeigen viele
+    Pins Vasen, kommen Vasen weiter nach oben.
+    """
     results = []
     for product in products:
-        terms = product.colors + product.style_tags
+        terms = [product.category] + product.colors + product.style_tags
         # Nur Begriffe, die im Profil vorkommen; häufigste zuerst
         matched = sorted((t for t in terms if profile.mentions(t) > 0),
                          key=profile.weight, reverse=True)
