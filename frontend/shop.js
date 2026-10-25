@@ -94,7 +94,15 @@ function renderBanner(profile) {
   const worldName = DEPARTMENT_NAMES[filters.department];
 
   const terms = [...profile.top_colors, ...profile.top_styles];
-  if (profile.pin_count === 0 || terms.length === 0) {
+  if (profile.pin_count > 0 && terms.length === 0) {
+    // Pins sind da, aber ohne erkennbare Wörter (z.B. nur "fit 🤍")
+    title.textContent = `Dein Stil · ${worldName}`;
+    text.className = "muted";
+    text.textContent = `${profile.pin_count} Pins geladen – sie haben kaum Text. Ich sortiere ` +
+      "deshalb vor allem nach Bildern und Farben (falls die Bilderkennung eingerichtet ist).";
+    return;
+  }
+  if (profile.pin_count === 0) {
     title.textContent = filters.department === "wohnen"
       ? "Deko und Möbel, die zu deinem Pinterest passen"
       : "Mode, die zu deinem Pinterest passt";
