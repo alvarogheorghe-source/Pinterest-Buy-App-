@@ -68,6 +68,12 @@ Neue Apps haben oft nur „Trial Access“. Für dein eigenes Konto reicht das m
 
 ## Starten
 
+**Am einfachsten (Mac):** Im Finder `start.command` im Projektordner **doppelklicken**.
+Es beendet einen alten Server, startet die App und öffnet sie im Browser.
+Das Terminal-Fenster offen lassen, solange du die App benutzt.
+
+Oder von Hand im Terminal:
+
 ```bash
 uvicorn backend.main:app --reload
 ```
