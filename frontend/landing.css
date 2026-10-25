@@ -138,12 +138,12 @@ body.landing {
   background: var(--lilac-soft);
 }
 
-.blob-cream {
+.blob-pink {
   width: 300px;
   height: 300px;
   top: 10%;
   left: -100px;
-  background: var(--cream);
+  background: var(--berry-soft);   /* rosa statt Creme – sonst wirkt es gelblich */
 }
 
 .eyebrow-chip {
