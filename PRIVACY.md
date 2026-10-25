@@ -9,10 +9,10 @@ commissions through affiliate links (always marked as advertising).
 
 ## Who is responsible
 
-This app is developed by the GitHub user
-[alvarogheorghe-source](https://github.com/alvarogheorghe-source).
-For questions or requests, please open an issue at
-https://github.com/alvarogheorghe-source/Pinterest-Buy-App-/issues.
+Alvaro Gheorghe, Basler Gasse 50-66/33/14, 1230 Wien, Austria
+E-mail: company.malipin@gmail.com
+
+For questions or requests about your data, please write to this e-mail address.
 
 ## What data the app accesses
 
