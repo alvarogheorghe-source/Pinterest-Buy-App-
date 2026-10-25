@@ -6,7 +6,7 @@ Starten mit:  pytest -v
 import pytest
 
 
-def test_start_page_presents_the_app(client):
+def test_start_page_presents_the_app(fake, client):
     response = client.get("/")
     assert response.status_code == 200
     assert "Kostenlos starten" in response.text
@@ -19,7 +19,7 @@ def test_pages_and_files_exist(client, path):
     assert client.get(path).status_code == 200
 
 
-def test_many_connect_buttons_all_lead_to_konto(client):
+def test_many_connect_buttons_all_lead_to_konto(fake, client):
     """Die Startseite lädt an mehreren Stellen zum Verbinden ein – alle führen zu /konto.html."""
     import re
     html = client.get("/").text
@@ -30,7 +30,27 @@ def test_many_connect_buttons_all_lead_to_konto(client):
 
 @pytest.mark.parametrize("path", ["/", "/shop.html", "/konto.html", "/produkt.html",
                                   "/merkliste.html"])
-def test_every_page_loads_lucifer(client, path):
+def test_every_page_loads_lucifer(fake, client, path):
     html = client.get(path).text
     assert '<script src="bunny.js"></script>' in html
     assert 'href="bunny.css"' in html
+
+
+# --- Verbunden -> direkt in den Shop -------------------------------------------------------
+
+def test_connected_users_skip_the_start_page(fake, client):
+    from tests.conftest import save_tokens
+    save_tokens()  # so tun, als wäre Pinterest verbunden
+    response = client.get("/")
+    assert response.status_code == 307
+    assert response.headers["location"] == "/shop.html"
+    # Die Startseite selbst bleibt erreichbar
+    assert "Kostenlos starten" in client.get("/index.html").text
+
+
+def test_logout_brings_the_start_page_back(fake, client):
+    from tests.conftest import save_tokens
+    save_tokens()
+    client.post("/auth/logout")
+    response = client.get("/")
+    assert response.status_code == 200 and "Kostenlos starten" in response.text

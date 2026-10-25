@@ -72,6 +72,9 @@ Neue Apps haben oft nur „Trial Access“. Für dein eigenes Konto reicht das m
 Es beendet einen alten Server, startet die App und öffnet sie im Browser.
 Das Terminal-Fenster offen lassen, solange du die App benutzt.
 
+**Schon mit Pinterest verbunden?** Dann leitet `localhost:8000` direkt in den Shop weiter.
+Die Startseite bleibt unter `localhost:8000/index.html` erreichbar.
+
 Oder von Hand im Terminal:
 
 ```bash

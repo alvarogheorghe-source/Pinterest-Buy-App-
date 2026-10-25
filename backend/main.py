@@ -8,7 +8,7 @@ import secrets
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
@@ -293,6 +293,17 @@ def delete_feedback():
     """Alle Bewertungen zurücksetzen."""
     feedback.clear_feedback()
     return {"ok": True}
+
+
+# --- Startseite ----------------------------------------------------------------------------
+
+@app.get("/", include_in_schema=False)
+def start_page():
+    """Wer schon mit Pinterest verbunden ist, landet direkt im Shop – alle anderen auf
+    der Startseite. (Die Startseite bleibt unter /index.html erreichbar.)"""
+    if storage.load_tokens():
+        return RedirectResponse("/shop.html")
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 
 # Das Frontend (HTML/CSS/JS) wird direkt vom Backend ausgeliefert.
