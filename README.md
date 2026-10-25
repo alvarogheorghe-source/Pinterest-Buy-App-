@@ -137,7 +137,7 @@ passender unter den ersten 5), **Ø Platz** des ersten Treffers und wie viele Pi
 **kein Signal** liefern (kein bekanntes Wort). Der Empfehler ist austauschbar, damit sich
 z.B. Text und Bilderkennung mit demselben Testset vergleichen lassen.
 
-**Achtung:** Das Demo-Testset ist erfundenen und eher „leicht“ (die Pins enthalten
+**Achtung:** Das Demo-Testset ist erfunden und eher „leicht“ (die Pins enthalten
 meist passende Wörter, der Katalog ist klein). Aussagekräftig wird die Messung erst
 mit echten Pins und echten Produkten.
 
