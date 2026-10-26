@@ -111,23 +111,48 @@ def callback(request: Request, code: str | None = None, state: str | None = None
         raise HTTPException(400, "Kein Code von Pinterest erhalten.")
 
     pinterest.exchange_code(code)
+    if multi_user():
+        link_pinterest_account(request)
     # Nach dem Login direkt zur Board-Auswahl
     return RedirectResponse("/konto.html")
 
 
+def link_pinterest_account(request: Request) -> None:
+    """Wiedererkennen über Pinterest: Dieselbe Person bekommt auf jedem Gerät dieselben Daten.
+    Was sie vorher anonym gemacht hat (z.B. Merkliste), wird zum Pinterest-Konto übernommen."""
+    account = pinterest.get_user_account()
+    account_id = str(account.get("id") or account.get("username") or "")
+    if not account_id:
+        return
+    linked = storage.linked_user_id(account_id)
+    storage.merge_user_data(storage.current_user(), linked)
+    request.session["uid"] = linked
+
+
+def fresh_anonymous_session(request: Request) -> None:
+    """Neue, leere Kennung für diesen Browser – z.B. nach "Verbindung trennen" auf einem
+    geteilten Gerät sieht die nächste Person nichts mehr."""
+    if multi_user():
+        request.session["uid"] = "u-" + secrets.token_urlsafe(16)
+
+
 @app.post("/auth/logout")
-def logout():
-    """Trennt die Verbindung, indem die gespeicherten Tokens gelöscht werden."""
+def logout(request: Request):
+    """Trennt die Verbindung: Pinterest-Zugang löschen. Mit mehreren Personen bekommt der
+    Browser danach eine neue, leere Kennung (die Daten bleiben beim Pinterest-Konto und sind
+    beim nächsten Login wieder da)."""
     storage.delete_tokens()
+    fresh_anonymous_session(request)
     return {"ok": True}
 
 
 @app.delete("/api/me")
-def delete_my_data():
+def delete_my_data(request: Request):
     """"Alle meine Daten löschen" (DSGVO): Pinterest-Zugang, Pins, Merkliste, Bewertungen,
     Analyse und Such-Zwischenspeicher der aktuellen Person – endgültig."""
     removed = storage.delete_user_data()
     analysis.forget_user()
+    fresh_anonymous_session(request)
     return {"ok": True, "removed": removed}
 
 

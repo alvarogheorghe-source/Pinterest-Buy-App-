@@ -406,6 +406,10 @@ nicht im Repo) – **getrennt pro Person** (`backend/storage.py`). Gemeinsam ist
 - **Lokal** (Standard): eine Person „local“ – alles wie bisher, auch die Terminal-Befehle.
 - **Öffentlich:** `MULTI_USER=1` in `.env`. Jede Person bekommt beim ersten Besuch eine
   zufällige, anonyme Kennung im signierten Session-Cookie (1 Jahr) – ohne Anmeldung.
+- **Wiedererkennen über Pinterest:** Nach dem Pinterest-Login hängt die Kennung am
+  Pinterest-Konto (gespeichert nur als Prüfsumme der ID) – dieselben Daten auf jedem Gerät.
+  Anonym Gemerktes wird übernommen (Merkliste zusammengeführt). „Verbindung trennen“ gibt dem
+  Browser eine neue, leere Kennung (für geteilte Geräte); beim nächsten Login ist alles wieder da.
 - **Alle meine Daten löschen:** Button auf „Mein Pinterest“ (`DELETE /api/me`).
 - Alte `data/*.json` werden beim ersten Start automatisch übernommen und nach
   `data/alt-vor-datenbank/` verschoben.

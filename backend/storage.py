@@ -14,6 +14,7 @@ ein Bild sieht für alle gleich aus.
 """
 
 import contextvars
+import hashlib
 import json
 import sqlite3
 import time
@@ -117,6 +118,37 @@ def delete_json(filename: str) -> None:
 
 def exists(filename: str) -> bool:
     return read_json(filename) is not None
+
+
+def linked_user_id(account_id: str) -> str:
+    """Feste Kennung zu einem Pinterest-Konto – gleich auf jedem Gerät. Gespeichert wird nur
+    eine Prüfsumme, nicht die Pinterest-ID selbst."""
+    return "p-" + hashlib.sha256(f"pinterest:{account_id}".encode()).hexdigest()[:32]
+
+
+# Beim Zusammenführen: was gewinnt? Tokens -> die neuen; Merkliste -> beide zusammen;
+# alles andere -> was beim Pinterest-Konto schon da ist (sonst das Neue)
+_TAKE_NEW = {"tokens.json"}
+_MERGE_DICTS = {"feedback.json"}
+
+
+def merge_user_data(source: str, target: str) -> None:
+    """Daten der anonymen Kennung `source` in `target` (Pinterest-Konto) übernehmen."""
+    if source == target:
+        return
+    with _connect() as db:
+        rows = db.execute("SELECT name, value FROM data WHERE user = ?", (source,)).fetchall()
+        for name, value in rows:
+            existing = db.execute("SELECT value FROM data WHERE user = ? AND name = ?",
+                                  (target, name)).fetchone()
+            if existing and name in _MERGE_DICTS:
+                value = json.dumps({**json.loads(existing[0]), **json.loads(value)},
+                                   ensure_ascii=False)
+            elif existing and name not in _TAKE_NEW:
+                continue
+            db.execute("INSERT OR REPLACE INTO data VALUES (?, ?, ?, ?)",
+                       (target, name, value, time.time()))
+        db.execute("DELETE FROM data WHERE user = ?", (source,))
 
 
 def delete_user_data() -> int:

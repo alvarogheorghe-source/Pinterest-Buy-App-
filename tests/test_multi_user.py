@@ -101,3 +101,45 @@ def test_old_json_files_are_moved_into_the_database(fake):
     assert storage.read_json("feedback.json") == {"prod-009": {"vote": "like"}}
     assert not (storage.DATA_DIR / "feedback.json").exists()
     assert (storage.DATA_DIR / storage.LEGACY_FOLDER / "feedback.json").exists()
+
+
+def pinterest_login(client):
+    """Kompletter Login wie im Browser (Pinterest ist simuliert)."""
+    from urllib.parse import parse_qs, urlparse
+    login = client.get("/auth/login", follow_redirects=False)
+    state = parse_qs(urlparse(login.headers["location"]).query)["state"][0]
+    assert client.get(f"/auth/callback?code=abc&state={state}", follow_redirects=False).status_code == 307
+
+
+def test_same_pinterest_account_same_data_on_every_device(two_people):
+    handy, laptop = two_people                      # dieselbe Person, zwei Geräte
+    handy.post("/api/feedback", json={"product_id": "prod-001", "vote": "like"})   # noch anonym
+    pinterest_login(handy)
+    assert handy.get("/api/me").json()["connected"] is True
+    assert "prod-001" in handy.get("/api/feedback").json()    # anonym Gemerktes ist übernommen
+
+    laptop.post("/api/feedback", json={"product_id": "prod-002", "vote": "like"})
+    assert "prod-001" not in laptop.get("/api/feedback").json()  # vor dem Login: getrennt
+    pinterest_login(laptop)
+    assert set(laptop.get("/api/feedback").json()) == {"prod-001", "prod-002"}  # zusammengeführt
+    assert set(handy.get("/api/feedback").json()) == {"prod-001", "prod-002"}   # gleich überall
+
+
+def test_disconnect_on_shared_device_hides_everything(two_people):
+    laptop, _ = two_people
+    laptop.post("/api/feedback", json={"product_id": "prod-001", "vote": "like"})
+    pinterest_login(laptop)
+    laptop.post("/auth/logout")
+    assert laptop.get("/api/feedback").json() == {}              # nächste Person sieht nichts
+    assert laptop.get("/api/me").json()["connected"] is False
+    pinterest_login(laptop)                                       # wieder einloggen
+    assert "prod-001" in laptop.get("/api/feedback").json()      # alles wieder da
+
+
+def test_pinterest_id_is_not_stored_in_plain_text(two_people):
+    handy, _ = two_people
+    pinterest_login(handy)
+    import sqlite3
+    with sqlite3.connect(storage.DATA_DIR / storage.DB_FILE) as db:
+        users = {row[0] for row in db.execute("SELECT user FROM data")}
+    assert users and all("testuser" not in user for user in users)

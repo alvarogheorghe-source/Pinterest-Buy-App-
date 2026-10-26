@@ -50,7 +50,9 @@ items and ratings) is stored in a database on the app's server, kept separate fo
 person.
 
 To tell people apart, the app sets **one technically necessary cookie** with a random ID
-(no name, no e-mail, no tracking). It is kept for up to one year. Photos you upload for the
+(no name, no e-mail, no tracking). It is kept for up to one year. After you connect Pinterest, your data is
+linked to your Pinterest account so you see it on all your devices; for this the app stores
+only a one-way checksum of your Pinterest account ID, not the ID or your username. Photos you upload for the
 photo search are analysed only in memory and are **never stored**.
 
 You can delete everything at any time with **"Alle meine Daten löschen"** on the
