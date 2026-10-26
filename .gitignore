@@ -15,6 +15,9 @@ data/photo_results.json
 data/malipin.db*
 # Geprüfte Shops (auf dem Server gepflegt)
 data/trusted_shops.json
+# Produkt-Feeds: Einstellungen (feeds.json) + importierte Produkte
+feeds.json
+data/feed_products.json
 data/alt-vor-datenbank/
 
 # Python-Kram

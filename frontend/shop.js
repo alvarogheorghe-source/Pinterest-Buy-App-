@@ -94,7 +94,7 @@ async function load() {
 
 // --- Woher kommen die Produkte? (Hinweis + Fußzeile) --------------------------------------
 
-const SOURCE_NAMES = { ebay: "eBay", etsy: "Etsy", aliexpress: "AliExpress" };
+const SOURCE_NAMES = { ebay: "eBay", etsy: "Etsy", aliexpress: "AliExpress", feeds: "Partner-Shops" };
 
 function showSources(sources) {
   const online = sources.filter((s) => SOURCE_NAMES[s]).map((s) => SOURCE_NAMES[s]);

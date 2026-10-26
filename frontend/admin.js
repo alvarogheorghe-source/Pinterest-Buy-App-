@@ -43,6 +43,13 @@ async function start() {
   }
   panel.hidden = false;
   logoutButton.hidden = false;
+  // Produkt-Feeds (feeds.json) als weitere Plattformen: dort ist der Verkäufer der Händler
+  for (const feed of await fetch("/api/admin/feeds").then((r) => r.json())) {
+    PLATFORMS[feed.name] = { name: `Feed: ${feed.label}`, label: "Händlername (wie im Feed)",
+      placeholder: "z.B. Beispiel Store", hint: "Steht im Shop über dem Produktnamen." };
+    form.elements.platform.append(Object.assign(el("option", "", `Feed: ${feed.label}`),
+      { value: feed.name }));
+  }
   renderList(await response.json());
 }
 

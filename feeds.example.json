@@ -1,0 +1,20 @@
+[
+  {
+    "name": "awin",
+    "label": "Awin",
+    "preset": "awin",
+    "url": "https://productdata.awin.com/datafeed/download/apikey/{AWIN_FEED_KEY}/language/de/fid/12345/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,currency,brand_name,colour,product_short_description/format/csv/delimiter/%2C/compression/gzip/",
+    "countries": ["AT", "DE"],
+    "currencies": ["EUR"],
+    "department": null,
+    "counterfeit_filter": false
+  },
+  {
+    "name": "tradedoubler",
+    "label": "Tradedoubler",
+    "preset": "google",
+    "url": "https://hier-die-feed-adresse-aus-dem-netzwerk?key={TRADEDOUBLER_FEED_KEY}",
+    "countries": ["AT", "DE"],
+    "currencies": ["EUR"]
+  }
+]

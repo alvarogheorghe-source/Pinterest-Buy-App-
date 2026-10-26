@@ -175,14 +175,15 @@ def remember_photo_results(found: list[Product]) -> None:
     storage.write_json(PHOTO_RESULTS_FILE, ([p.model_dump() for p in found] + old)[:MAX_PHOTO_RESULTS])
 
 
-def online_sources() -> list[CachedSource]:
+def online_sources() -> list[ProductSource]:
     """Alle Online-Quellen, für die Schlüssel in .env stehen."""
     # erst hier, sonst importieren sich die Dateien gegenseitig
-    from backend import aliexpress, ebay, etsy
+    from backend import aliexpress, ebay, etsy, feeds
     if os.getenv("PRODUCT_SOURCE", "").strip().lower() == "demo":
         return []
     candidates = [(ebay.configured, ebay.EbayProductSource), (etsy.configured, etsy.EtsyProductSource),
-                  (aliexpress.configured, aliexpress.AliExpressProductSource)]
+                  (aliexpress.configured, aliexpress.AliExpressProductSource),
+                  (feeds.configured, feeds.FeedProductSource)]
     return [source() for configured, source in candidates if configured()]
 
 

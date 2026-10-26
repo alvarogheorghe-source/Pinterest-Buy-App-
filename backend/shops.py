@@ -18,25 +18,36 @@ Gespeichert in data/trusted_shops.json – für alle Besucher gleich.
 
 import secrets
 import time
-from typing import Literal
-
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from backend import storage
 from backend.products import Product
 
 SHOPS_FILE = "trusted_shops.json"
 SHOP_BONUS = 0.25    # kleiner Vorrang – nur wenn das Angebot überhaupt zum Stil passt
-Platform = Literal["ebay", "etsy", "aliexpress"]
 PLATFORM_NAMES = {"ebay": "eBay", "etsy": "Etsy", "aliexpress": "AliExpress"}
+# Plattform = eBay/Etsy/AliExpress oder der Name eines Produkt-Feeds (feeds.json), dort ist
+# der "Verkäufer" der Händler im Feed (z.B. "awin-mode" + "Beispiel Store")
 
 
 class ShopInput(BaseModel):
     """Was du auf der Admin-Seite einträgst."""
-    platform: Platform
+    platform: str = Field(pattern=r"^[a-z0-9-]{2,30}$")
     seller: str = Field(min_length=1, max_length=80)     # Verkäufername / Shop-Name / Store-Nr.
     name: str = Field(min_length=1, max_length=80)       # Anzeigename, z.B. "adidas Official Store"
     note: str = Field(default="", max_length=300)        # warum geprüft
+
+    @field_validator("platform")
+    @classmethod
+    def known_platform(cls, platform: str) -> str:
+        from backend import feeds
+        try:
+            feed_names = {feed["name"] for feed in feeds.load_config()}
+        except (feeds.FeedError, ValueError):
+            feed_names = set()
+        if platform not in PLATFORM_NAMES and platform not in feed_names:
+            raise ValueError("Unbekannte Plattform – erlaubt: eBay, Etsy, AliExpress oder ein Feed")
+        return platform
 
 
 def _key(platform: str, seller: str) -> tuple[str, str]:

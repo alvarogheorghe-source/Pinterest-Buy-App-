@@ -255,6 +255,17 @@ def admin_list_shops(request: Request):
     return shops.load()
 
 
+@app.get("/api/admin/feeds")
+def admin_list_feeds(request: Request):
+    """Feed-Namen für die Plattform-Auswahl auf der Admin-Seite."""
+    from backend import feeds
+    require_admin(request)
+    try:
+        return [{"name": f["name"], "label": f.get("label", f["name"])} for f in feeds.load_config()]
+    except (feeds.FeedError, ValueError):
+        return []
+
+
 @app.post("/api/admin/shops")
 def admin_add_shop(data: shops.ShopInput, request: Request):
     require_admin(request)

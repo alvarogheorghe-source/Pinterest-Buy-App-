@@ -147,6 +147,24 @@ AliExpress-Angebote dazu (`backend/aliexpress.py`) – **nur markenlose Teile**:
 oder Fake-Wörtern („replica“, „1:1“ …) raus, und es wird nie nach Marken gesucht. Partnerlinks
 → immer „Werbung“. Gegen die echte API noch nicht getestet (Zugang fehlt).
 
+### Produkt-Feeds (Awin, Tradedoubler, Adcell, Admitad, CJ …)
+
+`backend/feeds.py` liest beliebig viele Produkt-Feeds (CSV oder XML, auch .gz) und macht
+daraus normale Malipin-Produkte. **Neuer Shop / neues Netzwerk = ein Eintrag in
+`feeds.json`**, kein neuer Code (Vorlage: `feeds.example.json`; `feeds.json` ist gitignored).
+
+- **Presets** für die Spalten: `awin`, `google` (Google-Shopping-Format, bieten viele Netzwerke
+  an) und `generic`; eigene Spaltennamen über `"fields"`.
+- **Geheime Schlüssel** nur in `.env`, in der Feed-Adresse als `{NAME}` (z.B. `{AWIN_FEED_KEY}`).
+- Welt und Kategorie werden aus Feed-Kategorie + Name erkannt; Produkte ohne Mode/Wohnen,
+  ohne Bild, unter 3 € oder in anderen Währungen (`"currencies"`) fliegen raus.
+  `"counterfeit_filter": true` für Marktplätze mit vielen Fakes.
+- Bis zu 5000 Produkte pro Feed, für alle Personen gleich (`data/feed_products.json`),
+  einmal am Tag automatisch im Hintergrund neu geladen. Fällt ein Feed aus, bleiben seine
+  alten Produkte.
+- Händler aus einem Feed lassen sich als **Geprüfter Shop** markieren (Admin-Seite).
+- Importieren & prüfen: `python -m backend.feeds`
+
 ### Geprüfte Shops
 
 Statt einzelner Teile prüfen wir **ganze Shops/Verkäufer** (`backend/shops.py`, gespeichert in

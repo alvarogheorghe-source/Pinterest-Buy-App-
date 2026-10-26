@@ -15,6 +15,7 @@ Wörter wie bei matching.py: Deutsch + Englisch, "*" vorne erlaubt zusammengeset
 """
 
 from dataclasses import dataclass
+from functools import lru_cache
 
 from backend.matching import ADJECTIVE, _compile, find_terms
 
@@ -292,5 +293,12 @@ def find(text: str, categories) -> set[tuple[str, str]]:
     categories = set(categories)
     if not categories:
         return set()
-    return {(category, name) for name in find_terms(text, PATTERNS)
+    return {(category, name) for name in _names_in(text)
             for category in categories & set(BY_NAME[name].categories)}
+
+
+@lru_cache(maxsize=200_000)
+def _names_in(text: str) -> frozenset[str]:
+    """Zwischengespeichert: dieselben Produkttitel werden bei jedem Seitenaufruf neu gerankt –
+    mit Feeds sind das zehntausende. So läuft die Wortsuche pro Titel nur einmal."""
+    return frozenset(find_terms(text, PATTERNS))

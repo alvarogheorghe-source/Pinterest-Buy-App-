@@ -100,6 +100,19 @@ def _summary(pins: list[dict]) -> list[str]:
     return [term for term, _ in counts.most_common(6)]
 
 
+MAX_PRODUCT_IMAGES = 400     # pro Welt höchstens so viele Produktbilder anschauen
+
+
+def _best_products(products, pins) -> list[dict]:
+    from backend import matching
+    best = []
+    for department in ("mode", "wohnen"):
+        profile = matching.build_style_profile(pins, department)
+        ranked = matching.rank_products([p for p in products if p.department == department], profile)
+        best += ranked[:MAX_PRODUCT_IMAGES]
+    return best
+
+
 def run() -> None:
     """Die eigentliche Arbeit. Läuft im Hintergrund-Thread; Fehler landen im Status."""
     from backend import image_tags, vision
@@ -121,7 +134,10 @@ def run() -> None:
 
         store = vision.EmbeddingStore(embedder.name)
         pin_entries = [(f"pin:{pin['id']}", pin.get("image_url")) for pin in data["pins"]]
-        product_entries = [(f"product:{p.id}", p.image_url) for p in get_product_source().load()]
+        # Produktbilder: nur die, die vom Text her am besten passen – mit Feeds gibt es
+        # zehntausende Produkte, die alle herunterzuladen würde Stunden dauern
+        product_entries = [(f"product:{p['id']}", p["image_url"])
+                           for p in _best_products(get_product_source().load(), data["pins"])]
         entries = pin_entries + product_entries
         _update(step="bilder", done=0, total=len(vision.missing(store, entries)))
         vision.index(store, embedder, entries,
