@@ -383,3 +383,8 @@ async function loadCategories() {
 
 // Start: Kategorien für "Mode" laden, dann anzeigen, was in der Adresse steht
 loadCategories().then(applyHash);
+
+// Mali hat die Pins fertig analysiert (analysis.js) -> Empfehlungen neu laden
+window.addEventListener("analysis:done", (event) => {
+  if (event.detail.status === "done") load();
+});

@@ -160,6 +160,17 @@ class ClipEmbedder:
         return [normalize(feature.tolist()) for feature in features]
 
 
+_embedder: dict = {}
+
+
+def get_embedder() -> "ClipEmbedder":
+    """Das Modell nur EINMAL laden und im Speicher behalten (Laden dauert, Rechnen geht dann
+    schnell). Wirft VisionUnavailable, wenn die KI-Pakete fehlen."""
+    if "model" not in _embedder:
+        _embedder["model"] = ClipEmbedder()
+    return _embedder["model"]
+
+
 # --- Speicher für die Vektoren -----------------------------------------------------------------
 
 _loaded: dict = {}   # zuletzt gelesene embeddings.json (siehe load_existing)
@@ -219,9 +230,16 @@ class EmbeddingStore:
                 for key, entry in self.items.items() if key.startswith(prefix)}
 
 
-def index(store: EmbeddingStore, embedder: Embedder, entries: list[tuple[str, str]]) -> dict:
-    """Berechnet fehlende/veraltete Vektoren. entries = [(schlüssel, bild_url), ...]"""
-    todo = [(key, url) for key, url in entries if url and store.get(key, url) is None]
+def missing(store: EmbeddingStore, entries: list[tuple[str, str]]) -> list[tuple[str, str]]:
+    """Welche Bilder müssen (neu) berechnet werden?"""
+    return [(key, url) for key, url in entries if url and store.get(key, url) is None]
+
+
+def index(store: EmbeddingStore, embedder: Embedder, entries: list[tuple[str, str]],
+          on_progress=None) -> dict:
+    """Berechnet fehlende/veraltete Vektoren. entries = [(schlüssel, bild_url), ...]
+    on_progress(fertig, insgesamt) wird nach jedem Bild-Stapel aufgerufen (für Malis Anzeige)."""
+    todo = missing(store, entries)
     failed = 0
     for start in range(0, len(todo), BATCH_SIZE):
         batch = todo[start:start + BATCH_SIZE]
@@ -231,6 +249,8 @@ def index(store: EmbeddingStore, embedder: Embedder, entries: list[tuple[str, st
                 failed += 1
             else:
                 store.put(key, url, vector)
+        if on_progress:
+            on_progress(start + len(batch), len(todo))
     return {"total": len(entries), "new": len(todo) - failed, "failed": failed}
 
 

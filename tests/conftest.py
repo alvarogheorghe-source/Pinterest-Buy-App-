@@ -81,6 +81,14 @@ def demo_products(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def no_background_analysis(monkeypatch):
+    """Malis Hintergrund-Analyse startet in Tests nicht von selbst (test_analysis.py testet sie)."""
+    from backend import analysis
+    analysis._state.clear()
+    monkeypatch.setattr(analysis, "_spawn", lambda target: None)
+
+
+@pytest.fixture(autouse=True)
 def no_image_downloads(monkeypatch):
     """Pin-Bilder werden in Tests nie wirklich geladen (backend/pin_colors.py)."""
     from backend import pin_colors

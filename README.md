@@ -254,6 +254,14 @@ Text, Schnitte und Muster. Läuft **lokal auf deinem Mac, kostenlos**.
 pip install -r requirements-ai.txt     # PyTorch + transformers (groß, dauert etwas)
 python -m backend.vision               # lädt beim ersten Mal ~600 MB Modell herunter
 ```
+**Automatisch:** Nach „Pins laden“ (oder beim nächsten Seitenaufruf nach einem RSS-Import)
+startet die App die Analyse selbst im Hintergrund (`backend/analysis.py`): Farben → Modell
+laden → Bilder ansehen → Stil, Teile & Marken → Stil-Schwerpunkte. Währenddessen zeigt
+`frontend/analysis.js` Mali, der Karotte knabbert, mit dir redet und den Fortschritt zeigt
+(verkleinerbar). Stand abfragen: `GET /api/analysis`, starten: `POST /api/analysis`.
+Ohne KI-Pakete laufen nur die Farben – die App funktioniert trotzdem.
+
+Von Hand geht es weiterhin:
 `python -m backend.vision` berechnet die Vektoren aller Produkt- und Pin-Bilder und
 speichert sie in `data/embeddings.json`. **Nach „Pins laden“ oder neuen Produkten erneut
 ausführen** – es rechnet nur Neues nach. Die App selbst vergleicht danach nur noch die

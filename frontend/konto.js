@@ -133,6 +133,8 @@ document.getElementById("pins-button").addEventListener("click", async () => {
     return;
   }
   await showSavedPins();
+  // Der Server hat Malis Analyse schon gestartet – jetzt zuschauen (analysis.js)
+  if (window.maliAnalysis) window.maliAnalysis.open();
 });
 
 document.getElementById("logout-button").addEventListener("click", async () => {

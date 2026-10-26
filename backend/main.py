@@ -13,8 +13,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import (feedback, matching, pins, pinterest, products, shop_links, similar,
-                     storage, vibe, vision)
+from backend import (analysis, feedback, matching, pins, pinterest, products, shop_links,
+                     similar, storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Malipin")
@@ -142,7 +142,23 @@ def refresh_pins():
         data = pins.load_pins_for_selected_boards()
     except ValueError as err:
         raise HTTPException(400, str(err))
+    # Mali schaut sich die neuen Pins gleich im Hintergrund an (Farben, Bilder, Stil, Marken)
+    analysis.start()
     return {"count": len(data["pins"]), "board_count": len(data["board_ids"])}
+
+
+@app.get("/api/analysis")
+def get_analysis():
+    """Wie weit ist Malis Analyse? (Schritt, Fortschritt, was gefunden wurde, ob nötig)"""
+    return analysis.status()
+
+
+@app.post("/api/analysis")
+def start_analysis():
+    """Analyse starten (z.B. nach einem RSS-Import). Läuft sie schon, passiert nichts."""
+    if not storage.load_pins()["pins"]:
+        raise HTTPException(400, "Noch keine Pins geladen.")
+    return analysis.start()
 
 
 @app.get("/api/pins")

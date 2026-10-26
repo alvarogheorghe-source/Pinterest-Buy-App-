@@ -383,3 +383,228 @@ html.splash-open {
   display: flex;
   gap: 10px;
 }
+
+/* --- Mali arbeitet: Analyse-Ansicht (analysis.js) --- */
+.analysis {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 900;
+  width: min(380px, calc(100vw - 32px));
+  padding: 22px 22px 18px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(58, 42, 48, 0.22);
+  border: 1px solid #f3dbe3;
+  animation: analysis-in 0.35s ease-out;
+}
+
+@keyframes analysis-in {
+  from { opacity: 0; transform: translateY(16px); }
+}
+
+.analysis-minimize {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #fbe3ea;
+  color: #a52a57;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.analysis-title {
+  margin: 0 36px 14px 0;
+  font-family: var(--serif);
+  font-size: 1.35rem;
+}
+
+.analysis-stage {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  min-height: 96px;
+}
+
+.analysis-sprite {
+  width: 80px;
+  height: 80px;
+  flex: none;
+  image-rendering: pixelated;
+}
+
+/* Sprechblase mit Spitze nach links zu Mali */
+.analysis-bubble {
+  position: relative;
+  flex: 1;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #fff4f7;
+  border: 1px solid #f3dbe3;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.analysis-bubble::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  bottom: 14px;
+  width: 14px;
+  height: 14px;
+  background: #fff4f7;
+  border-left: 1px solid #f3dbe3;
+  border-bottom: 1px solid #f3dbe3;
+  transform: rotate(45deg);
+}
+
+.analysis-bubble.pop {
+  animation: analysis-pop 0.3s ease-out;
+}
+
+@keyframes analysis-pop {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+.analysis-bar {
+  height: 10px;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: #fbe3ea;
+  overflow: hidden;
+}
+
+.analysis-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f08fac, var(--accent));
+  transition: width 0.6s ease;
+}
+
+.analysis-count {
+  min-height: 1.2em;
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.analysis-steps {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.analysis-steps li {
+  padding: 3px 0 3px 26px;
+  position: relative;
+}
+
+.analysis-steps li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 50%;
+  border: 2px solid #f3c6d3;
+}
+
+.analysis-steps li.active {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.analysis-steps li.active::before {
+  border-color: var(--accent);
+  animation: analysis-pulse 1s ease-in-out infinite;
+}
+
+.analysis-steps li.done {
+  color: var(--text);
+}
+
+.analysis-steps li.done::before {
+  content: "✓";
+  width: auto;
+  height: auto;
+  margin-top: -0.65em;
+  border: none;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+@keyframes analysis-pulse {
+  50% { transform: scale(1.35); }
+}
+
+.analysis-found {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.analysis-found:empty,
+.analysis-actions:empty {
+  display: none;
+}
+
+.analysis-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* Verkleinert: kleiner Knopf unten links */
+.analysis-pill {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 900;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(201, 58, 105, 0.35);
+  cursor: pointer;
+}
+
+/* Solange die Ansicht offen ist, sitzt Mali dort – der kleine Mali unten macht Pause */
+body.analysis-open .mali,
+body.analysis-open .mali-bubble {
+  visibility: hidden;
+}
+
+@media (max-width: 600px) {
+  .analysis {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    border-radius: 24px 24px 0 0;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analysis,
+  .analysis-bubble.pop,
+  .analysis-steps li.active::before {
+    animation: none;
+  }
+}

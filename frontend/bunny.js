@@ -546,6 +546,8 @@
     tanzen: dance, essen: eatCarrot, schlafen: nap, freuen: happyJump,
     hoppeln: (targetX) => hopTo(targetX), vibe: showVibe,
     begruessen: () => { remember(localStorage, "mali-welcome", ""); return welcome(); },
+    // Malis Pixel-Bilder – für die Analyse-Ansicht (analysis.js) und die Vibe-Karte
+    pixels: { frames: FRAMES, palette: PALETTE, heart: HEART },
   };
 
   life();
