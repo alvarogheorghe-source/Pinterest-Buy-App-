@@ -1121,3 +1121,48 @@ section + section {
     display: none;
   }
 }
+
+/* Linien-Icons (statt Emojis) – gleicher Stil wie die Icons der Startseite */
+.line-icon {
+  width: 1.15em;
+  height: 1.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+.nav-fit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-fit .line-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.photo-drop-icon {
+  color: var(--accent);
+}
+
+.photo-drop-icon .line-icon {
+  width: 44px;
+  height: 44px;
+  stroke-width: 1.5;
+}
+
+.photo-privacy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.photo-teaser .line-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--accent);
+}

@@ -40,12 +40,12 @@ def static_index(source: str) -> str:
     # Verbinden-Buttons (führen alle zu /konto.html) -> nicht klickbares "Bald verfügbar"
     page = re.sub(
         r'<a href="/konto\.html" class="button([^"]*)">.*?</a>',
-        lambda m: f'<span class="button{m.group(1)} soon" aria-disabled="true">🐰 {SOON}</span>',
+        lambda m: f'<span class="button{m.group(1)} soon" aria-disabled="true">{SOON}</span>',
         page, flags=re.DOTALL)
     # Foto-Suche braucht den Server -> "Foto-Suche bald verfügbar"
     page = re.sub(
         r'<a href="/foto\.html" class="button([^"]*)">.*?</a>',
-        lambda m: f'<span class="button{m.group(1)} soon" aria-disabled="true">📷 Foto-Suche {SOON.lower()}</span>',
+        lambda m: f'<span class="button{m.group(1)} soon" aria-disabled="true">Foto-Suche {SOON.lower()}</span>',
         page, flags=re.DOTALL)
     # "Shop ansehen", Shop/Merkliste im Kopf -> weg
     page = re.sub(r'\s*<a href="/shop\.html" class="button large outline">.*?</a>', "", page)
@@ -62,7 +62,7 @@ def static_index(source: str) -> str:
                   '        <a href="/impressum.html">Impressum</a>\n      </nav>',
                   page, flags=re.DOTALL)
     page = page.replace("<p>Prototyp mit Beispieldaten · Impressum folgt</p>",
-                        "<p>Malipin startet bald 🐰</p>")
+                        "<p>Malipin startet bald.</p>")
     # Kein Server -> kein Merklisten-Zähler; Mali weiß, dass er auf der Vorstellungsseite ist
     page = page.replace('  <script src="nav.js"></script>\n', "")
     page = page.replace("<body", "<body data-static", 1)
@@ -197,7 +197,7 @@ def build() -> None:
     privacy = markdown_to_html((ROOT / "PRIVACY.md").read_text("utf-8"))
     (OUT / "datenschutz.html").write_text(subpage("Datenschutz", privacy), "utf-8")
     (OUT / "impressum.html").write_text(impressum_page(), "utf-8")
-    (OUT / "404.html").write_text(subpage("Nicht gefunden", "    <h1>Hoppla! 🐰</h1>\n"
+    (OUT / "404.html").write_text(subpage("Nicht gefunden", "    <h1>Hoppla!</h1>\n"
         "    <p>Diese Seite gibt es nicht. Mali hat überall geschnuppert – nichts.</p>\n"
         '    <p><a class="button" href="/">Zur Startseite</a></p>'), "utf-8")
     print(f"Fertig: {OUT}")

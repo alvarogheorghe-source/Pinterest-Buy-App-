@@ -1,4 +1,4 @@
-// Foto hochladen → Mali findet's 📷 (POST /api/photo, siehe backend/photo.py)
+// Foto hochladen → Mali findet's (POST /api/photo, siehe backend/photo.py)
 //
 // Das Foto wird im Browser verkleinert (schneller, weniger Daten) und dann geschickt.
 // Der Server schaut es nur kurz an und speichert es NICHT.
