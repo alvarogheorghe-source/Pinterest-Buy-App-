@@ -231,7 +231,7 @@ def classify_pin(pin: dict) -> set[str]:
     """
     text = pin_text(pin)
     departments = find_terms(text, DEPARTMENT_PATTERNS)
-    for category in find_terms(text, CATEGORY_PATTERNS):
+    for category in find_terms(text, CATEGORY_PATTERNS) | set(pin.get("image_categories", [])):
         departments.add(CATEGORY_SYNONYMS[category][0])
     return departments or set(DEPARTMENTS)
 
@@ -255,8 +255,9 @@ def build_style_profile(pins: list[dict], department: str | None = None) -> Styl
         if image_color:
             colors.add(image_color)  # Menge -> zählt pro Pin trotzdem nur einmal
         profile.colors.update(colors)
-        profile.styles.update(find_terms(text, STYLE_PATTERNS))
-        categories = find_terms(text, CATEGORY_PATTERNS)
+        # Begriffe aus dem Text + was die Bilderkennung im Bild gesehen hat (image_tags.py)
+        profile.styles.update(find_terms(text, STYLE_PATTERNS) | set(pin.get("image_styles", [])))
+        categories = find_terms(text, CATEGORY_PATTERNS) | set(pin.get("image_categories", []))
         if department:  # nur Kategorien der gewählten Welt
             categories = {c for c in categories if CATEGORY_SYNONYMS[c][0] == department}
         profile.categories.update(categories)

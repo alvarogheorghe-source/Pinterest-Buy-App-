@@ -265,6 +265,13 @@ gespeicherten Zahlen (das Modell muss nicht laufen).
 - „Mehr wie das“: Bild-Ähnlichkeit zählt mit, auch ohne gemeinsame Wörter („Sieht ähnlich aus“)
 - Messen: `python -m backend.evaluate --bilder` vergleicht zusätzlich „Bilder“ und
   „Text + Bilder“ (braucht ein Testset mit `image_url` – also echte Pins)
+- **Was ist auf dem Bild?** (`backend/image_tags.py`): FashionCLIP vergleicht jedes Pin-Bild
+  mit Beschreibungen („goth dark aesthetic fashion“, „a jacket or coat“ …) und hängt die
+  passenden Begriffe an den Pin (`image_styles`, `image_categories`). Das Stilprofil zählt sie
+  wie Wörter aus dem Text – Vibe-Check und eBay/Etsy-Suche funktionieren so auch bei Pins
+  ohne Text. Läuft mit `python -m backend.vision`; Ergebnis ansehen:
+  `python -m backend.image_tags`. Schwellen (wie sicher das Modell sein muss) stehen oben
+  in der Datei.
 
 **Einstellungen:** Modell per `.env` wählbar (`CLIP_MODEL=…`, Standard
 `patrickjohncyh/fashion-clip`; für Wohnen & Deko evtl. `openai/clip-vit-base-patch32`).

@@ -75,6 +75,8 @@ class Embedder(Protocol):
 
     def embed_image_urls(self, urls: list[str]) -> list[list[float] | None]: ...
 
+    def embed_texts(self, texts: list[str]) -> list[list[float]]: ...
+
 
 class ClipEmbedder:
     """Das echte Modell (CLIP/FashionCLIP über die Bibliothek "transformers")."""
@@ -134,6 +136,16 @@ class ClipEmbedder:
             for position, feature in zip(positions, features):
                 results[position] = normalize(feature.tolist())
         return results
+
+    def embed_texts(self, texts: list[str]) -> list[list[float]]:
+        """Sätze -> Vektoren im selben "Raum" wie die Bilder (für image_tags.py)."""
+        import torch
+        with torch.no_grad():
+            inputs = self.processor(text=texts, return_tensors="pt", padding=True)
+            features = self.model.get_text_features(**inputs)
+        if not isinstance(features, torch.Tensor):
+            features = features.pooler_output
+        return [normalize(feature.tolist()) for feature in features]
 
 
 # --- Speicher für die Vektoren -----------------------------------------------------------------
@@ -262,6 +274,10 @@ def main() -> None:
         print(f"{kind:>9}: {stats['total']} insgesamt, {stats['new']} neu berechnet, "
               f"{stats['failed']} Bilder nicht ladbar")
     print(f"Gespeichert in {storage.DATA_DIR / EMBEDDINGS_FILE}")
+    # Was ist auf den Pin-Bildern? -> Stil + Kategorie als Begriffe am Pin
+    from backend import image_tags
+    tagged = image_tags.tag_pins(embedder, EmbeddingStore(embedder.name))
+    print(f"Bild-Begriffe für {tagged} Pins erkannt – ansehen mit:  python -m backend.image_tags")
 
 
 if __name__ == "__main__":
