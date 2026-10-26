@@ -62,3 +62,7 @@ def test_every_page_has_the_mali_logo(client, path):
     html = client.get(path).text
     assert 'class="logo-pin"' in html and 'href="/img/favicon.svg"' in html
     assert client.get("/img/favicon.svg").headers["content-type"].startswith("image/svg+xml")
+
+
+def test_frontend_files_are_revalidated(client):
+    assert client.get("/style.css").headers["cache-control"] == "no-cache"

@@ -469,4 +469,14 @@ def start_page():
 
 # Das Frontend (HTML/CSS/JS) wird direkt vom Backend ausgeliefert.
 # Muss als LETZTES kommen, sonst würde es die API-Routen überdecken.
-app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+class FrontendFiles(StaticFiles):
+    """Wie StaticFiles – aber der Browser fragt immer kurz nach, ob sich eine Datei geändert hat
+    (no-cache + ETag). Sonst sieht man nach einem Update manchmal noch das alte Design."""
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
+app.mount("/", FrontendFiles(directory=FRONTEND_DIR, html=True), name="frontend")
