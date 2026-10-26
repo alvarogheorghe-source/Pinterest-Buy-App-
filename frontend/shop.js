@@ -2,6 +2,7 @@
 // Stilprofil, Filter und Raster.
 
 const grid = document.getElementById("product-grid");
+const rows = document.getElementById("shop-rows");
 const resultCount = document.getElementById("result-count");
 const banner = document.getElementById("profile-banner");
 const categorySelect = document.getElementById("category-select");
@@ -69,6 +70,7 @@ async function load() {
   pinItemsCount.textContent = pinItems.length ? `(${pinItems.length})` : "";
 
   if (filters.tab === "pins") {
+    rows.replaceChildren();
     const items = filters.sort === "price" ? sortByPrice(pinItems) : pinItems;
     renderGrid(items.map(pinItemToCard), "Teil", "Teile",
       profile.pin_count > 0
@@ -79,11 +81,65 @@ async function load() {
     const items = filters.sort === "price"
       ? sortByPrice(recommendations.products)
       : recommendations.products;
+    // Themen-Reihen nur in der Standard-Ansicht (ohne Kategorie-Filter, nach Passung sortiert)
+    renderRows(!filters.category && filters.sort === "match"
+      ? themedRows(recommendations.products, profile, recommendations.currency) : [], hasProfile);
     renderGrid(items.map((p) => productToCard(p, hasProfile)), "Produkt", "Produkte",
       "Keine Produkte in diesem Budget. Probier einen höheren Betrag.");
     showSources(recommendations.sources || ["demo"]);
   }
   showWarnings(filters.tab === "pins" ? [] : recommendations.warnings || []);
+}
+
+// --- Themen-Reihen: "Weil du Baggy pinnst", "Gerade reduziert", "Unter 20 €", "Second Hand" --
+
+const ROW_MIN = 4;     // kleinere Reihen lohnen sich nicht
+const ROW_MAX = 12;
+const CHEAP = 20;      // "Unter 20 €" / "$20" / "£20"
+
+// Deine Merkmale, genaueste zuerst: Details (Bootcut, Light Wash …), dann Stile, dann Farben
+function favouriteTerms(profile) {
+  const details = Object.values(profile.details || {}).flatMap((d) => Object.entries(d));
+  details.sort((a, b) => b[1] - a[1]);
+  return [...details.map(([name]) => name), ...profile.top_styles, ...profile.top_colors];
+}
+
+function themedRows(products, profile, currency = "EUR") {
+  const list = [];
+  const add = (title, items) => {
+    if (items.length >= ROW_MIN) list.push({ title, items: items.slice(0, ROW_MAX) });
+  };
+  // Das erste Merkmal, zu dem es genug passende Teile gibt
+  for (const term of profile.pin_count > 0 ? favouriteTerms(profile) : []) {
+    const matching = products.filter((p) => (p.matched || []).includes(term));
+    if (matching.length >= ROW_MIN) {
+      add(t("Weil du {term} pinnst", { term: t(term) }), matching);
+      break;
+    }
+  }
+  add(t("Gerade reduziert"), products.filter((p) => sale(p)).sort((a, b) => sale(b).percent - sale(a).percent));
+  const cheap = new Intl.NumberFormat(window.LOCALE || "de-AT",
+    { style: "currency", currency, maximumFractionDigits: 0 }).format(CHEAP);
+  add(t("Unter {price}", { price: cheap }), products.filter((p) => (p.local_price ?? p.price) <= CHEAP));
+  add(t("Second-Hand-Funde"), products.filter((p) =>
+    /second hand|vintage/i.test(p.shop) || (p.style_tags || []).includes("vintage")));
+  return list;
+}
+
+function renderRows(list, hasProfile) {
+  rows.replaceChildren();
+  for (const row of list) {
+    const section = Object.assign(document.createElement("section"), { className: "shop-row" });
+    const title = Object.assign(document.createElement("h2"), { className: "shop-row-title", textContent: row.title });
+    const track = Object.assign(document.createElement("div"), { className: "row-track" });
+    for (const product of row.items) track.appendChild(createCard(productToCard(product, hasProfile)));
+    section.append(title, track);
+    rows.appendChild(section);
+  }
+  if (list.length) {
+    rows.appendChild(Object.assign(document.createElement("h2"),
+      { className: "shop-row-title all-title", textContent: t("Alle Vorschläge") }));
+  }
 }
 
 // Budget-Chips in der Währung der Person: "bis 15 €", "up to $15", "up to £15" …
@@ -210,6 +266,7 @@ function productToCard(product, hasProfile) {
     topLine: `${product.shop} · ${t(product.category)}`,
     title: product.name,
     price: money(product),
+    sale: sale(product),
     note: hasProfile ? product.reason : "",
     // Klick auf Bild oder Name -> Detailseite mit "Mehr wie das"
     detailUrl: `/produkt.html?id=${encodeURIComponent(product.id)}`,
@@ -287,6 +344,11 @@ function createCard(data) {
   const price = document.createElement("p");
   price.className = "card-price";
   price.textContent = data.price;
+  // Sale: alter Preis durchgestrichen + "−30 %" auf dem Bild
+  if (data.sale) {
+    price.append(" ", Object.assign(document.createElement("s"),
+      { className: "price-before", textContent: data.sale.before }));
+  }
 
   // Begründung bzw. Beschreibung (füllt den Platz, damit Buttons unten bündig sind)
   const note = document.createElement("p");
@@ -325,6 +387,11 @@ function createCard(data) {
     card.append(imageLink, body);
   } else {
     card.append(imageBox, body);
+  }
+  if (data.sale) {
+    card.classList.add("on-sale");
+    card.appendChild(Object.assign(document.createElement("span"),
+      { className: "sale-badge", textContent: `−${data.sale.percent} %` }));
   }
   // Abzeichen oben links auf dem Bild ("Geprüfter Shop")
   if (data.badge) {

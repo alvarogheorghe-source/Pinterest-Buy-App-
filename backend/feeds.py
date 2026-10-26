@@ -43,7 +43,7 @@ from backend.config import BASE_DIR
 from backend.counterfeit import looks_like_fake
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
-from backend.products import Product, ProductSource, ProductSourceError
+from backend.products import Product, ProductSource, ProductSourceError, sale_price
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +65,7 @@ PRESETS = {
         "shop": ["merchant_name"], "brand": ["brand_name"],
         "category": ["merchant_category", "category_name"], "color": ["colour"],
         "description": ["product_short_description", "description"],
+        "original_price": ["rrp_price", "product_price_old", "base_price"],
     },
     # Google-Shopping-Format – viele Netzwerke (Tradedoubler, Adcell, Admitad …) bieten es an
     "google": {
@@ -74,6 +75,7 @@ PRESETS = {
         "brand": ["brand", "g:brand"],
         "category": ["product_type", "g:product_type", "google_product_category"],
         "color": ["color", "g:color"], "description": ["description", "g:description"],
+        "original_price": ["price", "g:price"],     # Normalpreis, wenn es einen sale_price gibt
     },
     # Allgemein: gängige Spaltennamen; alles andere über "fields" in feeds.json
     "generic": {
@@ -86,6 +88,7 @@ PRESETS = {
         "brand": ["brand", "vendor", "manufacturer"],
         "category": ["category", "categories", "category_path", "merchantCategoryName"],
         "color": ["color", "colour"], "description": ["description", "short_description"],
+        "original_price": ["old_price", "original_price", "rrp", "list_price", "regular_price"],
     },
 }
 
@@ -236,6 +239,7 @@ def to_product(row: dict, feed: dict) -> Product | None:
         id=f"{feed['name']}-{re.sub(r'[^A-Za-z0-9]', '-', raw_id)[:60]}",
         name=name[:90], shop=shop[:60], seller=shop[:60],
         price=round(price, 2), currency=currency,
+        original_price=sale_price(price, parse_price(_pick(row, fields["original_price"]))[0]),
         department=CATEGORY_SYNONYMS[category][0], category=category,
         colors=sorted(find_terms(text, COLOR_PATTERNS)),
         style_tags=sorted(find_terms(text, STYLE_PATTERNS)),

@@ -33,6 +33,8 @@ class Product(BaseModel):
     shop: str
     price: float = Field(ge=0)        # ge=0: Preis darf nicht negativ sein
     currency: str = "EUR"
+    # Preis vor der Reduzierung (Sale) – nur, wenn der Shop ihn mitliefert und er höher ist
+    original_price: float | None = None
     department: Department = "mode"   # "mode" = Kleidung, "wohnen" = Gegenstände
     category: str
     colors: list[str] = []            # feste Begriffe wie "beige", "schwarz"
@@ -225,6 +227,16 @@ class TrustedMarker(ProductSource):
 def source_names() -> list[str]:
     """Für die Anzeige im Shop: z.B. ["ebay", "etsy"] oder ["demo"]."""
     return [source.name for source in online_sources()] or ["demo"]
+
+
+def sale_price(price: float, original) -> float | None:
+    """Originalpreis nur, wenn er wirklich höher ist (mind. 5 % Rabatt) – sonst None.
+    Kleine "Rabatte" sind oft nur Rundung und wirken unseriös."""
+    try:
+        original = float(original)
+    except (TypeError, ValueError):
+        return None
+    return round(original, 2) if original >= price * 1.05 else None
 
 
 def filter_products(products: list[Product], min_price: float | None = None,

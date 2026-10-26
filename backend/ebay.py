@@ -25,11 +25,11 @@ import time
 
 import httpx
 
-from backend import region, storage
+from backend import region, search_cache, storage
 from backend.i18n import tr
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
-from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError
+from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError, sale_price
 from backend.search_queries import ENGLISH, GERMAN, build_queries, search_with_fallback
 
 TOKEN_URL = "https://api.ebay.com/identity/v1/oauth2/token"
@@ -37,7 +37,10 @@ SEARCH_URL = "https://api.ebay.com/buy/browse/v1/item_summary/search"
 SANDBOX_HOST = "https://api.sandbox.ebay.com"   # Sandbox-Keys (…-SBX-…): eBays Testdaten
 SCOPE = "https://api.ebay.com/oauth/api_scope"
 
-RESULTS_PER_QUERY = 20
+RESULTS_PER_QUERY = 50      # eBay erlaubt bis 200; 50 = viel Auswahl, schnelle Antwort
+# Nur diese Felder werden zwischengespeichert (search_cache.py) – der Rest wird nicht gebraucht
+KEEP_FIELDS = ("itemId", "title", "price", "condition", "image", "thumbnailImages", "itemWebUrl",
+               "itemAffiliateWebUrl", "seller", "marketingPrice")
 
 # Titel mit diesen Wörtern passen fast nie zu Pins: Kinder-/Puppen-/Tiersachen, Sammelpakete,
 # Defektes, Ersatzteile, Schnittmuster.
@@ -115,7 +118,14 @@ def large_image(url: str) -> str:
 # --- Suche und Umwandlung in Produkte ---------------------------------------------------------
 
 def search(query: str) -> list[dict]:
-    """Eine Suche auf eBay (nur Sofort-Kaufen)."""
+    """Eine Suche auf eBay (nur Sofort-Kaufen) – gleiche Suchen aller Personen teilen sich
+    eine Stunde lang ein Ergebnis (search_cache.py)."""
+    here = region.current()
+    key = f"ebay|{here.ebay}|{here.currency}|{os.getenv('EBAY_EPN_CAMPAIGN_ID', '').strip()}|{query}"
+    return search_cache.cached(key, lambda: _search(query))
+
+
+def _search(query: str) -> list[dict]:
     params = {"q": query, "limit": RESULTS_PER_QUERY,
               "filter": f"buyingOptions:{{FIXED_PRICE}},price:[{MIN_PRICE}..],"
                         f"priceCurrency:{region.current().currency}"}
@@ -131,7 +141,8 @@ def search(query: str) -> list[dict]:
         response = client.get(_url(SEARCH_URL), params=params, headers=headers)
     if response.status_code != 200:
         raise ProductSourceError(tr("eBay-Suche fehlgeschlagen ({code}).", code=response.status_code))
-    return response.json().get("itemSummaries", [])
+    return [{k: item[k] for k in KEEP_FIELDS if k in item}
+            for item in response.json().get("itemSummaries", [])]
 
 
 def to_product(item: dict, department: str, query_category: str) -> Product | None:
@@ -162,6 +173,9 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
         shop="eBay · Second Hand" if second_hand else "eBay",
         seller=str((item.get("seller") or {}).get("username") or ""),
         price=price,
+        # Sale: eBay liefert den Preis vor der Reduzierung mit (marketingPrice)
+        original_price=sale_price(price, ((item.get("marketingPrice") or {})
+                                          .get("originalPrice") or {}).get("value")),
         currency=currency,
         department=department,
         category=categories[0] if categories else query_category,

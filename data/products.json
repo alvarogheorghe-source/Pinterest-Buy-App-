@@ -37,7 +37,8 @@
       ],
       "image_url": "/img/products/prod-002.png",
       "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-002",
-      "department": "mode"
+      "department": "mode",
+      "original_price": 14.27
     },
     {
       "id": "prod-003",
@@ -113,7 +114,8 @@
       ],
       "image_url": "/img/products/prod-006.png",
       "affiliate_url": "https://example.com/affiliate?shop=urban+loop&product=prod-006",
-      "department": "mode"
+      "department": "mode",
+      "original_price": 99.98
     },
     {
       "id": "prod-007",
@@ -189,7 +191,8 @@
       ],
       "image_url": "/img/products/prod-010.png",
       "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-010",
-      "department": "mode"
+      "department": "mode",
+      "original_price": 41.24
     },
     {
       "id": "prod-011",
@@ -263,7 +266,8 @@
       ],
       "image_url": "/img/products/prod-014.png",
       "affiliate_url": "https://example.com/affiliate?shop=basics+%26+co&product=prod-014",
-      "department": "mode"
+      "department": "mode",
+      "original_price": 17.13
     },
     {
       "id": "prod-015",
@@ -336,7 +340,8 @@
       ],
       "image_url": "/img/products/prod-018.png",
       "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-018",
-      "department": "mode"
+      "department": "mode",
+      "original_price": 49.98
     },
     {
       "id": "prod-019",
@@ -411,7 +416,8 @@
       ],
       "image_url": "/img/products/prod-022.png",
       "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-022",
-      "department": "mode"
+      "department": "mode",
+      "original_price": 49.99
     },
     {
       "id": "prod-023",
@@ -485,7 +491,8 @@
       ],
       "image_url": "/img/products/prod-026.png",
       "affiliate_url": "https://example.com/affiliate?shop=mode+mint&product=prod-026",
-      "department": "mode"
+      "department": "mode",
+      "original_price": 42.84
     },
     {
       "id": "prod-027",
@@ -561,7 +568,8 @@
       ],
       "image_url": "/img/products/prod-030.png",
       "affiliate_url": "https://example.com/affiliate?shop=kleiderkiste&product=prod-030",
-      "department": "mode"
+      "department": "mode",
+      "original_price": 66.65
     },
     {
       "id": "prod-031",
@@ -636,7 +644,8 @@
         "minimalistisch"
       ],
       "image_url": "/img/products/prod-034.png",
-      "affiliate_url": "https://example.com/affiliate?shop=raumgl%C3%BCck&product=prod-034"
+      "affiliate_url": "https://example.com/affiliate?shop=raumgl%C3%BCck&product=prod-034",
+      "original_price": 49.99
     },
     {
       "id": "prod-035",
@@ -712,7 +721,8 @@
         "skandinavisch"
       ],
       "image_url": "/img/products/prod-038.png",
-      "affiliate_url": "https://example.com/affiliate?shop=tonwerk&product=prod-038"
+      "affiliate_url": "https://example.com/affiliate?shop=tonwerk&product=prod-038",
+      "original_price": 25.7
     },
     {
       "id": "prod-039",
@@ -785,7 +795,8 @@
         "modern"
       ],
       "image_url": "/img/products/prod-042.png",
-      "affiliate_url": "https://example.com/affiliate?shop=hausfreude&product=prod-042"
+      "affiliate_url": "https://example.com/affiliate?shop=hausfreude&product=prod-042",
+      "original_price": 83.32
     },
     {
       "id": "prod-043",
@@ -859,7 +870,8 @@
         "minimalistisch"
       ],
       "image_url": "/img/products/prod-046.png",
-      "affiliate_url": "https://example.com/affiliate?shop=hausfreude&product=prod-046"
+      "affiliate_url": "https://example.com/affiliate?shop=hausfreude&product=prod-046",
+      "original_price": 62.49
     },
     {
       "id": "prod-047",
@@ -932,7 +944,8 @@
         "natur"
       ],
       "image_url": "/img/products/prod-050.png",
-      "affiliate_url": "https://example.com/affiliate?shop=raumgl%C3%BCck&product=prod-050"
+      "affiliate_url": "https://example.com/affiliate?shop=raumgl%C3%BCck&product=prod-050",
+      "original_price": 42.84
     }
   ]
 }

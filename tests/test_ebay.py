@@ -84,9 +84,19 @@ def test_queries_follow_the_style_profile():
     assert len({q for q, _ in queries}) == len(queries)                # keine doppelte Suche
 
 
-def test_queries_without_pins_use_defaults():
+def test_queries_without_pins_use_trends():
+    """Neue Besucher ohne Pins: gefragte Teile statt eines leeren Shops."""
     queries = build_queries([], "wohnen")
-    assert [q for q, _ in queries] == ["Vase", "Lampe", "Kissen", "Beistelltisch"]
+    assert queries[:3] == [("Keramikvase", "Deko"), ("Pilz Lampe", "Leuchten"),
+                           ("Boucle Kissen", "Textilien")]
+    assert len(queries) == QUERIES_PER_DEPARTMENT
+
+
+def test_second_hand_search_for_the_favourite_part():
+    pins = [{"title": "light wash baggy jeans"}, {"title": "baggy jeans light wash"}]
+    queries = build_queries(pins, "mode")
+    vintage = next(q for q in queries if q[0].startswith("Vintage "))
+    assert vintage[0] == "Vintage " + queries[0][0] and vintage.fallback == "Vintage Jeans"
 
 
 def test_style_words_ebay_sellers_use():

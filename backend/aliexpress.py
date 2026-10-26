@@ -29,7 +29,7 @@ from backend.i18n import tr
 from backend.counterfeit import looks_like_fake, mentions_brand
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
-from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError
+from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError, sale_price
 from backend.search_queries import ENGLISH, build_queries, search_with_fallback
 
 API_URL = "https://api-sg.aliexpress.com/sync"
@@ -113,6 +113,7 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
         shop="AliExpress",
         seller=store,
         price=round(price, 2),
+        original_price=sale_price(price, item.get("target_original_price")),
         currency=currency,
         department=department,
         category=categories[0] if categories else query_category,

@@ -12,7 +12,7 @@ from backend.brands import BRANDS
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, audience,
                               build_style_profile, classify_pin, find_terms, pin_text)
 
-QUERIES_PER_DEPARTMENT = 4       # 2 Welten × 4 Suchen = 8 Anfragen pro Quelle und Stunde
+QUERIES_PER_DEPARTMENT = 10      # 2 Welten × 10 Suchen – gleiche Suchen teilen sich alle (search_cache.py)
 BRAND_MIN_PINS = 1               # erkannte Marke/Modell -> gezielte Suche (schon ab 1 Pin)
 MAX_BRAND_QUERIES = 2            # höchstens so viele der 4 Suchen pro Welt für Marken
 MAX_DETAILS = 2                  # höchstens so viele Merkmale pro Suche ("Baggy Light Wash Jeans")
@@ -58,6 +58,9 @@ class SearchWords:
     colors: dict[str, str] = field(default_factory=dict)  # Farbe -> Suchwort (sonst gleich)
     audience: dict[str, str] = field(default_factory=dict)  # "herren" -> "Herren"
     english: bool = False                            # Suchwörter der Details: Deutsch/Englisch
+    second_hand: str = "Vintage"                     # Wort für Second-Hand-Suchen
+    # Gerade gefragt (Pinterest/TikTok) – für Besucher ohne Pins und freie Plätze
+    trends: dict[str, list[tuple[str, str]]] = field(default_factory=dict)
 
     def style(self, style: str) -> str | None:
         return self.styles.get(style, style)
@@ -101,6 +104,17 @@ GERMAN = SearchWords(
         "natur": "Natur", "clean": None, "cozy": None, "casual": None, "sommer": "Sommer",
     },
     audience={"herren": "Herren", "damen": "Damen"},
+    trends={
+        "mode": [("Baggy Jeans", "Hosen"), ("Chunky Sneaker", "Schuhe"), ("Oversized Hoodie", "Oberteile"),
+                 ("Vintage Lederjacke", "Jacken"), ("Cargohose", "Hosen"), ("Strickpullover", "Oberteile"),
+                 ("Satin Midirock", "Kleider & Röcke"), ("Schultertasche", "Accessoires"),
+                 ("Wide Leg Jeans", "Hosen"), ("Bomberjacke", "Jacken")],
+        "wohnen": [("Keramikvase", "Deko"), ("Pilz Lampe", "Leuchten"), ("Boucle Kissen", "Textilien"),
+                   ("Wellen Spiegel", "Wandgestaltung"), ("Rattan Lampe", "Leuchten"),
+                   ("Steingut Tasse", "Küche & Tisch"), ("Duftkerze", "Deko"),
+                   ("Beistelltisch Holz", "Möbel"), ("Kunstdruck Poster", "Wandgestaltung"),
+                   ("Keramik Blumentopf", "Pflanzen & Töpfe")],
+    },
 )
 
 ENGLISH = SearchWords(
@@ -123,6 +137,18 @@ ENGLISH = SearchWords(
     },
     audience={"herren": "men's", "damen": "women's"},
     english=True,
+    second_hand="vintage",
+    trends={
+        "mode": [("baggy jeans", "Hosen"), ("chunky sneakers", "Schuhe"), ("oversized hoodie", "Oberteile"),
+                 ("vintage leather jacket", "Jacken"), ("cargo pants", "Hosen"), ("knit sweater", "Oberteile"),
+                 ("satin midi skirt", "Kleider & Röcke"), ("shoulder bag", "Accessoires"),
+                 ("wide leg jeans", "Hosen"), ("bomber jacket", "Jacken")],
+        "wohnen": [("ceramic vase", "Deko"), ("mushroom lamp", "Leuchten"), ("boucle pillow", "Textilien"),
+                   ("wavy mirror", "Wandgestaltung"), ("rattan lamp", "Leuchten"),
+                   ("stoneware mug", "Küche & Tisch"), ("scented candle", "Deko"),
+                   ("wooden side table", "Möbel"), ("art print poster", "Wandgestaltung"),
+                   ("ceramic planter", "Pflanzen & Töpfe")],
+    },
 )
 
 
@@ -218,8 +244,22 @@ def build_queries(pins: list[dict], department: str,
                   categories[0], fallback=words.query(second_colors[0], None, categories[0],
                                                       noun=noun)), categories[0])
 
-    for fallback in DEFAULT_CATEGORIES[department]:
-        add(words.query(color, style, fallback), fallback)
+    # Second Hand: das Lieblingsteil auch gezielt gebraucht/vintage ("Vintage Baggy Jeans")
+    if categories and queries:
+        top = queries[0]
+        add(Query(f"{words.second_hand} {top[0]}", top[1],
+                  fallback=f"{words.second_hand} {getattr(top, 'fallback', None) or top[0]}"), top[1])
+
+    # Freie Plätze: mit Pins zuerst deine Farbe/dein Stil in weiteren Kategorien
+    # ("beige oversized Pullover"), dann Trends – ohne Pins gleich die Trends (statt "Pullover")
+    personal = [(words.query(color, None if style in CLOTHING_ONLY_STYLES
+                              and c in ("Schuhe", "Accessoires") else style, c), c)
+                for c in DEFAULT_CATEGORIES[department]]
+    # Ein einzelnes Foto (photo.py): nur suchen, was drauf ist – keine allgemeinen Trends
+    trends = [] if len(pins) == 1 else sorted(words.trends.get(department, []),
+                                              key=lambda t: t[1] not in categories)
+    for text, category in (personal + trends if categories or color or style else trends + personal):
+        add(text, category)
 
     # Marke/Modell erkannt (Bild oder Text)? -> gezielte Suche ganz vorne, z.B.
     # "Onitsuka Tiger Mexico 66" oder "Carhartt Jacke". Gerade Second Hand findet man so

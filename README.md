@@ -199,6 +199,21 @@ gegeneinander an – plus „ganz normal“. Nur ein klarer Gewinner (> 60 %) z�
 Teil. Ergebnis: `pin["image_details"]`, genutzt von Profil, Suche und Foto-Suche.
 Ansehen pro Pin: `python -m backend.image_tags`.
 
+### Mehr Angebote & ein schöner Shop
+
+- **10 Suchen pro Welt** (statt 4) mit je **50 Treffern** – persönlich (Teil, Schnitt, Farbe),
+  das Lieblingsteil zusätzlich als **Vintage/Second Hand**, dann Trends.
+- **Gemeinsamer Such-Speicher** (`backend/search_cache.py`, `data/search_cache.db`): gleiche
+  Suchen aller Personen kosten eine Stunde lang nur eine eBay-Anfrage – so bleiben viele
+  Suchen pro Person unter eBays Tageslimit.
+- **Trends** (`SearchWords.trends`): Besucher ohne Pins sehen sofort gefragte Teile
+  („Baggy Jeans“, „Pilz Lampe“ …) statt eines leeren Shops. Bei der Foto-Suche gibt es keine Trends.
+- **Sale:** liefert ein Shop den Preis vor der Reduzierung (eBay `marketingPrice`, Awin UVP,
+  Google `price` neben `sale_price`, AliExpress), zeigt die Karte „−30 %“ und den alten Preis
+  durchgestrichen (ab 5 % Rabatt).
+- **Themen-Reihen** oben im Shop zum Durchwischen: „Weil du … pinnst“, „Gerade reduziert“,
+  „Unter 20 €“, „Second-Hand-Funde“ – darunter alle Vorschläge.
+
 ### Mehrere Quellen
 
 Sind eBay **und** Etsy eingerichtet, mischt der Shop beide (`products.CombinedSource`) –

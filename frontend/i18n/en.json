@@ -467,7 +467,12 @@
     "Mein": "My",
     "{n} Pins": "{n} pins",
     "bis {price}": "up to {price}",
-    "Land": "Country"
+    "Land": "Country",
+    "Weil du {term} pinnst": "Because you pin {term}",
+    "Gerade reduziert": "On sale now",
+    "Unter {price}": "Under {price}",
+    "Second-Hand-Funde": "Second-hand finds",
+    "Alle Vorschläge": "All picks"
   },
   "same": [
     "mal",

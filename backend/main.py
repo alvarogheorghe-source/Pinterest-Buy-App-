@@ -102,6 +102,9 @@ def local(items: list[dict]) -> list[dict]:
         if converted is not None:
             item.update(local_price=converted, local_currency=target,
                         converted=item["currency"] != target)
+            if item.get("original_price"):        # Sale: "statt 49,90 €"
+                item["local_original_price"] = currency.convert(item["original_price"],
+                                                                item["currency"], target, table)
     return items
 
 

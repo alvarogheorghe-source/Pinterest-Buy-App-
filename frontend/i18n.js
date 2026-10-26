@@ -44,8 +44,21 @@
     return item.converted ? `≈ ${text}` : text;
   }
 
+  // Sale: Rabatt in Prozent und der alte Preis ("statt 49,90 €") – oder null
+  function sale(item) {
+    const now = item.local_price ?? item.price;
+    const before = item.local_original_price ?? item.original_price;
+    if (!before || !now || before <= now) return null;
+    const currency = item.local_currency ?? item.currency ?? "EUR";
+    return {
+      percent: Math.round((1 - now / before) * 100),
+      before: new Intl.NumberFormat(window.LOCALE, { style: "currency", currency }).format(before),
+    };
+  }
+
   window.t = t;
   window.money = money;
+  window.sale = sale;
   window.LANG = lang;
   // Zahlen & Preise im Format des eigenen Browsers ("$70.19" in den USA, "£55.24" in UK),
   // solange dessen Sprache zur gewählten passt – sonst Standard
