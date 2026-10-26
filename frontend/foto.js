@@ -159,7 +159,7 @@ function showResult(data) {
     return;
   }
   const f = data.found;
-  const seen = [...f.categories, ...f.brands, ...f.colors, ...f.styles];
+  const seen = [...f.categories, ...(f.details || []), ...f.brands, ...f.colors, ...f.styles];
   if (f.gender) seen.push(GENDER[f.gender]);
   if (seen.length) {
     say(`Ich seh: ${seen.slice(0, 3).join(", ")}! Hier sind ähnliche Teile 🥕`);

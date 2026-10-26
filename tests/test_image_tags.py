@@ -48,7 +48,7 @@ def test_clear_image_gets_style_and_category():
     pin = axis(MODE, ("style:goth", 1.0), ("category:Jacken", 1.0))
     assert image_tags.tag(pin, LABELS) == {
         "relevant": True, "department": "mode", "seen": "outfit",
-        "styles": ["goth"], "categories": ["Jacken"], "gender": None, "brands": []}
+        "styles": ["goth"], "categories": ["Jacken"], "gender": None, "brands": [], "details": []}
 
 
 def test_two_strong_styles():
@@ -68,7 +68,7 @@ def test_desktop_screenshot_is_not_fashion():
     desktop = image_tags.tag(axis(("gate:desktop", 1.0), ("style:minimalistisch", 1.0),
                                   ("category:Wandgestaltung", 1.0)), LABELS)
     assert desktop == {"relevant": False, "department": None, "seen": "desktop", "styles": [],
-                       "categories": [], "gender": None, "brands": []}
+                       "categories": [], "gender": None, "brands": [], "details": []}
 
 
 def test_outfit_in_front_of_a_wall_is_not_wall_art():
@@ -131,3 +131,37 @@ def test_unsure_what_it_is_and_force():
     assert image_tags.tag(unclear, LABELS)["seen"] is None
     forced = image_tags.tag(axis(("gate:animal", 1.0), ("category:Jacken", 1.0)), LABELS, force=True)
     assert forced["relevant"] is True and forced["department"] == "mode"
+
+
+def test_details_in_the_image():
+    """Jeans auf dem Bild, klar Bootcut + Light Wash -> beide Merkmale; Schnitt unklar -> keiner."""
+    pin = axis(MODE, ("category:Hosen", 1.0), ("detail:Hosen|Bootcut", 1.0),
+               ("detail:Hosen|Light Wash", 1.0), ("detail:Hosen|Jeans", 1.0))
+    found = image_tags.tag(pin, LABELS)
+    assert found["categories"] == ["Hosen"]
+    assert {tuple(d) for d in found["details"]} == {("Hosen", "Bootcut"), ("Hosen", "Light Wash"),
+                                                    ("Hosen", "Jeans")}
+    # Gleich stark Bootcut und Skinny -> kein Schnitt (lieber nichts als falsch)
+    unsure = axis(MODE, ("category:Hosen", 1.0), ("detail:Hosen|Bootcut", 1.0),
+                  ("detail:Hosen|Skinny", 1.0))
+    assert image_tags.tag(unsure, LABELS)["details"] == []
+    # "ganz normal" gewinnt -> kein Muster
+    plain = axis(MODE, ("category:Oberteile", 1.0), ("detail:Oberteile|_muster", 1.0))
+    assert image_tags.tag(plain, LABELS)["details"] == []
+
+
+def test_image_details_shape_the_search():
+    """Pins ohne Text, nur Bild-Erkennung -> genaue Suche "Bootcut Light Wash Jeans"."""
+    from backend.search_queries import build_queries
+    pins = [{"id": str(i), "title": "", "image_categories": ["Hosen"],
+             "image_details": [["Hosen", "Jeans"], ["Hosen", "Bootcut"], ["Hosen", "Light Wash"]]}
+            for i in range(3)]
+    texts = [q for q, _ in build_queries(pins, "mode")]
+    assert any("Bootcut" in t and "Light Wash" in t and t.endswith("Jeans") for t in texts)
+
+
+def test_every_detail_prompt_is_a_sensible_phrase():
+    assert image_tags.DETAIL_PROMPTS["Hosen|Bootcut"] == "bootcut pants"
+    assert image_tags.DETAIL_PROMPTS["Hosen|Mom Jeans"] == "mom jeans"
+    assert image_tags.DETAIL_PROMPTS["Schuhe|Low Top"] == "low top shoes"
+    assert image_tags.DETAIL_PROMPTS["Schuhe|Chelsea Boots"] == "chelsea boots"

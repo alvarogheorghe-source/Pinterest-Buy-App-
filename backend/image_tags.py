@@ -9,6 +9,7 @@ welche am besten zum Bild passen. Die Gewinner landen als Begriffe am Pin:
     pin["image_categories"] = ["Jacken"]          # bis zu 2 (Outfit-Fotos zeigen mehrere Teile)
     pin["image_gender"]     = "damen"             # nur bei Mode: "herren", "damen" oder None
     pin["image_brands"]     = ["Adidas Samba"]    # nur sehr sichere Treffer (brands.py)
+    pin["image_details"]    = [["Hosen", "Bootcut"], ["Hosen", "Light Wash"]]   # details.py
     pin["image_relevant"]   = True                # Vorprüfung: Mode oder Wohnen zu sehen?
 
 Vorprüfung zuerst: Zeigt das Bild Kleidung/Schuhe/Accessoires (Mode), Einrichtung (Wohnen)
@@ -26,6 +27,7 @@ Ergebnis pro Pin ansehen:           python -m backend.image_tags
 
 import math
 
+from backend import details as detail_list
 from backend import storage
 from backend.brands import BRANDS, NO_BRAND_PROMPTS
 from backend.matching import CATEGORY_SYNONYMS
@@ -93,6 +95,47 @@ GATE_PROMPTS = {
     "flowers": ("other", "wild flowers or a garden outdoors"),
 }
 
+# --- Schnitt & Details (details.py) im Bild ---------------------------------------------------
+# Nur Gruppen, die man auf einem Foto gut sieht (Bund, Ärmel, kleine Details eher nicht).
+IMAGE_DETAIL_GROUPS = {"typ", "schnitt", "waschung", "used", "länge", "ausschnitt", "material",
+                       "muster", "sohle", "schaft"}
+CATEGORY_NOUNS = {"Hosen": "pants", "Oberteile": "top", "Jacken": "jacket",
+                  "Kleider & Röcke": "dress or skirt", "Schuhe": "shoes", "Accessoires": "bag"}
+# Steckt schon ein Teil im Merkmal ("mom jeans")? Dann kein zweites Wort dazu ("mom jeans pants")
+_NOUN_WORDS = ("jeans", "pants", "trousers", "dress", "skirt", "shoes", "boots", "sneakers",
+               "jacket", "coat", "shirt", "bag")
+DETAIL_MIN = 0.60          # Merkmal nur, wenn es in seiner Gruppe klar vorne liegt
+MAX_IMAGE_DETAILS = 4      # höchstens so viele Merkmale pro Teil
+
+
+def _detail_prompt(category: str, detail) -> str:
+    if detail.group == "typ" or detail.en.split()[-1] in _NOUN_WORDS:
+        return detail.en
+    return f"{detail.en} {CATEGORY_NOUNS[category]}"
+
+
+def _detail_prompts() -> dict[str, str]:
+    """"Hosen|Bootcut" -> "bootcut pants"; pro Gruppe zusätzlich "ganz normal" ("Hosen|_schnitt")."""
+    prompts = {}
+    for category, noun in CATEGORY_NOUNS.items():
+        groups = set()
+        for detail in detail_list.DETAILS:
+            if category in detail.categories and detail.group in IMAGE_DETAIL_GROUPS:
+                prompts[f"{category}|{detail.de}"] = _detail_prompt(category, detail)
+                groups.add(detail.group)
+        for group in groups:
+            prompts[f"{category}|_{group}"] = f"plain basic {noun}"
+    return prompts
+
+
+DETAIL_PROMPTS = _detail_prompts()
+
+
+def _detail_group(key: str) -> str:
+    name = key.split("|", 1)[1]
+    return name[1:] if name.startswith("_") else detail_list.BY_NAME[name].group
+
+
 # Herren- oder Damenmode? Nur bei Mode-Pins – für passendere Suchen ("Herren Baggy Jeans")
 GENDER_PROMPTS = {"herren": "menswear, a man wearing the outfit",
                   "damen": "womenswear, a woman wearing the outfit"}
@@ -125,6 +168,7 @@ def descriptions() -> dict[str, str]:
     brand_prompts = {name: brand.prompt for name, brand in BRANDS.items()}
     found.update({f"brand:{k}": v for k, v in {**brand_prompts, **NO_BRAND_PROMPTS}.items()})
     found.update({f"gate:{k}": text for k, (_, text) in GATE_PROMPTS.items()})
+    found.update({f"detail:{k}": text for k, text in DETAIL_PROMPTS.items()})
     return found
 
 
@@ -175,7 +219,7 @@ def tag(pin_vector: list[float], labels: dict[str, list[float]], force: bool = F
     if force and not relevant:
         relevant, world = True, "mode"
     result = {"relevant": relevant, "department": world, "seen": seen,
-              "styles": [], "categories": [], "gender": None, "brands": []}
+              "styles": [], "categories": [], "gender": None, "brands": [], "details": []}
     if not relevant:
         return result   # Bildschirm, Essen, Text … -> keine Stil-Begriffe, keine Suche
 
@@ -202,8 +246,32 @@ def tag(pin_vector: list[float], labels: dict[str, list[float]], force: bool = F
         gender = name if p >= GENDER_MIN else None
         name, p = max(softmax(scores("brand:")).items(), key=lambda kv: kv[1])
         brands = [name] if p >= BRAND_MIN and not name.startswith("_") else []
-    result.update(styles=chosen_styles, categories=categories, gender=gender, brands=brands)
+    result.update(styles=chosen_styles, categories=categories, gender=gender, brands=brands,
+                  details=image_details(scores("detail:"), categories))
     return result
+
+
+def image_details(detail_scores: dict[str, float], categories: list[str]) -> list[list[str]]:
+    """Schnitt & Details der erkannten Teile -> [["Hosen", "Bootcut"], ["Hosen", "Light Wash"]].
+
+    Pro Teil und Gruppe treten alle Merkmale gegeneinander an – plus "ganz normal". Nur ein
+    klarer Gewinner zählt: Eine normale Jeans bekommt so nicht irgendeinen Schnitt angedichtet."""
+    found = []
+    for category in categories:
+        if category not in CATEGORY_NOUNS:
+            continue                           # Wohnen: (noch) keine Details
+        groups: dict[str, dict[str, float]] = {}
+        for key, score in detail_scores.items():
+            if key.startswith(category + "|"):
+                groups.setdefault(_detail_group(key), {})[key] = score
+        winners = []
+        for options in groups.values():
+            key, p = max(softmax(options).items(), key=lambda kv: kv[1])
+            name = key.split("|", 1)[1]
+            if p > DETAIL_MIN and not name.startswith("_"):
+                winners.append((p, name))
+        found += [[category, name] for _, name in sorted(winners, reverse=True)[:MAX_IMAGE_DETAILS]]
+    return found
 
 
 def tag_pins(embedder, store) -> int:
@@ -220,6 +288,7 @@ def tag_pins(embedder, store) -> int:
         pin["image_styles"], pin["image_categories"] = result["styles"], result["categories"]
         pin["image_gender"] = result["gender"]
         pin["image_brands"] = result["brands"]
+        pin["image_details"] = result["details"]
         pin["image_relevant"] = result["relevant"]
         tagged += 1
     if tagged:
@@ -237,7 +306,7 @@ def main() -> None:
     for pin in tagged:
         text = (pin.get("title") or pin.get("description") or "(ohne Text)")[:45]
         found = (pin["image_styles"] + pin["image_categories"] + [pin.get("image_gender") or ""]
-                 + pin.get("image_brands", []))
+                 + pin.get("image_brands", []) + [n for _, n in pin.get("image_details", [])])
         found = [f for f in found if f]
         if pin.get("image_relevant") is False:
             found = ["(keine Mode/Wohnen – zählt nicht)"]

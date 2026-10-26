@@ -49,6 +49,7 @@ def photo_pin(data: bytes, vector: list[float], embedder, store, force: bool = F
         "image_gender": tags["gender"], "image_brands": tags["brands"],
         "image_relevant": tags["relevant"], "image_department": tags["department"],
         "image_seen": tags["seen"],
+        "image_details": tags["details"],
         "dominant_color": pin_colors.dominant_hex(data),
     }
 
@@ -116,6 +117,7 @@ def recommend(data: bytes, force: bool = False) -> dict:
             "categories": pin["image_categories"],
             "styles": pin["image_styles"],
             "brands": pin["image_brands"],
+            "details": [name for _, name in pin["image_details"]],
             "colors": [color] if color else [],
             "gender": pin["image_gender"],
             "department": pin["image_department"],

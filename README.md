@@ -174,6 +174,12 @@ unter 5 Treffer, sucht die App zusätzlich breiter („Herren Jeans“). Im Rank
 passende Merkmale im Produkttitel extra; ein widersprechendes (Skinny statt Bootcut) kostet
 Punkte. Neue Merkmale einfach in `DETAILS` eintragen.
 
+**Auch im Bild** (`image_tags.image_details`, mit FashionCLIP): Pro erkanntem Teil treten die
+Merkmale jeder Gruppe (Typ, Schnitt, Waschung, Länge, Ausschnitt, Material, Muster …)
+gegeneinander an – plus „ganz normal“. Nur ein klarer Gewinner (> 60 %) zählt, höchstens 4 pro
+Teil. Ergebnis: `pin["image_details"]`, genutzt von Profil, Suche und Foto-Suche.
+Ansehen pro Pin: `python -m backend.image_tags`.
+
 ### Mehrere Quellen
 
 Sind eBay **und** Etsy eingerichtet, mischt der Shop beide (`products.CombinedSource`) –

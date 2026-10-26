@@ -46,7 +46,7 @@ def upload(client, data, content_type="image/jpeg"):
 def test_photo_finds_what_is_on_it(fake, client, model):
     result = upload(client, jpeg()).json()
     assert result["found"] == {"categories": ["Jacken"], "styles": ["streetwear"],
-                               "brands": ["Carhartt"], "colors": ["schwarz"], "gender": "herren",
+                               "brands": ["Carhartt"], "details": [], "colors": ["schwarz"], "gender": "herren",
                                "department": "mode"}
     products = result["products"]
     assert products[0]["id"] == "prod-006"                  # sieht genauso aus + Jacke + schwarz

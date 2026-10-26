@@ -22,7 +22,7 @@ from backend import pin_colors, storage
 
 STATE_FILE = "analysis.json"
 # Erhöhen, wenn sich die Erkennung ändert -> gespeicherte Pins werden automatisch neu angeschaut
-VERSION = 2
+VERSION = 3
 STEPS = ["farben", "vorbereiten", "bilder", "stil", "schwerpunkte"]
 
 _lock = threading.Lock()
@@ -96,6 +96,7 @@ def _summary(pins: list[dict]) -> list[str]:
         counts.update(pin.get("image_styles", []))
         counts.update(pin.get("image_categories", []))
         counts.update(pin.get("image_brands", []))
+        counts.update(name for _, name in pin.get("image_details", []))
     return [term for term, _ in counts.most_common(6)]
 
 
