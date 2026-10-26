@@ -89,6 +89,7 @@ async function load() {
       "Keine Produkte in diesem Budget. Probier einen höheren Betrag.");
     showSources(recommendations.sources || ["demo"]);
   }
+  showWarnings(filters.tab === "pins" ? [] : recommendations.warnings || []);
 }
 
 // --- Woher kommen die Produkte? (Hinweis + Fußzeile) --------------------------------------
@@ -105,6 +106,15 @@ function showSources(sources) {
     online.length ? `Produkte: ${online.join(", ")}` : "Prototyp mit erfundenen Beispielprodukten";
   // Pflicht-Hinweis aus den Etsy-API-Bedingungen
   document.getElementById("etsy-attribution").hidden = !sources.includes("etsy");
+}
+
+// Fällt eine Quelle aus (z.B. eBay-Keys noch nicht freigeschaltet): sichtbar sagen statt still leer
+function showWarnings(warnings) {
+  const box = document.getElementById("source-warning");
+  box.hidden = !warnings.length;
+  box.textContent = warnings.map((w) =>
+    `${SOURCE_NAMES[w.source] || w.source} antwortet gerade nicht – du siehst nur einen Teil der Angebote. `
+    + `(${w.message})`).join(" ");
 }
 
 // --- Oben: Stilprofil der gewählten Welt ---------------------------------------------------

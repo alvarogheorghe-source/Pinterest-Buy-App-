@@ -214,3 +214,15 @@ def test_check_command(fake_ebay, capsys):
     ebay.main()
     out = capsys.readouterr().out
     assert "Anmeldung: ok" in out and "Zusammen: 1 Angebote" in out
+
+
+def test_failed_source_is_shown_not_silent(fake_ebay, client):
+    """eBay fällt aus, Foto-Ergebnisse gibt es noch -> Shop zeigt Hinweis statt still 0 Angebote."""
+    products.remember_photo_results([products.Product(
+        id="ebay-alt", name="Alte Jacke", shop="eBay", price=20, department="mode",
+        category="Jacken", image_url="https://i.ebayimg.com/a.jpg",
+        affiliate_url="https://www.ebay.de/itm/a")])
+    fake_ebay.token_ok = False
+    data = client.get("/api/recommendations?department=mode").json()
+    assert data["warnings"][0]["source"] == "ebay"
+    assert "Anmeldung" in data["warnings"][0]["message"]

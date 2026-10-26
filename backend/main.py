@@ -388,7 +388,8 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     """Produkte einer Welt im Budget, sortiert nach Passung zum Stilprofil dieser Welt."""
     pins_list = storage.load_pins()["pins"]
     profile = matching.build_style_profile(pins_list, department)
-    all_products = products.get_product_source().load()
+    source = products.get_product_source()
+    all_products = source.load()
     selection = products.filter_products(all_products, min_price, max_price, category,
                                          department)
     if trusted_only:
@@ -400,6 +401,8 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     return {
         "profile": profile.to_dict(),
         "sources": products.source_names(),  # z.B. ["ebay", "etsy"] oder ["demo"]
+        # Ausgefallene Quellen (z.B. eBay-Keys noch gesperrt) -> Hinweis im Shop statt still leer
+        "warnings": source.warnings(),
         # 👍/👎 einrechnen: Dislikes raus, Ähnliches zu Likes nach oben
         "products": feedback.apply_feedback(ranked, all_products, feedback.load_feedback()),
     }

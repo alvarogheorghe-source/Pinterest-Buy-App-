@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 from typing import Literal
 
+import httpx
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from backend.config import BASE_DIR
@@ -76,6 +77,10 @@ class ProductSource:
     def load(self) -> list[Product]:
         raise NotImplementedError
 
+    def warnings(self) -> list[dict]:
+        """Quellen, die beim letzten load() ausgefallen sind: [{"source": "ebay", "message": …}]"""
+        return []
+
 
 class JsonProductSource(ProductSource):
     """Liest Produkte aus einer JSON-Datei im Format {"products": [...]}."""
@@ -110,7 +115,10 @@ class CachedSource(ProductSource):
         cached = storage.read_json(self.cache_file, default=None)
         if cached and cached.get("fetched_at", 0) > time.time() - self.cache_seconds:
             return [Product(**p) for p in cached["products"]]
-        products = self.fetch()
+        try:
+            products = self.fetch()
+        except httpx.HTTPError as err:   # kein Internet, Zeitüberschreitung …
+            raise ProductSourceError(f"{self.name} ist gerade nicht erreichbar.") from err
         storage.write_json(self.cache_file, {"fetched_at": time.time(),
                                              "products": [p.model_dump() for p in products]})
         return products
@@ -122,9 +130,14 @@ class CombinedSource(ProductSource):
 
     def __init__(self, sources: list[ProductSource]):
         self.sources = sources
+        self.failed: list[dict] = []
+
+    def warnings(self) -> list[dict]:
+        return self.failed
 
     def load(self) -> list[Product]:
         products, errors, seen = [], [], set()
+        self.failed = []
         for source in self.sources:
             try:
                 for product in source.load():
@@ -133,6 +146,8 @@ class CombinedSource(ProductSource):
                         products.append(product)
             except ProductSourceError as error:
                 errors.append(error)
+                self.failed.append({"source": getattr(source, "name", "") or type(source).__name__,
+                                    "message": str(error)})
                 logger.warning("Produktquelle %s fällt aus: %s", type(source).__name__, error)
         if errors and len(errors) == len(self.sources):
             raise errors[0]
@@ -192,6 +207,9 @@ class TrustedMarker(ProductSource):
 
     def __init__(self, inner: ProductSource):
         self.inner = inner
+
+    def warnings(self) -> list[dict]:
+        return self.inner.warnings()
 
     def load(self) -> list[Product]:
         from backend import shops
