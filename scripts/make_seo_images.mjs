@@ -1,5 +1,6 @@
 // Erzeugt die SEO-Bilder in frontend/img/ (einmalig, die Ergebnisse liegen im Repo):
 //   og-image.png          1200×630  Vorschau beim Teilen (WhatsApp, Pinterest, X …)
+//   og-image-en.png       1200×630  dasselbe auf Englisch (/en/)
 //   apple-touch-icon.png  180×180   Symbol auf dem iPhone-Homescreen
 //   icon-192.png / icon-512.png     Android / Web-Manifest / Logo für Google
 //   favicon-48.png        48×48     Suchergebnis-Symbol bei Google
@@ -24,7 +25,7 @@ const icon = (size, padding, background, radius) => `
 
 const tiles = [["#f8c9d7", "#ec9ab4", 150], ["#dccbf0", "#b39ad8", 110], ["#fbe6dc", "#efc3b5", 130],
                ["#8e3b5c", "#5e2840", 120], ["#f6b49a", "#e5807a", 160], ["#fff1d8", "#f6d8b8", 100]];
-const og = `
+const og = (t) => `
   <body style="margin:0;width:1200px;height:630px;overflow:hidden;position:relative;
                font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#3a2a30;
                background:radial-gradient(circle at 15% 20%,#ffe0ea 0,transparent 45%),
@@ -34,10 +35,9 @@ const og = `
         <img src="${mali}" style="width:76px;height:76px;image-rendering:pixelated">
         <span style="font:700 54px ${serif}">mali<span style="color:#c93a69;font-style:italic">pin</span></span>
       </div>
-      <h1 style="font:700 66px/1.05 ${serif};margin:46px 0 0">Dein Pinterest.<br>Dein Stil.<br>
-        <em style="color:#c93a69">Zum kleinen Preis.</em></h1>
-      <p style="font-size:27px;line-height:1.4;color:#7a606a;margin:28px 0 0">
-        Outfits &amp; Deko passend zu deinem Pinterest-Stil – neu und Second Hand.</p>
+      <h1 style="font:700 66px/1.05 ${serif};margin:46px 0 0">${t.headline}<br>
+        <em style="color:#c93a69">${t.accent}</em></h1>
+      <p style="font-size:27px;line-height:1.4;color:#7a606a;margin:28px 0 0">${t.lead}</p>
     </div>
     <div style="position:absolute;right:64px;top:70px;width:400px;columns:3;column-gap:12px;
                 padding:16px;background:#fff;border-radius:22px;transform:rotate(3deg);
@@ -55,8 +55,16 @@ const og = `
     </div>
   </body>`;
 
+const TEXTS = {
+  de: { headline: "Dein Pinterest.<br>Dein Stil.", accent: "Zum kleinen Preis.",
+        lead: "Outfits &amp; Deko passend zu deinem Pinterest-Stil – neu und Second Hand." },
+  en: { headline: "Your Pinterest.<br>Your style.", accent: "At a small price.",
+        lead: "Outfits &amp; decor that match your Pinterest style – new and second hand." },
+};
+
 const jobs = [
-  ["og-image.png", og, 1200, 630],
+  ["og-image.png", og(TEXTS.de), 1200, 630],
+  ["og-image-en.png", og(TEXTS.en), 1200, 630],
   ["apple-touch-icon.png", icon(180, 24, "#fff8fa", "0"), 180, 180],
   // Android schneidet Symbole rund zu ("maskable") -> genug Rand lassen
   ["icon-192.png", icon(192, 36, "#fde9ef", "0"), 192, 192],

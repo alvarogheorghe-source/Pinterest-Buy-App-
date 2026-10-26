@@ -36,7 +36,7 @@ def meta(page: str, name: str) -> str:
     return html.unescape(match.group(1)) if match else ""
 
 
-def jsonld(page: str) -> dict:
+def jsonld(page: str, url: str = SITE_URL, lang: str = "de") -> dict:
     org = SITE_URL + "#organisation"
     return {
         "@context": "https://schema.org",
@@ -44,13 +44,13 @@ def jsonld(page: str) -> dict:
             {"@type": "Organization", "@id": org, "name": "Malipin", "url": SITE_URL,
              "logo": SITE_URL + "img/icon-512.png"},
             {"@type": "WebSite", "@id": SITE_URL + "#website", "name": "Malipin", "url": SITE_URL,
-             "inLanguage": "de", "publisher": {"@id": org}},
-            {"@type": "WebApplication", "name": "Malipin", "url": SITE_URL,
-             "description": meta(page, "description"), "inLanguage": "de",
+             "inLanguage": ["de", "en"], "publisher": {"@id": org}},
+            {"@type": "WebApplication", "name": "Malipin", "url": url,
+             "description": meta(page, "description"), "inLanguage": lang,
              "applicationCategory": "LifestyleApplication", "operatingSystem": "Web",
              "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"},
              "publisher": {"@id": org}},
-            {"@type": "FAQPage", "@id": SITE_URL + "#faq",
+            {"@type": "FAQPage", "@id": url + "#faq", "inLanguage": lang,
              "mainEntity": [{"@type": "Question", "name": q,
                              "acceptedAnswer": {"@type": "Answer", "text": a}}
                             for q, a in faq(page)]},
@@ -58,9 +58,9 @@ def jsonld(page: str) -> dict:
     }
 
 
-def render(page: str) -> str:
+def render(page: str, url: str = SITE_URL, lang: str = "de") -> str:
     """Die Seite mit aktuellem JSON-LD-Block."""
-    data = json.dumps(jsonld(page), ensure_ascii=False, indent=2).replace("</", "<\\/")
+    data = json.dumps(jsonld(page, url, lang), ensure_ascii=False, indent=2).replace("</", "<\\/")
     block = (f"{START} – wird erzeugt mit: python -m scripts.seo (nicht von Hand ändern) -->\n"
              f'  <script type="application/ld+json">\n{data}\n  </script>\n  {END}')
     return re.sub(re.escape(START) + r".*?" + re.escape(END), lambda _: block, page,

@@ -20,6 +20,8 @@ import shutil
 import sys
 from pathlib import Path
 
+from scripts import i18n, seo
+
 ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend"
 OUT = ROOT / "site"
@@ -27,11 +29,13 @@ IMPRESSUM = ROOT / "website" / "impressum.json"
 
 COPY = ["style.css", "landing.css", "bunny.css", "bunny.js", "site.webmanifest",
         "img/favicon.svg", "img/favicon-48.png", "img/apple-touch-icon.png",
-        "img/icon-192.png", "img/icon-512.png", "img/og-image.png"]
+        "img/icon-192.png", "img/icon-512.png", "img/og-image.png", "img/og-image-en.png"]
 SOON = "Bald verfügbar"
 SITE_URL = "https://malipin.com"
 # Seiten für Google (sitemap.xml) – 404 bewusst nicht
-PAGES = ["/", "/datenschutz.html", "/impressum.html"]
+PAGES = ["/", "/en/", "/datenschutz.html", "/impressum.html"]
+# Startseite in zwei Sprachen: Sprache -> Adresse
+LANGUAGES = {"de": "/", "en": "/en/"}
 
 
 class BuildError(Exception):
@@ -70,7 +74,7 @@ def static_index(source: str) -> str:
     page = page.replace("<p>Prototyp mit Beispieldaten · Impressum folgt</p>",
                         "<p>Malipin startet bald.</p>")
     # Kein Server -> kein Merklisten-Zähler; Mali weiß, dass er auf der Vorstellungsseite ist
-    page = page.replace('  <script src="nav.js" defer></script>\n', "")
+    page = page.replace('  <script src="/nav.js" defer></script>\n', "")
     page = page.replace("<body", "<body data-static", 1)
 
     leftovers = re.findall(r'href="/(?:konto|shop|merkliste|produkt|foto)\.html|href="/auth/', page)
@@ -212,11 +216,82 @@ def robots_txt() -> str:
 
 def sitemap_xml(today: datetime.date | None = None) -> str:
     today = (today or datetime.date.today()).isoformat()
-    urls = "".join(f"  <url><loc>{SITE_URL}{path}</loc><lastmod>{today}</lastmod></url>\n"
+    alternates = "".join(f'    <xhtml:link rel="alternate" hreflang="{lang}" href="{SITE_URL}{path}"/>\n'
+                         for lang, path in LANGUAGES.items())
+    urls = "".join(f"  <url>\n    <loc>{SITE_URL}{path}</loc>\n    <lastmod>{today}</lastmod>\n"
+                   + (alternates if path in LANGUAGES.values() else "") + "  </url>\n"
                    for path in PAGES)
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
-            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+            'xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
             f"{urls}</urlset>\n")
+
+
+# --- Zweisprachige Startseite (/ = Deutsch, /en/ = Englisch) -----------------------------------
+
+LANG_HINT = """
+  <!-- Englischsprachiger Browser? Kleiner Hinweis auf die englische Seite (kein Zwangs-Umleiten) -->
+  <div class="lang-hint" id="lang-hint" hidden>
+    <span>This page is also available in English.</span>
+    <a href="/en/" hreflang="en" lang="en">Switch to English</a>
+    <button type="button" aria-label="Close" id="lang-hint-close">×</button>
+  </div>
+  <script>
+    (() => {
+      const hint = document.getElementById("lang-hint");
+      let dismissed = false;
+      try { dismissed = localStorage.getItem("malipin-lang-hint") === "no"; } catch {}
+      const german = (navigator.languages || [navigator.language || ""]).some((l) => l.startsWith("de"));
+      if (!german && !dismissed) hint.hidden = false;
+      document.getElementById("lang-hint-close").addEventListener("click", () => {
+        hint.hidden = true;
+        try { localStorage.setItem("malipin-lang-hint", "no"); } catch {}
+      });
+    })();
+  </script>
+"""
+
+
+def _alternates() -> str:
+    links = "".join(f'  <link rel="alternate" hreflang="{lang}" href="{SITE_URL}{path}">\n'
+                    for lang, path in LANGUAGES.items())
+    return links + f'  <link rel="alternate" hreflang="x-default" href="{SITE_URL}/en/">\n'
+
+
+def _switch(to_lang: str) -> str:
+    label = {"de": "Deutsch", "en": "English"}[to_lang]
+    return (f'<a href="{LANGUAGES[to_lang]}" class="header-link lang-switch" hreflang="{to_lang}" '
+            f'lang="{to_lang}" aria-label="{label}">{to_lang.upper()}</a>')
+
+
+def localize(page: str, lang: str) -> str:
+    """Sprachumschalter, hreflang-Links; für Englisch zusätzlich Adresse, Vorschau, JSON-LD."""
+    other = "en" if lang == "de" else "de"
+    page = page.replace('  <link rel="canonical"', _alternates() + '  <link rel="canonical"', 1)
+    page = page.replace('<nav class="header-nav">', f'<nav class="header-nav">\n      {_switch(other)}', 1)
+    page = page.replace('<nav class="footer-links">',
+                        f'<nav class="footer-links">\n        {_switch(other)}', 1)
+    if lang == "de":   # Hinweis ganz oben, direkt nach <body …>
+        return re.sub(r"(<body[^>]*>)", lambda m: m.group(1) + LANG_HINT, page, count=1)
+    url = f"{SITE_URL}/en/"
+    page = page.replace('<html lang="de">', '<html lang="en">', 1)
+    page = page.replace(f'<link rel="canonical" href="{SITE_URL}/">', f'<link rel="canonical" href="{url}">')
+    page = page.replace(f'<meta property="og:url" content="{SITE_URL}/">', f'<meta property="og:url" content="{url}">')
+    page = page.replace('<meta property="og:locale" content="de_AT">',
+                        '<meta property="og:locale" content="en_US">\n'
+                        '  <meta property="og:locale:alternate" content="de_AT">')
+    page = page.replace("/img/og-image.png", "/img/og-image-en.png")
+    page = page.replace('<a href="/" class="logo"', '<a href="/en/" class="logo"')
+    return seo.render(page, url, "en")
+
+
+def english_index(german: str) -> str:
+    translations, same = i18n.load()
+    missing = i18n.missing(german, translations, same)
+    if missing:
+        raise BuildError("Englische Übersetzung fehlt in website/en.json für:\n  - "
+                         + "\n  - ".join(missing))
+    return localize(i18n.translate(german, translations), "en")
 
 
 def build() -> None:
@@ -225,16 +300,20 @@ def build() -> None:
     (OUT / "img").mkdir(parents=True)
     for name in COPY:
         shutil.copy(FRONTEND / name, OUT / name)
-    (OUT / "index.html").write_text(static_index((FRONTEND / "index.html").read_text("utf-8")), "utf-8")
+    german = static_index((FRONTEND / "index.html").read_text("utf-8"))
+    (OUT / "en").mkdir()
+    (OUT / "en" / "index.html").write_text(english_index(german), "utf-8")
+    (OUT / "index.html").write_text(localize(german, "de"), "utf-8")
     privacy = markdown_to_html((ROOT / "PRIVACY.md").read_text("utf-8"))
-    (OUT / "datenschutz.html").write_text(subpage(
-        "Datenschutz", privacy, "Wie Malipin mit deinen Daten umgeht: nur Lesezugriff auf "
-        "Pinterest, keine Weitergabe, Löschen jederzeit möglich.", "/datenschutz.html",
-        lang="en"), "utf-8")   # PRIVACY.md ist (noch) Englisch
+    (OUT / "datenschutz.html").write_text(subpage(   # PRIVACY.md ist (noch) Englisch
+        "Privacy Policy", privacy, "How Malipin handles your data: read-only Pinterest access, "
+        "no sharing, delete any time.", "/datenschutz.html", lang="en"), "utf-8")
     (OUT / "impressum.html").write_text(impressum_page(), "utf-8")
-    (OUT / "404.html").write_text(subpage("Nicht gefunden", "    <h1>Hoppla!</h1>\n"
+    (OUT / "404.html").write_text(subpage("Nicht gefunden / Not found", "    <h1>Hoppla! / Oops!</h1>\n"
         "    <p>Diese Seite gibt es nicht. Mali hat überall geschnuppert – nichts.</p>\n"
-        '    <p><a class="button" href="/">Zur Startseite</a></p>'), "utf-8")
+        '    <p lang="en">This page doesn\'t exist. Mali sniffed everywhere – nothing.</p>\n'
+        '    <p><a class="button" href="/">Zur Startseite</a> '
+        '<a class="button secondary" href="/en/" lang="en">Go to homepage</a></p>'), "utf-8")
     (OUT / "robots.txt").write_text(robots_txt(), "utf-8")
     (OUT / "sitemap.xml").write_text(sitemap_xml(), "utf-8")
     print(f"Fertig: {OUT}")

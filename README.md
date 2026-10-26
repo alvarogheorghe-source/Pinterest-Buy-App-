@@ -456,6 +456,21 @@ Online geht sie automatisch bei jedem Push (`.github/workflows/pages.yml`, GitHu
 Einmalig nötig: GitHub → Settings → Pages → Source „GitHub Actions“ und Custom domain
 `malipin.com`. Lokal ansehen: `python -m http.server -d site 8080`.
 
+### Sprachen: Deutsch + Englisch
+
+Die öffentliche Website gibt es zweisprachig: `/` (Deutsch) und `/en/` (Englisch).
+Deutsch bleibt die einzige Quelle (`frontend/index.html`); die englischen Texte stehen in
+`website/en.json` („deutscher Text“ → „englischer Text“). Der Build (`scripts/i18n.py`)
+übersetzt sichtbare Texte, Bild-/Knopf-Beschreibungen und Meta-Texte und **bricht ab, wenn
+ein deutscher Text keine Übersetzung hat** – die englische Seite kann also nie halb deutsch
+online gehen. Dazu: `hreflang`-Links, Sitemap mit Sprachvarianten, englisches Vorschaubild
+(`og-image-en.png`), englische FAQ-Daten, Sprachumschalter oben und unten, und für Besucher
+mit nicht-deutschem Browser ein kleiner Hinweis „Switch to English“ (kein Zwangs-Umleiten).
+Mali spricht die Sprache der Seite (`bunny.js`).
+
+**Text auf der Startseite geändert?** Neuen Text in `website/en.json` übersetzen – der Test
+`tests/test_i18n.py` sagt genau, welcher fehlt.
+
 ### SEO (Google & Teilen)
 
 - **Startseite:** Titel/Beschreibung mit Suchbegriffen, Canonical, Open Graph + Twitter-Karte

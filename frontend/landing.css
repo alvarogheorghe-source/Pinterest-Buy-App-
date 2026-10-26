@@ -823,8 +823,8 @@ details p {
 
   /* Sehr schmale Handys: "Shop" oben ausblenden, "Shop ansehen" steht im Hero */
   @media (max-width: 420px) {
-    .header-nav .header-link:not(.nav-saved) {
-      display: none;   /* ♡ Merkliste bleibt sichtbar */
+    .header-nav .header-link:not(.nav-saved):not(.lang-switch) {
+      display: none;   /* ♡ Merkliste und Sprachumschalter bleiben sichtbar */
     }
   }
 
@@ -1070,4 +1070,48 @@ details p {
 
   .fit-pants { height: 74px; }
   .fit-shoes { top: 238px; }
+}
+
+/* --- Sprachen (nur öffentliche Website, scripts/build_site.py) ---------------------------- */
+.lang-switch {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.lang-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 14px;
+  padding: 9px 44px 9px 16px;
+  position: relative;
+  background: var(--chip-bg);
+  color: var(--text);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.lang-hint[hidden] {
+  display: none;
+}
+
+.lang-hint a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.lang-hint button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.3rem;
+  cursor: pointer;
 }

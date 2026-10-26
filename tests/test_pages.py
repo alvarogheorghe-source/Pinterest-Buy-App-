@@ -34,8 +34,8 @@ def test_many_connect_buttons_all_lead_to_konto(fake, client):
                                   "/merkliste.html"])
 def test_every_page_loads_mali(fake, client, path):
     html = client.get(path).text
-    assert re.search(r'<script src="bunny.js"( defer)?></script>', html)
-    assert 'href="bunny.css"' in html
+    assert re.search(r'<script src="/bunny.js"( defer)?></script>', html)
+    assert 'href="/bunny.css"' in html
 
 
 # --- Verbunden -> direkt in den Shop -------------------------------------------------------

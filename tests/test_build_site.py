@@ -23,7 +23,7 @@ def test_homepage_has_no_server_links(site):
     page = (site / "index.html").read_text()
     assert "Bald verfügbar" in page
     for server_only in ('href="/konto.html"', 'href="/shop.html', 'href="/merkliste.html"',
-                        'src="nav.js"'):
+                        'src="/nav.js"'):
         assert server_only not in page
     assert "<body data-static" in page
     assert 'href="/impressum.html"' in page and 'href="/datenschutz.html"' in page

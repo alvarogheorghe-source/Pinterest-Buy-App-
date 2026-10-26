@@ -8,6 +8,9 @@
 
 (() => {
   const NAME = "Mali";
+  // Sprache der Seite (<html lang="en">): Mali spricht Deutsch oder Englisch
+  const EN = document.documentElement.lang.startsWith("en");
+  const t = (de, en) => (EN ? en : de);
 
   // --- 1. Pixel-Zeichnung ------------------------------------------------------------------
   // Jede Figur ist ein Raster aus Buchstaben (16 × 16). Jeder Buchstabe = ein Pixel
@@ -107,7 +110,7 @@
   el.className = "mali";
   el.setAttribute("role", "button");
   el.tabIndex = 0;
-  el.setAttribute("aria-label", `${NAME} – klick mich für deinen Pinterest-Vibe`);
+  el.setAttribute("aria-label", t(`${NAME} – klick mich für deinen Pinterest-Vibe`, `${NAME} – click me for your Pinterest vibe`));
   const body = document.createElement("div");
   body.className = "mali-body";
   const sprite = document.createElement("canvas");
@@ -124,7 +127,7 @@
   const returnButton = document.createElement("button");
   returnButton.className = "mali-return";
   returnButton.textContent = "🐾";
-  returnButton.setAttribute("aria-label", `${NAME} zurückholen`);
+  returnButton.setAttribute("aria-label", t(`${NAME} zurückholen`, `Bring ${NAME} back`));
   returnButton.hidden = true;
 
   document.body.append(el, bubble, returnButton);
@@ -211,7 +214,7 @@
       await wait(260);
     }
     show("happy");
-    if (Math.random() < 0.4) say([pick(["Mmmh 🥕", "Karotten-Pause!", "Nom nom nom"])], { autoClose: 1800 });
+    if (Math.random() < 0.4) say([pick(t(["Mmmh 🥕", "Karotten-Pause!", "Nom nom nom"], ["Mmmh 🥕", "Carrot break!", "Nom nom nom"]))], { autoClose: 1800 });
     await wait(700);
     show("idle");
   }
@@ -278,7 +281,7 @@
     const close = document.createElement("button");
     close.className = "mali-close";
     close.textContent = "×";
-    close.setAttribute("aria-label", "Sprechblase schließen");
+    close.setAttribute("aria-label", t("Sprechblase schließen", "Close speech bubble"));
     close.addEventListener("click", () => hideBubble());
     bubble.appendChild(close);
 
@@ -311,9 +314,12 @@
   // Mali klein an seinen Platz unten. Geht von selbst weg (Antippen überspringt).
 
   const WELCOME = [
-    `Hi, ich bin ${NAME} – klein, flauschig und voller Stil-Ideen! 🐰`,
-    "Ich schnupper durch deine Pinterest-Boards und finde Mode & Deko, die zu dir passt. 💕",
-    "Und ich pass auf dein Budget auf – Karotten-Ehrenwort! 🥕",
+    t(`Hi, ich bin ${NAME} – klein, flauschig und voller Stil-Ideen! 🐰`,
+      `Hi, I'm ${NAME} – small, fluffy and full of style ideas! 🐰`),
+    t("Ich schnupper durch deine Pinterest-Boards und finde Mode & Deko, die zu dir passt. 💕",
+      "I sniff through your Pinterest boards and find fashion & decor that suits you. 💕"),
+    t("Und ich pass auf dein Budget auf – Karotten-Ehrenwort! 🥕",
+      "And I keep an eye on your budget – carrot promise! 🥕"),
   ];
   const TYPE_SPEED = 30;      // ms pro Buchstabe – ruhig genug zum Mitlesen
   const LINE_PAUSE = 1300;    // Lesezeit nach jeder Zeile ...
@@ -328,7 +334,7 @@
     const overlay = document.createElement("div");
     overlay.className = "mali-splash";
     overlay.setAttribute("role", "dialog");
-    overlay.setAttribute("aria-label", `${NAME} begrüßt dich`);
+    overlay.setAttribute("aria-label", t(`${NAME} begrüßt dich`, `${NAME} says hi`));
     const stage = document.createElement("div");
     stage.className = "splash-stage";
     const big = document.createElement("canvas");
@@ -340,7 +346,7 @@
     const spoken = Object.assign(document.createElement("p"),
       { className: "visually-hidden", textContent: WELCOME.join(" ") }); // ... Screenreader lesen alles
     const skipHint = Object.assign(document.createElement("p"),
-      { className: "splash-skip", textContent: "Tippen zum Überspringen" });
+      { className: "splash-skip", textContent: t("Tippen zum Überspringen", "Tap to skip") });
     stage.append(big, name, line);
     overlay.append(stage, spoken, skipHint);
     document.body.appendChild(overlay);
@@ -420,13 +426,16 @@
     busy = true;
     // Vorstellungsseite (malipin.com, ohne Server): noch kein Vibe-Check möglich
     if (document.body.hasAttribute("data-static")) {
-      say(["Bald lese ich deinen Vibe aus deinen Pinterest-Boards – Goth Baddie? Clean Girl? 🔮",
-        "Ich hoppel schon los, versprochen! 🥕"], { buttons: [{ text: `${NAME} verstecken`, onClick: hideMali }] });
+      say(t(["Bald lese ich deinen Vibe aus deinen Pinterest-Boards – Goth Baddie? Clean Girl? 🔮",
+        "Ich hoppel schon los, versprochen! 🥕"],
+      ["Soon I'll read your vibe from your Pinterest boards – Goth Baddie? Clean Girl? 🔮",
+        "I'm hopping as fast as I can, promise! 🥕"]),
+      { buttons: [{ text: t(`${NAME} verstecken`, `Hide ${NAME}`), onClick: hideMali }] });
       await happyJump();
       busy = false;
       return;
     }
-    say(["Moment, ich schnupper an deinen Pins … 👃"]);
+    say([t("Moment, ich schnupper an deinen Pins … 👃", "One sec, sniffing your pins … 👃")]);
     let vibe;
     try {
       // Letzten Spruch mitschicken, damit nicht zweimal derselbe kommt
@@ -434,7 +443,8 @@
       vibe = await fetch(`/api/vibe${avoid}`).then((r) => r.json());
       lastVibeText = vibe.text;
     } catch {
-      say(["Hoppla, meine Ohren empfangen gerade nichts. Probier's gleich nochmal! 📡"],
+      say([t("Hoppla, meine Ohren empfangen gerade nichts. Probier's gleich nochmal! 📡",
+        "Oops, my ears aren't picking anything up. Try again in a moment! 📡")],
         { autoClose: 3000 });
       busy = false;
       return;
@@ -442,20 +452,20 @@
 
     const title = document.createElement("p");
     title.className = "mali-title";
-    title.textContent = `Du bist: ${vibe.emoji ? `${vibe.emoji} ` : ""}${vibe.title}`;
+    title.textContent = `${t("Du bist", "You are")}: ${vibe.emoji ? `${vibe.emoji} ` : ""}${vibe.title}`;
     const parts = [title, vibe.text];
-    if (vibe.second) parts.push(`… mit einer Prise ${vibe.second}`);
+    if (vibe.second) parts.push(`${t("… mit einer Prise", "… with a dash of")} ${vibe.second}`);
     if (vibe.terms.length) {
       const terms = document.createElement("p");
       terms.className = "mali-terms";
-      terms.textContent = `Deine Top-Vibes: ${vibe.terms.join(" · ")}`;
+      terms.textContent = `${t("Deine Top-Vibes", "Your top vibes")}: ${vibe.terms.join(" · ")}`;
       parts.push(terms);
     }
 
     const buttons = vibe.pin_count === 0
-      ? [{ text: "Pinterest verbinden", primary: true, onClick: () => { location.href = "/konto.html"; } }]
-      : [{ text: "📸 Vibe teilen", primary: true, onClick: () => shareVibe(vibe) },
-        { text: "Anderer Spruch 🎲", onClick: showVibe }];
+      ? [{ text: t("Pinterest verbinden", "Connect Pinterest"), primary: true, onClick: () => { location.href = "/konto.html"; } }]
+      : [{ text: t("📸 Vibe teilen", "📸 Share vibe"), primary: true, onClick: () => shareVibe(vibe) },
+        { text: t("Anderer Spruch 🎲", "Another one 🎲"), onClick: showVibe }];
     buttons.push({ text: `${NAME} verstecken`, onClick: hideMali });
 
     say(parts, { buttons });
@@ -489,7 +499,7 @@
     el.hidden = false;
     returnButton.hidden = true;
     remember(localStorage, "mali-hidden", "0");
-    say(["Da bin ich wieder! 🐰"], { autoClose: 2000 });
+    say([t("Da bin ich wieder! 🐰", "I'm back! 🐰")], { autoClose: 2000 });
     happyJump();
   });
   if (recall(localStorage, "mali-hidden") === "1") {
@@ -500,14 +510,16 @@
   // Reaktion auf 👍 / 👎 (feedback.js meldet das)
   window.addEventListener("mali:like", () => {
     if (el.hidden) return;
-    say([pick(["Gemerkt! 💖", "Ooh, das passt sooo zu dir!", "Gute Wahl – iconic! 💅",
-      "Ich hätte es auch gewählt. Ehrlich! 🐰"])], { autoClose: 2200 });
+    say([pick(t(["Gemerkt! 💖", "Ooh, das passt sooo zu dir!", "Gute Wahl – iconic! 💅",
+      "Ich hätte es auch gewählt. Ehrlich! 🐰"], ["Saved! 💖", "Ooh, that's sooo you!",
+      "Good choice – iconic! 💅", "I would have picked it too. Honestly! 🐰"]))], { autoClose: 2200 });
     happyJump();
   });
   window.addEventListener("mali:dislike", () => {
     if (el.hidden) return;
-    say([pick(["Verstanden – weg damit! 🫡", "Okay, sowas zeig ich dir seltener.",
-      "Nicht dein Vibe? Kein Ding! ✌️"])], { autoClose: 2200 });
+    say([pick(t(["Verstanden – weg damit! 🫡", "Okay, sowas zeig ich dir seltener.",
+      "Nicht dein Vibe? Kein Ding! ✌️"], ["Got it – gone! 🫡", "Okay, I'll show you less of that.",
+      "Not your vibe? No worries! ✌️"]))], { autoClose: 2200 });
   });
 
   // --- 6. Zufalls-Alltag ----------------------------------------------------------------------

@@ -71,4 +71,4 @@ def test_public_site_has_robots_sitemap_and_subpage_meta(site):  # noqa: F811
     for name in ("img/og-image.png", "img/icon-512.png", "site.webmanifest"):
         assert (site / name).exists()
     index = (site / "index.html").read_text()
-    assert "application/ld+json" in index and 'src="nav.js' not in index
+    assert "application/ld+json" in index and 'src="/nav.js' not in index
