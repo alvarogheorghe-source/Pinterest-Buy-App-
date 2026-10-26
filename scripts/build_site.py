@@ -12,6 +12,7 @@ Online:    passiert automatisch bei jedem Push (.github/workflows/pages.yml)
 Ohne ausgefülltes Impressum bricht das Skript ab – die Seite geht nie ohne Impressum online.
 """
 
+import datetime
 import html
 import json
 import re
@@ -24,8 +25,13 @@ FRONTEND = ROOT / "frontend"
 OUT = ROOT / "site"
 IMPRESSUM = ROOT / "website" / "impressum.json"
 
-COPY = ["style.css", "landing.css", "bunny.css", "bunny.js", "img/favicon.svg"]
+COPY = ["style.css", "landing.css", "bunny.css", "bunny.js", "site.webmanifest",
+        "img/favicon.svg", "img/favicon-48.png", "img/apple-touch-icon.png",
+        "img/icon-192.png", "img/icon-512.png", "img/og-image.png"]
 SOON = "Bald verfügbar"
+SITE_URL = "https://malipin.com"
+# Seiten für Google (sitemap.xml) – 404 bewusst nicht
+PAGES = ["/", "/datenschutz.html", "/impressum.html"]
 
 
 class BuildError(Exception):
@@ -64,7 +70,7 @@ def static_index(source: str) -> str:
     page = page.replace("<p>Prototyp mit Beispieldaten · Impressum folgt</p>",
                         "<p>Malipin startet bald.</p>")
     # Kein Server -> kein Merklisten-Zähler; Mali weiß, dass er auf der Vorstellungsseite ist
-    page = page.replace('  <script src="nav.js"></script>\n', "")
+    page = page.replace('  <script src="nav.js" defer></script>\n', "")
     page = page.replace("<body", "<body data-static", 1)
 
     leftovers = re.findall(r'href="/(?:konto|shop|merkliste|produkt|foto)\.html|href="/auth/', page)
@@ -81,14 +87,26 @@ def logo() -> str:
     return match.group(0)
 
 
-def subpage(title: str, body: str) -> str:
+def subpage(title: str, body: str, description: str = "", path: str | None = None,
+            lang: str = "de") -> str:
+    """Unterseite im Look der Website. path=None -> nicht in Google (z.B. 404)."""
+    seo = (f'  <meta name="robots" content="index, follow">\n'
+           f'  <link rel="canonical" href="{SITE_URL}{path}">\n' if path
+           else '  <meta name="robots" content="noindex">\n')
+    if description:
+        seo += f'  <meta name="description" content="{html.escape(description)}">\n'
     return f"""<!DOCTYPE html>
-<html lang="de">
+<html lang="{lang}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
   <title>{html.escape(title)} – Malipin</title>
+{seo}  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/img/favicon-48.png" type="image/png" sizes="48x48">
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+  <meta name="theme-color" content="#c93a69">
+  <meta property="og:title" content="{html.escape(title)} – Malipin">
+  <meta property="og:image" content="{SITE_URL}/img/og-image.png">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/bunny.css">
 </head>
@@ -103,7 +121,7 @@ def subpage(title: str, body: str) -> str:
     <p><a href="/">Startseite</a> · <a href="/datenschutz.html">Datenschutz</a> ·
       <a href="/impressum.html">Impressum</a></p>
   </footer>
-  <script src="/bunny.js"></script>
+  <script src="/bunny.js" defer></script>
 </body>
 </html>
 """
@@ -184,7 +202,21 @@ def impressum_page() -> str:
     <p>Malipin steht in keiner Verbindung zu Pinterest, eBay oder Etsy und wird von diesen
       nicht unterstützt oder geprüft. Für Inhalte externer Links sind deren Betreiber
       verantwortlich.</p>"""
-    return subpage("Impressum", body)
+    return subpage("Impressum", body, "Impressum und Offenlegung von Malipin (malipin.com).",
+                   "/impressum.html")
+
+
+def robots_txt() -> str:
+    return f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}/sitemap.xml\n"
+
+
+def sitemap_xml(today: datetime.date | None = None) -> str:
+    today = (today or datetime.date.today()).isoformat()
+    urls = "".join(f"  <url><loc>{SITE_URL}{path}</loc><lastmod>{today}</lastmod></url>\n"
+                   for path in PAGES)
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            f"{urls}</urlset>\n")
 
 
 def build() -> None:
@@ -195,11 +227,16 @@ def build() -> None:
         shutil.copy(FRONTEND / name, OUT / name)
     (OUT / "index.html").write_text(static_index((FRONTEND / "index.html").read_text("utf-8")), "utf-8")
     privacy = markdown_to_html((ROOT / "PRIVACY.md").read_text("utf-8"))
-    (OUT / "datenschutz.html").write_text(subpage("Datenschutz", privacy), "utf-8")
+    (OUT / "datenschutz.html").write_text(subpage(
+        "Datenschutz", privacy, "Wie Malipin mit deinen Daten umgeht: nur Lesezugriff auf "
+        "Pinterest, keine Weitergabe, Löschen jederzeit möglich.", "/datenschutz.html",
+        lang="en"), "utf-8")   # PRIVACY.md ist (noch) Englisch
     (OUT / "impressum.html").write_text(impressum_page(), "utf-8")
     (OUT / "404.html").write_text(subpage("Nicht gefunden", "    <h1>Hoppla!</h1>\n"
         "    <p>Diese Seite gibt es nicht. Mali hat überall geschnuppert – nichts.</p>\n"
         '    <p><a class="button" href="/">Zur Startseite</a></p>'), "utf-8")
+    (OUT / "robots.txt").write_text(robots_txt(), "utf-8")
+    (OUT / "sitemap.xml").write_text(sitemap_xml(), "utf-8")
     print(f"Fertig: {OUT}")
 
 

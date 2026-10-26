@@ -3,9 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Malipin – Outfits & Deko passend zu deinem Pinterest-Stil</title>
+  <meta name="description" content="Malipin erkennt deinen Stil aus Pinterest-Boards oder einem Outfit-Foto und findet passende Mode &amp; Deko – neu und Second Hand, passend zu deinem Budget.">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://malipin.com/">
+  <!-- Icons: SVG für moderne Browser, PNG für Google-Suche, Apple und Android (seo-Bilder in img/) -->
   <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
-  <title>Malipin – Dein Pinterest-Stil zum kleinen Preis</title>
-  <meta name="description" content="Malipin erkennt deinen Stil aus deinen Pinterest-Boards und findet passende Mode und Wohn-Deko aus vielen Shops und Second Hand – passend zu deinem Budget.">
+  <link rel="icon" href="/img/favicon-48.png" type="image/png" sizes="48x48">
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#c93a69">
+  <!-- Vorschau beim Teilen (WhatsApp, Instagram, Pinterest, X, LinkedIn …) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Malipin">
+  <meta property="og:locale" content="de_AT">
+  <meta property="og:url" content="https://malipin.com/">
+  <meta property="og:title" content="Malipin – Outfits & Deko passend zu deinem Pinterest-Stil">
+  <meta property="og:description" content="Malipin erkennt deinen Stil aus Pinterest-Boards oder einem Outfit-Foto und findet passende Mode &amp; Deko – neu und Second Hand, passend zu deinem Budget.">
+  <meta property="og:image" content="https://malipin.com/img/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Malipin: Pinterest-Board wird zu passenden Outfits und Deko">
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- seo:jsonld – wird erzeugt mit: python -m scripts.seo (nicht von Hand ändern) -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://malipin.com/#organisation",
+      "name": "Malipin",
+      "url": "https://malipin.com/",
+      "logo": "https://malipin.com/img/icon-512.png"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://malipin.com/#website",
+      "name": "Malipin",
+      "url": "https://malipin.com/",
+      "inLanguage": "de",
+      "publisher": {
+        "@id": "https://malipin.com/#organisation"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "name": "Malipin",
+      "url": "https://malipin.com/",
+      "description": "Malipin erkennt deinen Stil aus Pinterest-Boards oder einem Outfit-Foto und findet passende Mode & Deko – neu und Second Hand, passend zu deinem Budget.",
+      "inLanguage": "de",
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "publisher": {
+        "@id": "https://malipin.com/#organisation"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://malipin.com/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Kostet Malipin etwas?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nein. Kaufst du über einen mit „Werbung“ markierten Link, bekommen wir eine kleine Provision vom Shop. Dein Preis bleibt gleich."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Was zählt zu „Wohnen & Deko“?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Gegenstände für dein Zuhause: Deko wie Vasen und Kerzen, Leuchten, Textilien wie Kissen und Decken, Küche & Tisch, Möbel, Pflanzen und Wanddeko."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Woher kommen die Produkte?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Von Shops und Marktplätzen wie eBay und Etsy und aus deinen eigenen Pins, wenn diese zu einem Shop oder Second-Hand-Angebot führen."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Brauche ich ein Pinterest-Business-Konto?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nein, dein normales Pinterest-Konto reicht."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Kann ich ein Outfit per Foto finden?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ja. Lade einen Screenshot von TikTok, Instagram oder Pinterest hoch. Mali erkennt Teil, Farbe, Stil und bekannte Sneaker-Modelle und zeigt dir ähnliche Teile, neu und Second Hand. Das Foto wird nicht gespeichert."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Erkennt Malipin auch Schnitte wie Bootcut oder Wide Leg?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ja. Malipin kennt rund 150 Merkmale wie Bootcut, Wide Leg, Baggy, Cropped, Light Wash, Rollkragen, Leder oder Cord und sucht genau danach, zum Beispiel nach „Baggy Light Wash Jeans“ statt nur nach „Hose“."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Gibt es auch Second Hand und Vintage?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ja. Neben Neuware zeigt Malipin Second-Hand- und Vintage-Angebote, zum Beispiel von eBay und Etsy. So findest du deinen Stil oft günstiger und nachhaltiger."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Sind die Shops sicher?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Shops und Verkäufer, die wir selbst geprüft haben, tragen das Abzeichen „Geprüfter Shop“. Bei Marktplätzen aus Fernost filtern wir Angebote mit Markennamen und typischen Fake-Wörtern heraus, damit du keine Fälschungen bekommst."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Kann ich meine Daten löschen?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ja. Unter „Mein Pinterest“ trennst du die Verbindung, und deine gespeicherten Zugangsdaten werden gelöscht. Zusätzlich kannst du den Zugriff in deinen Pinterest-Einstellungen widerrufen."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <!-- /seo:jsonld -->
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="landing.css">
   <link rel="stylesheet" href="bunny.css">
@@ -139,7 +279,7 @@
         </div>
       </div>
       <div class="photo-spot-flow">
-        <img src="/img/favicon.svg" alt="" class="photo-spot-mali">
+        <img src="/img/favicon.svg" alt="" class="photo-spot-mali" width="64" height="64">
         <div class="photo-spot-chips">
           <span class="soft-chip chip-rose">Jacke</span>
           <span class="soft-chip chip-lilac">schwarz</span>
@@ -262,7 +402,7 @@
     <div class="style-band-inner">
       <div>
         <h2>Wir sprechen deinen Stil</h2>
-        <p>Auf Deutsch und Englisch, von „cozy“ bis „Japandi“. Aus „cream knit“ wird beige, aus „baggy“ wird oversized.</p>
+        <p>Auf Deutsch und Englisch, von „cozy“ bis „Japandi“. Aus „cream knit“ wird beige – und Mali erkennt sogar Schnitte wie Bootcut, Wide Leg oder Cropped.</p>
       </div>
       <ul class="style-words">
         <li class="w-rose">streetwear</li>
@@ -277,6 +417,9 @@
         <li class="w-berry">cozy</li>
         <li class="w-peach">y2k</li>
         <li class="w-lilac">industrial</li>
+        <li class="w-rose">bootcut</li>
+        <li class="w-cream">wide leg</li>
+        <li class="w-berry">cropped</li>
       </ul>
     </div>
   </section>
@@ -322,11 +465,27 @@
     </details>
     <details>
       <summary>Woher kommen die Produkte?</summary>
-      <p>Von Partnershops und aus deinen eigenen Pins, wenn diese zu einem Shop oder Second-Hand-Angebot führen.</p>
+      <p>Von Shops und Marktplätzen wie eBay und Etsy und aus deinen eigenen Pins, wenn diese zu einem Shop oder Second-Hand-Angebot führen.</p>
     </details>
     <details>
       <summary>Brauche ich ein Pinterest-Business-Konto?</summary>
       <p>Nein, dein normales Pinterest-Konto reicht.</p>
+    </details>
+    <details>
+      <summary>Kann ich ein Outfit per Foto finden?</summary>
+      <p>Ja. Lade einen Screenshot von TikTok, Instagram oder Pinterest hoch. Mali erkennt Teil, Farbe, Stil und bekannte Sneaker-Modelle und zeigt dir ähnliche Teile, neu und Second Hand. Das Foto wird nicht gespeichert.</p>
+    </details>
+    <details>
+      <summary>Erkennt Malipin auch Schnitte wie Bootcut oder Wide Leg?</summary>
+      <p>Ja. Malipin kennt rund 150 Merkmale wie Bootcut, Wide Leg, Baggy, Cropped, Light Wash, Rollkragen, Leder oder Cord und sucht genau danach, zum Beispiel nach „Baggy Light Wash Jeans“ statt nur nach „Hose“.</p>
+    </details>
+    <details>
+      <summary>Gibt es auch Second Hand und Vintage?</summary>
+      <p>Ja. Neben Neuware zeigt Malipin Second-Hand- und Vintage-Angebote, zum Beispiel von eBay und Etsy. So findest du deinen Stil oft günstiger und nachhaltiger.</p>
+    </details>
+    <details>
+      <summary>Sind die Shops sicher?</summary>
+      <p>Shops und Verkäufer, die wir selbst geprüft haben, tragen das Abzeichen „Geprüfter Shop“. Bei Marktplätzen aus Fernost filtern wir Angebote mit Markennamen und typischen Fake-Wörtern heraus, damit du keine Fälschungen bekommst.</p>
     </details>
     <details>
       <summary>Kann ich meine Daten löschen?</summary>
@@ -374,8 +533,8 @@
     observer.observe(document.getElementById("konto"));
     observer.observe(document.querySelector(".landing-footer"));
   </script>
-  <script src="nav.js"></script>
+  <script src="nav.js" defer></script>
   <!-- Mali, das Maskottchen -->
-  <script src="bunny.js"></script>
+  <script src="bunny.js" defer></script>
 </body>
 </html>

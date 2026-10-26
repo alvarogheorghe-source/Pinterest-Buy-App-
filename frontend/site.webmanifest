@@ -1,0 +1,14 @@
+{
+  "name": "Malipin – Outfits & Deko passend zu deinem Pinterest-Stil",
+  "short_name": "Malipin",
+  "description": "Malipin erkennt deinen Stil aus Pinterest-Boards oder einem Outfit-Foto und findet passende Mode & Deko – neu und Second Hand.",
+  "lang": "de",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff8fa",
+  "theme_color": "#c93a69",
+  "icons": [
+    {"src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

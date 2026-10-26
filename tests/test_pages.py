@@ -3,6 +3,8 @@
 Starten mit:  pytest -v
 """
 
+import re
+
 import pytest
 
 
@@ -32,7 +34,7 @@ def test_many_connect_buttons_all_lead_to_konto(fake, client):
                                   "/merkliste.html"])
 def test_every_page_loads_mali(fake, client, path):
     html = client.get(path).text
-    assert '<script src="bunny.js"></script>' in html
+    assert re.search(r'<script src="bunny.js"( defer)?></script>', html)
     assert 'href="bunny.css"' in html
 
 

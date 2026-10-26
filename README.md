@@ -432,6 +432,20 @@ Online geht sie automatisch bei jedem Push (`.github/workflows/pages.yml`, GitHu
 Einmalig nötig: GitHub → Settings → Pages → Source „GitHub Actions“ und Custom domain
 `malipin.com`. Lokal ansehen: `python -m http.server -d site 8080`.
 
+### SEO (Google & Teilen)
+
+- **Startseite:** Titel/Beschreibung mit Suchbegriffen, Canonical, Open Graph + Twitter-Karte
+  (Vorschaubild `img/og-image.png`), Icons für Google/Apple/Android, `site.webmanifest`.
+- **Strukturierte Daten** (JSON-LD: Organization, WebSite, WebApplication, FAQPage) – die
+  FAQ-Daten werden aus den sichtbaren Fragen erzeugt. Nach Änderungen an Fragen/Texten:
+  `python -m scripts.seo` (ein Test meldet, wenn es vergessen wurde).
+- **Website-Build** erzeugt `robots.txt` + `sitemap.xml`; die 404-Seite ist `noindex`.
+- **App-Server:** persönliche Seiten (Konto, Merkliste, Shop, Produkt, Admin) sind `noindex`;
+  die Foto-Suche ist indexierbar. `/api/` und `/auth/` sind in `robots.txt` gesperrt.
+- **Bilder neu erzeugen:** `node scripts/make_seo_images.mjs` (braucht Playwright).
+- **Google Search Console:** Domain-Property `malipin.com` anlegen, per DNS-TXT-Eintrag
+  bestätigen, dann `https://malipin.com/sitemap.xml` einreichen.
+
 ## Mehrere Personen (öffentlicher Server)
 
 Alle persönlichen Daten (Pinterest-Zugang, Boards, Pins, Merkliste, Bewertungen, Malis

@@ -1,0 +1,7 @@
+# Malipin (App-Server). Persönliche Seiten tragen zusätzlich "noindex".
+User-agent: *
+Disallow: /api/
+Disallow: /auth/
+Disallow: /admin.html
+
+Sitemap: https://malipin.com/sitemap.xml
