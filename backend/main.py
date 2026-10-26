@@ -15,8 +15,8 @@ from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import (analysis, feedback, matching, photo, picks, pins, pinterest, products,
-                     shop_links, similar, storage, vibe, vision)
+from backend import (analysis, feedback, matching, photo, pins, pinterest, products,
+                     shop_links, shops, similar, storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Malipin")
@@ -215,7 +215,7 @@ def refresh_pins():
     return {"count": len(data["pins"]), "board_count": len(data["board_ids"])}
 
 
-# --- Admin: Malipin Picks (nur mit ADMIN_PASSWORD in .env) --------------------------------
+# --- Admin: geprüfte Shops (nur mit ADMIN_PASSWORD in .env) --------------------------------
 
 def admin_password() -> str:
     return os.getenv("ADMIN_PASSWORD", "").strip()
@@ -249,48 +249,26 @@ def admin_logout(request: Request):
     return {"ok": True}
 
 
-@app.get("/api/admin/categories")
-def admin_categories(request: Request):
-    """Alle Kategorien je Welt – für die Auswahl beim Eintragen eines Picks."""
+@app.get("/api/admin/shops")
+def admin_list_shops(request: Request):
     require_admin(request)
-    result = {"mode": [], "wohnen": []}
-    for name, (department, _) in matching.CATEGORY_SYNONYMS.items():
-        result[department].append(name)
-    return result
+    return shops.load()
 
 
-@app.get("/api/admin/picks")
-def admin_list_picks(request: Request):
-    require_admin(request)
-    return [p.model_dump() for p in picks.load()]
-
-
-@app.post("/api/admin/picks")
-def admin_add_pick(data: picks.PickInput, request: Request):
+@app.post("/api/admin/shops")
+def admin_add_shop(data: shops.ShopInput, request: Request):
     require_admin(request)
     try:
-        return picks.add(data).model_dump()
+        return shops.add(data)
     except ValueError as err:
         raise HTTPException(400, str(err))
 
 
-@app.put("/api/admin/picks/{pick_id}")
-def admin_update_pick(pick_id: str, data: picks.PickInput, request: Request):
+@app.delete("/api/admin/shops/{shop_id}")
+def admin_delete_shop(shop_id: str, request: Request):
     require_admin(request)
-    try:
-        updated = picks.update(pick_id, data)
-    except ValueError as err:
-        raise HTTPException(400, str(err))
-    if not updated:
-        raise HTTPException(404, "Pick nicht gefunden.")
-    return updated.model_dump()
-
-
-@app.delete("/api/admin/picks/{pick_id}")
-def admin_delete_pick(pick_id: str, request: Request):
-    require_admin(request)
-    if not picks.remove(pick_id):
-        raise HTTPException(404, "Pick nicht gefunden.")
+    if not shops.remove(shop_id):
+        raise HTTPException(404, "Shop nicht gefunden.")
     return {"ok": True}
 
 
@@ -406,16 +384,16 @@ def get_profile():
 @app.get("/api/recommendations")
 def get_recommendations(min_price: float | None = None, max_price: float | None = None,
                         category: str | None = None,
-                        department: products.Department = "mode", picks_only: bool = False):
+                        department: products.Department = "mode", trusted_only: bool = False):
     """Produkte einer Welt im Budget, sortiert nach Passung zum Stilprofil dieser Welt."""
     pins_list = storage.load_pins()["pins"]
     profile = matching.build_style_profile(pins_list, department)
     all_products = products.get_product_source().load()
     selection = products.filter_products(all_products, min_price, max_price, category,
                                          department)
-    if picks_only:
-        selection = [p for p in selection if p.pick]
-    ranked = picks.apply_bonus(matching.rank_products(selection, profile))
+    if trusted_only:
+        selection = [p for p in selection if p.trusted]
+    ranked = shops.apply_bonus(matching.rank_products(selection, profile))
     # Bilder: "sieht aus wie deine Pins" (nur wenn Vektoren berechnet wurden)
     ranked = vision.apply_visual(ranked, pins_list, department,
                                  vision.EmbeddingStore.load_existing())

@@ -40,10 +40,11 @@ class Product(BaseModel):
     affiliate_url: str
     # True = wir verdienen am Link (Affiliate) -> Kennzeichnung "Werbung"
     sponsored: bool = True
-    # Malipin Pick: von uns geprüft (backend/picks.py)
-    pick: bool = False
-    pick_note: str = ""
-    pick_added: float | None = None
+    # Verkäufer auf der Plattform (eBay-Name, Etsy-Shop, AliExpress-Store-Nr.)
+    seller: str = ""
+    # Geprüfter Shop (backend/shops.py) – wird beim Laden gesetzt
+    trusted: bool = False
+    trusted_note: str = ""
 
     @field_validator("affiliate_url")
     @classmethod
@@ -178,15 +179,23 @@ def get_product_source() -> ProductSource:
     Später kommen weitere Quellen dazu (z.B. ein Awin-Feed).
     """
     from backend import storage
-    from backend import picks
     sources: list[ProductSource] = list(online_sources())
     if sources and storage.exists(PHOTO_RESULTS_FILE):
         sources.append(PhotoResultsSource())
     if not sources:
         sources = [JsonProductSource()]
-    if storage.exists(picks.PICKS_FILE):          # Malipin Picks: immer dabei, für alle gleich
-        sources.append(picks.PicksSource())
-    return sources[0] if len(sources) == 1 else CombinedSource(sources)
+    return TrustedMarker(sources[0] if len(sources) == 1 else CombinedSource(sources))
+
+
+class TrustedMarker(ProductSource):
+    """Markiert beim Laden alle Angebote geprüfter Shops (backend/shops.py)."""
+
+    def __init__(self, inner: ProductSource):
+        self.inner = inner
+
+    def load(self) -> list[Product]:
+        from backend import shops
+        return shops.mark(self.inner.load())
 
 
 def source_names() -> list[str]:

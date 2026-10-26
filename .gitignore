@@ -13,8 +13,8 @@ data/analysis.json
 data/photo_results.json
 # Datenbank mit den Daten aller Personen (storage.py) + alte Einzeldateien
 data/malipin.db*
-# Malipin Picks (auf dem Server gepflegt)
-data/picks.json
+# Geprüfte Shops (auf dem Server gepflegt)
+data/trusted_shops.json
 data/alt-vor-datenbank/
 
 # Python-Kram

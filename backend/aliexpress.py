@@ -24,7 +24,7 @@ import time
 
 import httpx
 
-from backend import storage
+from backend import shops, storage
 from backend.counterfeit import looks_like_fake, mentions_brand
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
@@ -88,7 +88,9 @@ def search(query: str) -> list[dict]:
 def to_product(item: dict, department: str, query_category: str) -> Product | None:
     """AliExpress-Angebot -> Product. None, wenn Angaben fehlen – oder es nach Fake aussieht."""
     title = str(item.get("product_title") or "")
-    if not title or looks_like_fake(title):
+    store = str(item.get("shop_id") or "")
+    # Fälschungs-Filter – außer bei geprüften offiziellen Markenstores (backend/shops.py)
+    if not title or (looks_like_fake(title) and not shops.is_trusted("aliexpress", store)):
         return None
     try:
         price = float(item.get("target_sale_price") or item.get("sale_price"))
@@ -108,6 +110,7 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
         id=f"aliexpress-{product_id}",
         name=title[:90],
         shop="AliExpress",
+        seller=store,
         price=round(price, 2),
         currency=currency,
         department=department,

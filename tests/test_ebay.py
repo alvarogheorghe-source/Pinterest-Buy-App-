@@ -150,7 +150,7 @@ def test_source_selection(fake, monkeypatch):
     assert products.source_names() == ["ebay"]
     monkeypatch.setenv("ETSY_API_KEY", "key")
     assert products.source_names() == ["ebay", "etsy"]
-    assert isinstance(products.get_product_source(), products.CombinedSource)
+    assert isinstance(products.get_product_source().inner, products.CombinedSource)
     monkeypatch.setenv("PRODUCT_SOURCE", "demo")                  # erzwungen
     assert products.source_names() == ["demo"]
 

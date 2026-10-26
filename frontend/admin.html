@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
-  <title>Admin – Malipin Picks</title>
+  <title>Admin – Geprüfte Shops</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="bunny.css">
@@ -19,7 +19,7 @@
   </header>
 
   <main class="admin">
-    <h1 class="page-title">Malipin Picks</h1>
+    <h1 class="page-title">Geprüfte Shops</h1>
 
     <!-- Anmelden -->
     <form id="login-form" class="admin-card" hidden>
@@ -30,47 +30,41 @@
     </form>
 
     <div id="admin-panel" hidden>
-      <!-- Eintragen / Bearbeiten -->
-      <form id="pick-form" class="admin-card">
-        <h2 id="form-title">Neuen Pick eintragen</h2>
+      <!-- Shop eintragen -->
+      <form id="shop-form" class="admin-card">
+        <h2>Neuen Shop eintragen</h2>
         <div class="admin-grid">
-          <label>Name des Teils<input name="name" required maxlength="120" placeholder="z.B. Leinenhemd Oversized Beige"></label>
-          <label>Verkäufer / Shop<input name="seller" required maxlength="80" placeholder="z.B. LinenStudio"></label>
-          <label>Preis in €<input name="price" type="number" step="0.01" min="0" required></label>
-          <label>Welt
-            <select name="department">
-              <option value="mode">Mode</option>
-              <option value="wohnen">Wohnen &amp; Deko</option>
+          <label>Plattform
+            <select name="platform">
+              <option value="ebay">eBay</option>
+              <option value="etsy">Etsy</option>
+              <option value="aliexpress">AliExpress</option>
             </select>
           </label>
-          <label>Kategorie<select name="category" required></select></label>
-          <label>Link zum Angebot<input name="url" type="url" required placeholder="https://…"></label>
-          <label class="wide">Foto-Link<input name="image_url" type="url" required placeholder="https://… (.jpg / .png)"></label>
-          <label class="wide">Notiz: warum geprüft / was besonders ist
-            <textarea name="note" maxlength="400" rows="3" placeholder="z.B. Echte Fotos, Versand in 5 Tagen in die EU, weiches Leinen."></textarea>
+          <label><span id="seller-label">Verkäufername</span><input name="seller" required maxlength="80"><small id="seller-hint" class="muted"></small></label>
+          <label class="wide">Anzeigename<input name="name" required maxlength="80" placeholder="z.B. adidas Official Store"></label>
+          <label class="wide">Notiz: warum geprüft (sehen Besucher auf der Detailseite)
+            <textarea name="note" maxlength="300" rows="3" placeholder="z.B. Offizieller Markenstore, 99 % positive Bewertungen, Versand aus der EU."></textarea>
           </label>
-          <label class="check"><input name="sponsored" type="checkbox"> Partnerlink (wir verdienen daran → „Werbung“)</label>
         </div>
-        <img id="image-preview" class="admin-preview" alt="Vorschau" hidden>
 
         <fieldset class="admin-checklist">
           <legend>Geprüft? (alles abhaken)</legend>
-          <label><input type="checkbox" required> Keine Logos oder Markennamen (keine Fakes)</label>
-          <label><input type="checkbox" required> Gute Bewertungen des Verkäufers</label>
+          <label><input type="checkbox" required> Originalware / offizieller Store (keine Fakes)</label>
+          <label><input type="checkbox" required> Gute Bewertungen (viele, über längere Zeit)</label>
           <label><input type="checkbox" required> Versand in die EU</label>
-          <label><input type="checkbox" required> Echte Fotos (nicht nur Werbebilder)</label>
           <label><input type="checkbox" required> Rückgabe möglich</label>
+          <label><input type="checkbox" required> Kontakt / Impressum vorhanden</label>
         </fieldset>
 
         <div class="admin-actions">
-          <button class="button" type="submit" id="save-button">Pick speichern</button>
-          <button class="button secondary" type="button" id="cancel-edit" hidden>Abbrechen</button>
+          <button class="button" type="submit">Shop speichern</button>
         </div>
         <p id="form-message" class="admin-message" aria-live="polite"></p>
       </form>
 
-      <h2>Alle Picks <span id="pick-count" class="muted"></span></h2>
-      <div id="pick-list" class="product-grid"></div>
+      <h2>Alle geprüften Shops <span id="shop-count" class="muted"></span></h2>
+      <div id="shop-list" class="shop-list"></div>
     </div>
   </main>
 

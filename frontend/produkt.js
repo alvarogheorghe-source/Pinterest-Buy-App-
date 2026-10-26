@@ -63,10 +63,10 @@ function renderDetail(product, hasProfile) {
     el("p", "detail-price", formatPrice(product.price, product.currency)),
   );
   if (hasProfile) info.appendChild(el("p", "detail-reason", product.reason));
-  if (product.pick) {
-    const box = el("div", "pick-note");
-    box.append(el("strong", "", "Malipin Pick – von uns geprüft"));
-    if (product.pick_note) box.append(el("p", "", product.pick_note));
+  if (product.trusted) {
+    const box = el("div", "trusted-note");
+    box.append(el("strong", "", "Geprüfter Shop – diesen Verkäufer haben wir uns angeschaut"));
+    if (product.trusted_note) box.append(el("p", "", product.trusted_note));
     info.appendChild(box);
   }
 

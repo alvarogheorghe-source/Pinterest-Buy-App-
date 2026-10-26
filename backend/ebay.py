@@ -131,6 +131,7 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
         id="ebay-" + re.sub(r"[^A-Za-z0-9]", "-", item["itemId"]),
         name=title[:90],
         shop="eBay · Second Hand" if second_hand else "eBay",
+        seller=str((item.get("seller") or {}).get("username") or ""),
         price=price,
         currency=currency,
         department=department,

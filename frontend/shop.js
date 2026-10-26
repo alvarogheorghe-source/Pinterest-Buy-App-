@@ -17,7 +17,7 @@ const DEPARTMENT_NAMES = { mode: "Mode", wohnen: "Wohnen & Deko" };
 // Aktueller Zustand. Welt und Tab stehen auch in der Adresse, z.B. "#wohnen/pins",
 // damit Links und der Zurück-Button funktionieren.
 const filters = { department: "mode", tab: "products", maxPrice: "", category: "", sort: "match",
-  picksOnly: false };
+  trustedOnly: false };
 
 // "#wohnen/pins" -> { department: "wohnen", tab: "pins" }
 function readHash() {
@@ -52,7 +52,7 @@ async function load() {
   if (filters.maxPrice) common.set("max_price", filters.maxPrice);
   const productParams = new URLSearchParams(common);
   if (filters.category) productParams.set("category", filters.category);
-  if (filters.picksOnly) productParams.set("picks_only", "true");
+  if (filters.trustedOnly) productParams.set("trusted_only", "true");
 
   // Beide Abfragen gleichzeitig starten und auf beide warten
   const [recResponse, pinResponse] = await Promise.all([
@@ -205,8 +205,8 @@ function productToCard(product, hasProfile) {
     // Hinweis: Bilderkennung ("sieht aus wie deine Pins") oder 👍 ("ähnlich wie ein Like")
     hint: product.looks_like_pins ? "Sieht aus wie deine Pins"
       : product.feedback_hint ? "Ähnlich wie etwas, das dir gefallen hat"
-      : product.pick ? "Von uns geprüft" : "",
-    badge: product.pick ? "Malipin Pick" : "",
+      : product.trusted ? "Aus einem von uns geprüften Shop" : "",
+    badge: product.trusted ? "Geprüfter Shop" : "",
     buttonText: "Zum Shop",
     href: product.affiliate_url,
     // Nur wenn wir am Link verdienen (Affiliate), ist es Werbung – sonst "Link zu eBay"
@@ -311,11 +311,11 @@ function createCard(data) {
   } else {
     card.append(imageBox, body);
   }
-  // Abzeichen oben links auf dem Bild (z.B. "Malipin Pick")
+  // Abzeichen oben links auf dem Bild ("Geprüfter Shop")
   if (data.badge) {
-    card.classList.add("is-pick");
+    card.classList.add("is-trusted");
     card.appendChild(Object.assign(document.createElement("span"),
-      { className: "pick-badge", textContent: data.badge, title: "Von uns geprüft" }));
+      { className: "trusted-badge", textContent: data.badge, title: "Diesen Shop haben wir geprüft" }));
   }
   // 👍/👎 oben rechts auf dem Bild (feedback.js)
   if (data.productId) card.appendChild(createVoteButtons(data.productId, data.vote, card));
@@ -394,12 +394,12 @@ async function loadCategories() {
 // Start: Kategorien für "Mode" laden, dann anzeigen, was in der Adresse steht
 loadCategories().then(applyHash);
 
-// Filter "Nur Malipin Picks"
-const picksToggle = document.getElementById("picks-toggle");
-picksToggle.addEventListener("click", () => {
-  filters.picksOnly = !filters.picksOnly;
-  picksToggle.classList.toggle("active", filters.picksOnly);
-  picksToggle.setAttribute("aria-pressed", String(filters.picksOnly));
+// Filter "Nur geprüfte Shops"
+const trustedToggle = document.getElementById("trusted-toggle");
+trustedToggle.addEventListener("click", () => {
+  filters.trustedOnly = !filters.trustedOnly;
+  trustedToggle.classList.toggle("active", filters.trustedOnly);
+  trustedToggle.setAttribute("aria-pressed", String(filters.trustedOnly));
   load();
 });
 

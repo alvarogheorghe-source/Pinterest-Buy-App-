@@ -108,6 +108,7 @@ def to_product(listing: dict, department: str, query_category: str) -> Product |
         id=f"etsy-{int(listing['listing_id'])}",
         name=title[:90],
         shop=shop,
+        seller=shop_name or "",
         price=round(amount, 2),
         currency=currency,
         department=department,

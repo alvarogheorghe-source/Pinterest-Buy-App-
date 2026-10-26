@@ -1201,7 +1201,7 @@ section + section {
   position: relative;
 }
 
-.pick-badge {
+.trusted-badge {
   position: absolute;
   top: 10px;
   left: 10px;
@@ -1216,17 +1216,17 @@ section + section {
   box-shadow: 0 4px 12px rgba(201, 58, 105, 0.3);
 }
 
-.card.is-pick {
+.card.is-trusted {
   border-color: #f0b8ca;
 }
 
-.pick-chip.active {
+.trusted-chip.active {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
 }
 
-.pick-note {
+.trusted-note {
   margin: 14px 0;
   padding: 12px 14px;
   border-radius: 14px;
@@ -1234,12 +1234,27 @@ section + section {
   border: 1px solid #f3dbe3;
 }
 
-.pick-note p {
+.trusted-note p {
   margin: 6px 0 0;
   color: var(--muted);
 }
 
 /* --- Admin-Seite (admin.html) --- */
+.shop-list {
+  display: grid;
+  gap: 12px;
+}
+
+.shop-row {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+}
+
+.shop-row h3,
+.shop-row p {
+  margin: 0 0 4px;
+}
+
 .admin-card {
   display: grid;
   gap: 12px;
@@ -1305,10 +1320,6 @@ section + section {
   padding: 0 6px;
 }
 
-.admin-preview {
-  width: 140px;
-  border-radius: 14px;
-}
 
 .admin-actions {
   display: flex;

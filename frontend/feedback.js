@@ -104,9 +104,7 @@ function showEtsyAttribution(products) {
   if (note) note.hidden = !products.some((p) => p.shop.startsWith("Etsy"));
 }
 
-// Name des Shops für "Link zu …": bei Malipin Picks der Verkäufer, sonst der Shop vor dem "·"
-// ("eBay · Second Hand" -> eBay, "Malipin Pick · LinenStudio" -> LinenStudio)
+// Name des Shops für "Link zu …": der Shop vor dem "·" ("eBay · Second Hand" -> eBay)
 function shopName(product) {
-  const parts = product.shop.split(" · ");
-  return product.pick && parts[1] ? parts[1] : parts[0];
+  return product.shop.split(" · ")[0];
 }
