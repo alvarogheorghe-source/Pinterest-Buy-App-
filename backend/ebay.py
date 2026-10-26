@@ -225,5 +225,62 @@ def main() -> None:
     print(f"\nZusammen: {total} Angebote.")
 
 
+def support_report() -> str:
+    """Bericht für den eBay-Support: Anfrage + genaue Antwort beim Token-Holen.
+    Enthält die App ID, aber NIE das Secret (Cert ID) und keinen Token."""
+    import datetime
+    import json
+    client_id = os.getenv("EBAY_CLIENT_ID", "").strip()
+    credentials = f"{client_id}:{os.getenv('EBAY_CLIENT_SECRET', '').strip()}"
+    with _http() as client:
+        response = client.post(
+            _url(TOKEN_URL),
+            headers={"Authorization": "Basic " + base64.b64encode(credentials.encode()).decode(),
+                     "Content-Type": "application/x-www-form-urlencoded"},
+            data={"grant_type": "client_credentials", "scope": SCOPE},
+        )
+    try:
+        body = json.dumps(response.json(), indent=2)
+    except ValueError:
+        body = response.text[:2000]
+    if response.status_code == 200:
+        body = "(token received – not included)"
+    useful = ["date", "x-ebay-c-request-id", "rlogid", "x-ebay-request-id", "content-type"]
+    headers = "\n".join(f"  {k}: {v}" for k, v in response.headers.items() if k.lower() in useful)
+    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    return f"""eBay OAuth application token – diagnostic report
+Created: {now}
+
+App ID (Client ID): {client_id}
+Environment:        {"Sandbox" if sandbox() else "Production"}
+Marketplace:        {os.getenv("EBAY_MARKETPLACE", "").strip() or "EBAY_DE"}
+
+REQUEST
+  POST {_url(TOKEN_URL)}
+  Authorization: Basic <base64(App ID:Cert ID) – removed>
+  Content-Type: application/x-www-form-urlencoded
+  grant_type=client_credentials
+  scope={SCOPE}
+
+RESPONSE
+  HTTP {response.status_code}
+{headers}
+
+{body}
+
+Use case: Browse API (buy/browse/v1/item_summary/search), public listings only.
+No eBay user data is requested or stored.
+"""
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--report" in sys.argv:
+        from pathlib import Path
+
+        from backend import config  # noqa: F401  (lädt .env)
+        out = Path("ebay-support-report.txt")
+        out.write_text(support_report(), "utf-8")
+        print(f"Bericht gespeichert: {out.resolve()}  (enthält kein Secret)")
+    else:
+        main()

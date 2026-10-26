@@ -227,3 +227,12 @@ def test_failed_source_is_shown_not_silent(fake_ebay, client):
     data = client.get("/api/recommendations?department=mode").json()
     assert data["warnings"][0]["source"] == "ebay"
     assert "Anmeldung" in data["warnings"][0]["message"]
+
+
+def test_support_report_never_contains_the_secret(fake_ebay, monkeypatch):
+    monkeypatch.setenv("EBAY_CLIENT_SECRET", "PRD-supersecret-123")
+    fake_ebay.token_ok = False
+    report = ebay.support_report()
+    assert "invalid_client" in report and "HTTP 401" in report
+    assert "supersecret" not in report and "PRD-supersecret" not in report
+    assert "id" in report.split("App ID (Client ID):")[1].splitlines()[0]
