@@ -30,6 +30,7 @@
     <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></symbol>
     <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/></symbol>
   </svg>
 
   <header class="site-header glass">
@@ -65,7 +66,9 @@
         <a href="/konto.html" class="button large connect">
           <svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden
         </a>
-        <a href="/shop.html" class="button large outline">Shop ansehen</a>
+        <a href="/foto.html" class="button large outline">
+          <svg class="icon"><use href="#i-camera"/></svg>Fit hochladen
+        </a>
       </div>
       <ul class="trust-row">
         <li><svg class="icon"><use href="#i-shield"/></svg> Nur Lesezugriff</li>
@@ -103,6 +106,52 @@
         <span class="soft-chip chip-rose">streetwear</span>
         <span class="soft-chip chip-lilac">japandi</span>
         <span class="soft-chip chip-cream">beige</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1b. Foto-Suche: Fit gesehen? Hochladen! ---------------------------------------------- -->
+  <section class="section photo-spot">
+    <div class="photo-spot-text">
+      <p class="section-kicker">Neu · auch ohne Pinterest</p>
+      <h2 class="section-title">Hat dir ein Fit auf TikTok oder Instagram gefallen?</h2>
+      <p class="section-lead">
+        Mach einen Screenshot und lad ihn hier hoch. Mali erkennt Teil, Farbe, Stil und sogar
+        Sneaker-Modelle – und findet dir ähnliche Teile, neu und Second Hand.
+      </p>
+      <a href="/foto.html" class="button large photo-cta">
+        <svg class="icon"><use href="#i-camera"/></svg>Fit hochladen
+      </a>
+      <p class="photo-spot-note">
+        <svg class="icon"><use href="#i-shield"/></svg> Dein Foto wird nur kurz angeschaut und nicht gespeichert.
+      </p>
+    </div>
+
+    <!-- Grafik: Screenshot im Handy -> Mali erkennt -> passendes Teil (nur HTML/CSS) -->
+    <div class="photo-spot-visual" aria-hidden="true">
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="fit-head"></div>
+          <div class="fit-jacket"></div>
+          <div class="fit-pants"></div>
+          <div class="fit-shoes"><span></span><span></span></div>
+          <div class="phone-ui"><span>♡</span><span>💬</span><span>↗</span></div>
+        </div>
+      </div>
+      <div class="photo-spot-flow">
+        <img src="/img/favicon.svg" alt="" class="photo-spot-mali">
+        <div class="photo-spot-chips">
+          <span class="soft-chip chip-rose">Jacke</span>
+          <span class="soft-chip chip-lilac">schwarz</span>
+          <span class="soft-chip chip-cream">streetwear</span>
+          <span class="soft-chip chip-rose">Onitsuka Tiger</span>
+        </div>
+        <div class="float-card photo-spot-card">
+          <div class="float-image grad-plum"></div>
+          <p class="card-shop">eBay · Second Hand</p>
+          <p class="card-name">Bomberjacke Schwarz</p>
+          <p class="card-price">€ 39,00</p>
+        </div>
       </div>
     </div>
   </section>
@@ -321,6 +370,7 @@
       bar.classList.toggle("hidden", visible.size > 0);
     });
     observer.observe(document.querySelector(".hero-actions"));
+    observer.observe(document.querySelector(".photo-cta"));   // dort gibt's "Fit hochladen"
     observer.observe(document.getElementById("konto"));
     observer.observe(document.querySelector(".landing-footer"));
   </script>

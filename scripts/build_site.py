@@ -42,6 +42,11 @@ def static_index(source: str) -> str:
         r'<a href="/konto\.html" class="button([^"]*)">.*?</a>',
         lambda m: f'<span class="button{m.group(1)} soon" aria-disabled="true">🐰 {SOON}</span>',
         page, flags=re.DOTALL)
+    # Foto-Suche braucht den Server -> "Foto-Suche bald verfügbar"
+    page = re.sub(
+        r'<a href="/foto\.html" class="button([^"]*)">.*?</a>',
+        lambda m: f'<span class="button{m.group(1)} soon" aria-disabled="true">📷 Foto-Suche {SOON.lower()}</span>',
+        page, flags=re.DOTALL)
     # "Shop ansehen", Shop/Merkliste im Kopf -> weg
     page = re.sub(r'\s*<a href="/shop\.html" class="button large outline">.*?</a>', "", page)
     page = re.sub(r'\s*<a href="/shop\.html" class="header-link">.*?</a>', "", page)

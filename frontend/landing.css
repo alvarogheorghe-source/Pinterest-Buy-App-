@@ -904,3 +904,158 @@ details p {
     padding-bottom: 76px;
   }
 }
+
+/* --- 1b. Foto-Suche ("Fit gesehen? Hochladen!") --- */
+.photo-spot {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 48px;
+}
+
+.photo-cta {
+  margin-top: 8px;
+}
+
+.photo-spot-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.photo-spot-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+/* Handy mit "Screenshot" eines Outfits */
+.phone {
+  flex: none;
+  width: 170px;
+  padding: 8px;
+  border-radius: 30px;
+  background: #2b2026;
+  box-shadow: 0 26px 50px -18px rgba(58, 42, 48, 0.45);
+  transform: rotate(-4deg);
+}
+
+.phone-screen {
+  position: relative;
+  height: 320px;
+  border-radius: 23px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f3e9e1, #e2d3c6);
+}
+
+.fit-head {
+  position: absolute;
+  top: 36px;
+  left: 50%;
+  width: 34px;
+  height: 40px;
+  margin-left: -17px;
+  border-radius: 50%;
+  background: #d7a98c;
+}
+
+.fit-jacket {
+  position: absolute;
+  top: 78px;
+  left: 50%;
+  width: 92px;
+  height: 92px;
+  margin-left: -46px;
+  border-radius: 26px 26px 10px 10px;
+  background: linear-gradient(160deg, #3a2f36, #17121a);
+}
+
+.fit-pants {
+  position: absolute;
+  top: 166px;
+  left: 50%;
+  width: 74px;
+  height: 96px;
+  margin-left: -37px;
+  border-radius: 6px 6px 14px 14px;
+  background: linear-gradient(160deg, #7d9cc4, #4f6f99);
+}
+
+.fit-shoes {
+  position: absolute;
+  top: 262px;
+  left: 50%;
+  display: flex;
+  gap: 8px;
+  margin-left: -40px;
+}
+
+.fit-shoes span {
+  width: 36px;
+  height: 14px;
+  border-radius: 10px 14px 4px 4px;
+  background: #f5f0e6;
+  box-shadow: inset 0 -3px 0 #c9302c;
+}
+
+.phone-ui {
+  position: absolute;
+  right: 10px;
+  bottom: 54px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #fff;
+  font-size: 0.85rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Mali erkennt -> Begriffe -> passendes Teil */
+.photo-spot-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.photo-spot-mali {
+  width: 48px;
+  height: 54px;
+  image-rendering: pixelated;
+}
+
+.photo-spot-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 220px;
+}
+
+.photo-spot-card {
+  position: static;
+  width: 180px;
+}
+
+.grad-plum { background: linear-gradient(160deg, #3a2f36, #17121a); }
+
+@media (max-width: 860px) {
+  .photo-spot {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .phone {
+    width: 140px;
+  }
+
+  .phone-screen {
+    height: 270px;
+  }
+
+  .fit-pants { height: 74px; }
+  .fit-shoes { top: 238px; }
+}
