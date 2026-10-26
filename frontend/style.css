@@ -1188,3 +1188,10 @@ section + section {
   height: 24px;
   color: var(--accent);
 }
+
+/* Konto: "Alle meine Daten löschen" */
+.privacy-section {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}

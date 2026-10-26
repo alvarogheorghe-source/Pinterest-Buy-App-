@@ -94,5 +94,5 @@ def test_no_analysis_without_pins(fake, client):
 
 def test_interrupted_analysis_is_not_stuck(fake):
     storage.write_json("analysis.json", {"status": "running", "step": "bilder"})
-    analysis._state.clear()
+    analysis._states.clear()
     assert analysis.status()["status"] == "idle"

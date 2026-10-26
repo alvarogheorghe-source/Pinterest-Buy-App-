@@ -11,6 +11,9 @@ data/ebay_cache.json
 data/etsy_cache.json
 data/analysis.json
 data/photo_results.json
+# Datenbank mit den Daten aller Personen (storage.py) + alte Einzeldateien
+data/malipin.db*
+data/alt-vor-datenbank/
 
 # Python-Kram
 __pycache__/

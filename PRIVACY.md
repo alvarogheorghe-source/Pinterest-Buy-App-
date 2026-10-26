@@ -44,16 +44,24 @@ on the app's computer for up to one hour.
 
 ## Where the data is stored
 
-The app runs locally on the computer of the person using it. Access tokens, the board
-selection and pin data are stored as files on that computer only. There is no central
-server and no database operated by the developer.
+During the prototype phase, the app runs locally on the computer of the person using it.
+When the app is offered publicly, your data (access tokens, board selection, pins, saved
+items and ratings) is stored in a database on the app's server, kept separate for each
+person.
+
+To tell people apart, the app sets **one technically necessary cookie** with a random ID
+(no name, no e-mail, no tracking). It is kept for up to one year. Photos you upload for the
+photo search are analysed only in memory and are **never stored**.
+
+You can delete everything at any time with **"Alle meine Daten löschen"** on the
+"Mein Pinterest" page – this removes all data linked to your ID immediately.
 
 ## The website malipin.com
 
 The public website malipin.com is hosted on GitHub Pages (GitHub, Inc.). When you visit
 it, GitHub processes technical data such as your IP address to deliver the page and keep
 it secure; see GitHub's privacy statement (https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
-The website uses no cookies, no tracking and no external fonts. Mali, the mascot, only
+The presentation website malipin.com uses no cookies, no tracking and no external fonts. Mali, the mascot, only
 remembers in your own browser (local storage) whether you have already seen the welcome
 animation or hidden Mali – this never leaves your device.
 
@@ -94,6 +102,6 @@ auf dem Computer, auf dem die App läuft. Für die Produktsuche gehen nur kurze
 Suchbegriffe wie „beige oversized Pullover“ an eBay und Etsy – ohne Benutzername, Bilder
 oder sonstige persönliche Daten. Die Website malipin.com liegt bei GitHub Pages
 (GitHub verarbeitet dabei z.B. deine IP-Adresse); sie nutzt keine Cookies, kein Tracking und
-keine externen Schriften. Mit „Verbindung trennen“ werden die
+keine externen Schriften. Eine anonyme Zufalls-Kennung im Cookie trennt die Daten verschiedener Personen; mit „Alle meine Daten löschen“ ist alles sofort weg. Hochgeladene Fotos werden nie gespeichert. Mit „Verbindung trennen“ werden die
 Tokens gelöscht; den Zugriff kannst du jederzeit in deinen Pinterest-Einstellungen
 widerrufen.

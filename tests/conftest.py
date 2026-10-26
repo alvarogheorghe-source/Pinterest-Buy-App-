@@ -84,7 +84,7 @@ def demo_products(monkeypatch):
 def no_background_analysis(monkeypatch):
     """Malis Hintergrund-Analyse startet in Tests nicht von selbst (test_analysis.py testet sie)."""
     from backend import analysis
-    analysis._state.clear()
+    analysis._states.clear()
     monkeypatch.setattr(analysis, "_spawn", lambda target: None)
 
 

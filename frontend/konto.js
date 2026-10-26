@@ -164,3 +164,16 @@ feedbackReset.addEventListener("click", async () => {
 
 init();
 showFeedback();
+
+// --- Alle meine Daten löschen (DELETE /api/me) ---
+document.getElementById("delete-data-button").addEventListener("click", async () => {
+  const sure = confirm("Wirklich ALLES löschen? Pinterest-Verbindung, Pins, Merkliste und "
+    + "Bewertungen sind danach endgültig weg.");
+  if (!sure) return;
+  const message = document.getElementById("delete-data-message");
+  const response = await fetch("/api/me", { method: "DELETE" });
+  message.textContent = response.ok
+    ? "Erledigt – alles gelöscht. Mali vergisst dich nur ungern, aber er hat's getan."
+    : "Das hat leider nicht geklappt. Bitte versuch es nochmal.";
+  if (response.ok) setTimeout(() => { location.href = "/"; }, 2500);
+});

@@ -175,7 +175,7 @@ def get_product_source() -> ProductSource:
     sources: list[ProductSource] = list(online_sources())
     if not sources:
         return JsonProductSource()
-    if (storage.DATA_DIR / PHOTO_RESULTS_FILE).exists():
+    if storage.exists(PHOTO_RESULTS_FILE):
         sources.append(PhotoResultsSource())
     return sources[0] if len(sources) == 1 else CombinedSource(sources)
 

@@ -26,7 +26,39 @@ session_secret = os.getenv("SESSION_SECRET")
 if not session_secret:
     print("WARNUNG: SESSION_SECRET fehlt in .env – nutze einen zufälligen Wert für diesen Start.")
     session_secret = secrets.token_hex(32)
-app.add_middleware(SessionMiddleware, secret_key=session_secret, same_site="lax")
+
+
+class UserMiddleware:
+    """Wessen Daten? Mit MULTI_USER=1 bekommt jede Person beim ersten Besuch eine zufällige,
+    anonyme Kennung im (signierten) Session-Cookie – ohne Anmeldung, ohne Passwort. Alle
+    Daten (Pinterest-Zugang, Pins, Merkliste …) liegen dann getrennt pro Kennung (storage.py).
+    Ohne MULTI_USER (lokal) ist es immer dieselbe Person "local"."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http" or not multi_user():
+            await self.app(scope, receive, send)
+            return
+        session = scope["session"]
+        if not session.get("uid"):
+            session["uid"] = "u-" + secrets.token_urlsafe(16)
+        token = storage.set_user(session["uid"])
+        try:
+            await self.app(scope, receive, send)
+        finally:
+            storage.reset_user(token)
+
+
+def multi_user() -> bool:
+    return os.getenv("MULTI_USER", "").strip() == "1"
+
+
+# Reihenfolge: die Session (äußere Schicht) muss da sein, bevor UserMiddleware sie liest
+app.add_middleware(UserMiddleware)
+app.add_middleware(SessionMiddleware, secret_key=session_secret, same_site="lax",
+                   max_age=365 * 24 * 3600)  # Kennung bleibt ein Jahr (sonst Daten "weg")
 
 
 # --- Fehlerbehandlung -------------------------------------------------------------
@@ -88,6 +120,15 @@ def logout():
     """Trennt die Verbindung, indem die gespeicherten Tokens gelöscht werden."""
     storage.delete_tokens()
     return {"ok": True}
+
+
+@app.delete("/api/me")
+def delete_my_data():
+    """"Alle meine Daten löschen" (DSGVO): Pinterest-Zugang, Pins, Merkliste, Bewertungen,
+    Analyse und Such-Zwischenspeicher der aktuellen Person – endgültig."""
+    removed = storage.delete_user_data()
+    analysis.forget_user()
+    return {"ok": True, "removed": removed}
 
 
 # --- API für das Frontend ----------------------------------------------------------------

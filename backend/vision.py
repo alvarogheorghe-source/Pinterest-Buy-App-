@@ -18,6 +18,7 @@ Ohne sie (oder ohne data/embeddings.json) funktioniert die App wie bisher.
 
 import hashlib
 import io
+import threading
 import math
 import operator
 import os
@@ -192,6 +193,8 @@ def get_embedder() -> "ClipEmbedder":
 # --- Speicher für die Vektoren -----------------------------------------------------------------
 
 _loaded: dict = {}   # zuletzt gelesene embeddings.json (siehe load_existing)
+_save_lock = threading.Lock()
+MAX_CLUSTER_SETS = 500  # Stil-Schwerpunkte von so vielen Pin-Auswahlen aufheben
 
 
 class EmbeddingStore:
@@ -208,8 +211,11 @@ class EmbeddingStore:
         self.model = model
         same = data.get("model") == model
         self.items = data.get("items", {}) if same else {}
-        # Stil-Schwerpunkte je Welt: {"mode": {"pins": <Fingerabdruck>, "groups": [...]}}
+        # Stil-Schwerpunkte je Pin-Auswahl (Fingerabdruck) – jede Person hat ihre eigenen
+        # {"<fingerabdruck>": [gruppen …]}
         self.clusters = data.get("clusters", {}) if same else {}
+        if any(isinstance(v, dict) for v in self.clusters.values()):
+            self.clusters = {}   # altes Format (je Welt) -> einfach neu berechnen
 
     @classmethod
     def load_existing(cls) -> "EmbeddingStore | None":
@@ -239,8 +245,16 @@ class EmbeddingStore:
         self.items[key] = {"url": url, "vector": vector}
 
     def save(self) -> None:
-        storage.write_json(EMBEDDINGS_FILE, {"model": self.model, "items": self.items,
-                                             "clusters": self.clusters})
+        """Speichern – dabei Neues anderer Personen behalten (mehrere Analysen gleichzeitig)."""
+        with _save_lock:
+            current = storage.read_json(EMBEDDINGS_FILE, default=None) or {}
+            if current.get("model") == self.model:
+                self.items = {**current.get("items", {}), **self.items}
+                self.clusters = {**current.get("clusters", {}), **self.clusters}
+            # nur die neuesten Stil-Schwerpunkte behalten
+            self.clusters = dict(list(self.clusters.items())[-MAX_CLUSTER_SETS:])
+            storage.write_json(EMBEDDINGS_FILE, {"model": self.model, "items": self.items,
+                                                 "clusters": self.clusters})
 
     def vectors(self, prefix: str) -> dict[str, list[float]]:
         """Alle Vektoren einer Sorte, z.B. prefix="product:" -> {"prod-001": [...]}"""
@@ -341,15 +355,13 @@ def build_clusters(store: EmbeddingStore, pins: list[dict]) -> None:
     """Stil-Schwerpunkte je Welt berechnen (beim Analysieren, nicht bei jedem Klick)."""
     from backend.matching import classify_pin
     from backend.products import DEPARTMENTS
-    store.clusters = {}
     for department in DEPARTMENTS:
         vectors = {pin["id"]: store.get(f"pin:{pin['id']}") for pin in pins
                    if department in classify_pin(pin)}
         vectors = {pin_id: v for pin_id, v in vectors.items() if v}
         if len(vectors) >= CLUSTER_MIN_PINS:
             k = min(MAX_CLUSTERS, max(CLUSTERS, len(vectors) // PINS_PER_CLUSTER))
-            store.clusters[department] = {"pins": pins_fingerprint(list(vectors)),
-                                          "groups": kmeans(vectors, k)}
+            store.clusters[pins_fingerprint(list(vectors))] = kmeans(vectors, k)
 
 
 def clustered_affinity(product_vector: list[float], groups: list[dict],
@@ -377,9 +389,7 @@ def apply_visual(ranked: list[dict], pins: list[dict], department: str,
         return ranked
 
     # Passende Stil-Schwerpunkte vorhanden? (nur wenn sie zu genau diesen Pins gehören)
-    clusters = store.clusters.get(department)
-    groups = clusters["groups"] if clusters and clusters["pins"] == pins_fingerprint(list(pin_vectors)) \
-        else None
+    groups = store.clusters.get(pins_fingerprint(list(pin_vectors)))
 
     results = []
     for item in ranked:
@@ -420,8 +430,7 @@ def main() -> None:
     # Viele Pins? -> Stil-Schwerpunkte, damit der Shop schnell bleibt
     build_clusters(store, storage.load_pins()["pins"])
     store.save()
-    for department, info in store.clusters.items():
-        print(f"{department}: {len(info['groups'])} Stil-Schwerpunkte aus den Pins gebildet")
+    print("Stil-Schwerpunkte aktualisiert.")
 
 
 if __name__ == "__main__":

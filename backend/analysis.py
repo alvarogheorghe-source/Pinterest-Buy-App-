@@ -12,6 +12,7 @@ Die Website fragt GET /api/analysis ab und zeigt Mali, der dabei mit dir redet
 (frontend/analysis.js). Ohne KI-Pakete laufen nur die Farben – die App funktioniert trotzdem.
 """
 
+import contextvars
 import hashlib
 import threading
 import time
@@ -25,7 +26,7 @@ VERSION = 2
 STEPS = ["farben", "vorbereiten", "bilder", "stil", "schwerpunkte"]
 
 _lock = threading.Lock()
-_state: dict = {}
+_states: dict[str, dict] = {}   # Person -> Analyse-Stand (jede Person hat ihre eigene Analyse)
 
 
 def pins_fingerprint(data: dict) -> str:
@@ -35,19 +36,28 @@ def pins_fingerprint(data: dict) -> str:
 
 
 def _load_state() -> dict:
-    if not _state:
+    """Stand der aktuellen Person (aus dem Speicher, beim ersten Mal aus der Datenbank)."""
+    user = storage.current_user()
+    if user not in _states:
         saved = storage.read_json(STATE_FILE, default=None) or {}
         # Lief beim Beenden der App noch eine Analyse? Dann gilt sie als abgebrochen.
         if saved.get("status") == "running":
             saved.update(status="idle")
-        _state.update(saved or {"status": "idle"})
-    return _state
+        _states[user] = saved or {"status": "idle"}
+    return _states[user]
 
 
 def _update(**changes) -> None:
     with _lock:
-        _load_state().update(changes)
-        storage.write_json(STATE_FILE, dict(_state))
+        state = _load_state()
+        state.update(changes)
+        storage.write_json(STATE_FILE, dict(state))
+
+
+def forget_user() -> None:
+    """Nach "Alle meine Daten löschen": auch den Stand im Speicher vergessen."""
+    with _lock:
+        _states.pop(storage.current_user(), None)
 
 
 def status() -> dict:
@@ -62,17 +72,19 @@ def status() -> dict:
 
 
 def _spawn(target) -> None:
-    """Eigene Funktion, damit Tests die Analyse ohne Thread (sofort) laufen lassen können."""
-    threading.Thread(target=target, daemon=True).start()
+    """Eigene Funktion, damit Tests die Analyse ohne Thread (sofort) laufen lassen können.
+    copy_context: der Hintergrund-Thread arbeitet für dieselbe Person wie die Anfrage."""
+    threading.Thread(target=contextvars.copy_context().run, args=(target,), daemon=True).start()
 
 
 def start() -> dict:
     """Startet die Analyse im Hintergrund – außer sie läuft schon."""
     with _lock:
-        if _load_state().get("status") == "running":
-            return dict(_state)
-        _state.update(status="running", step="farben", done=0, total=0, found=[],
-                      error=None, vision=None, started_at=time.time(), finished_at=None)
+        state = _load_state()
+        if state.get("status") == "running":
+            return dict(state)
+        state.update(status="running", step="farben", done=0, total=0, found=[],
+                     error=None, vision=None, started_at=time.time(), finished_at=None)
     _spawn(run)
     return status()
 

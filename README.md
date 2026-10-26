@@ -396,6 +396,20 @@ Online geht sie automatisch bei jedem Push (`.github/workflows/pages.yml`, GitHu
 Einmalig nötig: GitHub → Settings → Pages → Source „GitHub Actions“ und Custom domain
 `malipin.com`. Lokal ansehen: `python -m http.server -d site 8080`.
 
+## Mehrere Personen (öffentlicher Server)
+
+Alle persönlichen Daten (Pinterest-Zugang, Boards, Pins, Merkliste, Bewertungen, Malis
+Analyse, eBay/Etsy-Zwischenspeicher, Foto-Ergebnisse) liegen in `data/malipin.db` (SQLite,
+nicht im Repo) – **getrennt pro Person** (`backend/storage.py`). Gemeinsam ist nur
+`data/embeddings.json` (Bild-Fingerabdrücke sind für alle gleich).
+
+- **Lokal** (Standard): eine Person „local“ – alles wie bisher, auch die Terminal-Befehle.
+- **Öffentlich:** `MULTI_USER=1` in `.env`. Jede Person bekommt beim ersten Besuch eine
+  zufällige, anonyme Kennung im signierten Session-Cookie (1 Jahr) – ohne Anmeldung.
+- **Alle meine Daten löschen:** Button auf „Mein Pinterest“ (`DELETE /api/me`).
+- Alte `data/*.json` werden beim ersten Start automatisch übernommen und nach
+  `data/alt-vor-datenbank/` verschoben.
+
 ## Testen
 
 ```bash
