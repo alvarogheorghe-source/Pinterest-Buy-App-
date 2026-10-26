@@ -446,12 +446,23 @@
 
     const buttons = vibe.pin_count === 0
       ? [{ text: "Pinterest verbinden", primary: true, onClick: () => { location.href = "/konto.html"; } }]
-      : [{ text: "Nochmal! 🎲", primary: true, onClick: showVibe }];
+      : [{ text: "📸 Vibe teilen", primary: true, onClick: () => shareVibe(vibe) },
+        { text: "Nochmal! 🎲", onClick: showVibe }];
     buttons.push({ text: `${NAME} verstecken`, onClick: hideMali });
 
     say(parts, { buttons });
     await happyJump();
     busy = false;
+  }
+
+  // Vibe-Karte zum Teilen (vibecard.js) – wird erst beim ersten Mal nachgeladen
+  function shareVibe(vibe) {
+    hideBubble();
+    const pixels = { happy: FRAMES.happy, heart: HEART, palette: PALETTE };
+    if (window.vibeCard) return window.vibeCard.open(vibe, pixels);
+    const script = Object.assign(document.createElement("script"), { src: "/vibecard.js" });
+    script.onload = () => window.vibeCard.open(vibe, pixels);
+    document.head.appendChild(script);
   }
 
   el.addEventListener("click", () => showVibe());

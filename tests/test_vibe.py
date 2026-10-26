@@ -60,4 +60,11 @@ def test_api_vibe(fake, client):
     storage.save_pins({"fetched_at": 1, "board_ids": ["111"], "pins": pins("gothic", "goth")})
     result = client.get("/api/vibe").json()
     assert result["title"] == "Goth Baddie"
-    assert set(result) == {"title", "emoji", "text", "second", "terms", "pin_count"}
+    assert set(result) == {"title", "emoji", "text", "second", "terms", "colors", "pin_count"}
+
+
+def test_vibe_has_color_swatches_for_the_share_card():
+    pins = [{"title": "black goth dress"}, {"title": "black boots"}, {"title": "silver ring"}]
+    colors = vibe.vibe_check(pins, random.Random(1))["colors"]
+    assert colors[0] == {"name": "schwarz", "hex": "#1e1e1e"}
+    assert {"name": "silber", "hex": "#c4c6cc"} in colors

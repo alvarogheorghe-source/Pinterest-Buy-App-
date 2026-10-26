@@ -14,6 +14,14 @@ from dataclasses import dataclass
 
 from backend.matching import StyleProfile, build_style_profile
 
+# Farbtupfer für die Vibe-Karte zum Teilen (frontend/vibecard.js)
+SWATCHES = {
+    "beige": "#d8c3a5", "weiß": "#f6f1e9", "schwarz": "#1e1e1e", "grau": "#9b9a9e",
+    "braun": "#7b5a3c", "blau": "#5a82b4", "grün": "#7a9e7e", "oliv": "#6b7048",
+    "rosa": "#e8b4bc", "rot": "#b42832", "orange": "#c8693f", "gelb": "#e1be3c",
+    "silber": "#c4c6cc", "gold": "#c9a54a",
+}
+
 # Unter diesen Punkten ist kein Vibe deutlich genug -> "Unikat"
 MIN_SCORE = 0.15
 # Zweiter Vibe wird erwähnt, wenn er mindestens so viel % des besten hat
@@ -121,5 +129,7 @@ def vibe_check(pins: list[dict], rng: random.Random | None = None) -> dict:
         "text": rng.choice(best.lines),
         "second": f"{second.emoji} {second.title}" if second else None,
         "terms": top_terms,
+        "colors": [{"name": name, "hex": SWATCHES[name]}
+                   for name, _ in profile.colors.most_common(4) if name in SWATCHES],
         "pin_count": profile.pin_count,
     }

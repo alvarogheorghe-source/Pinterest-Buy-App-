@@ -213,6 +213,12 @@ mit echten Pins und echten Produkten.
 
 ## Mali 🐰 – das Maskottchen
 
+**Vibe-Karte zum Teilen 📸:** In Malis Vibe-Check gibt es „📸 Vibe teilen“. Das erzeugt im
+Browser ein Story-Bild (1080 × 1920) mit Mali, Vibe, Lieblingsfarben und „Finde deinen Vibe →
+malipin.com“ (`frontend/vibecard.js`, wird erst beim ersten Tippen geladen). Am Handy öffnet
+sich das Teilen-Menü (Instagram, TikTok, WhatsApp …), am Computer wird das Bild gespeichert.
+Es wird nichts hochgeladen. Weitere Ideen: `docs/IDEEN.md`.
+
 **Logo:** Mali als Pinnadel (Hasenkopf + rosa Nadelspitze) und „mali*pin*“ mit Pixel-Herzen
 als i-Punkten. Mali blinzelt im Logo ab und zu und wackelt mit den Ohren, wenn man darauf
 zeigt. Erzeugt wird es aus einem Pixel-Raster in `scripts/make_logo.py` (auch das

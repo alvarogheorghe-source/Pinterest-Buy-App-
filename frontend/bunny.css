@@ -349,3 +349,37 @@ html.splash-open {
     animation: none;
   }
 }
+
+/* --- Vibe-Karte zum Teilen (vibecard.js) --- */
+.vibecard-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(58, 42, 48, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.vibecard-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-height: 100%;
+}
+
+.vibecard-image {
+  /* Story-Format 9:16 – passt immer auf den Bildschirm */
+  height: min(72vh, calc((100vw - 32px) * 16 / 9));
+  aspect-ratio: 9 / 16;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(58, 42, 48, 0.35);
+}
+
+.vibecard-actions {
+  display: flex;
+  gap: 10px;
+}
