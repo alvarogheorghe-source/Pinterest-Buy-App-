@@ -264,6 +264,37 @@ def build_style_profile(pins: list[dict], department: str | None = None) -> Styl
     return profile
 
 
+# Herren- oder Damenmode? Wörter im Pin-Text (Deutsch + Englisch)
+AUDIENCE_PATTERNS = _compile({
+    "herren": ["herren", "männer", "men's", "mens", "menswear", "boyfriend", "guys"],  # nicht "man" (deutsch!)
+    "damen": ["damen", "frauen", "women's", "womens", "womenswear", "woman", "girl", "girls",
+              "ladies"],
+})
+AUDIENCE_SHARE = 0.7   # so viele der eindeutigen Mode-Pins müssen in eine Richtung zeigen
+AUDIENCE_MIN_PINS = 3
+
+
+def audience(pins: list[dict]) -> str | None:
+    """"herren", "damen" oder None (gemischt / unklar / zu wenig Pins).
+
+    Zählt pro Mode-Pin: das Wort im Text, sonst was die Bilderkennung gesehen hat.
+    """
+    votes = Counter()
+    for pin in pins:
+        if "mode" not in classify_pin(pin):
+            continue
+        words = find_terms(pin_text(pin), AUDIENCE_PATTERNS)
+        if len(words) == 1:
+            votes[words.pop()] += 1
+        elif pin.get("image_gender"):
+            votes[pin["image_gender"]] += 1
+    total = sum(votes.values())
+    if total < AUDIENCE_MIN_PINS:
+        return None
+    winner, count = votes.most_common(1)[0]
+    return winner if count / total >= AUDIENCE_SHARE else None
+
+
 def explain(matched: list[str], profile: StyleProfile) -> str:
     """Ein Satz, warum ein Produkt passt."""
     if not matched:

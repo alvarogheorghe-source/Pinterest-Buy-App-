@@ -4,6 +4,7 @@ Starten mit:  pytest -v
 """
 
 import random
+import re
 
 from backend import matching, storage, vibe
 
@@ -52,7 +53,8 @@ def test_every_vibe_term_is_known_and_lines_stay_positive():
         assert set(v.terms) <= known, v.title          # Tippfehler würden nie zählen
         assert v.lines, v.title
         for line in v.lines:
-            assert not any(word in line.lower() for word in negative), line
+            # ganze Wörter – "Kleiderschrank" enthält "leider", ist aber nicht negativ
+            assert not any(re.search(rf"\b{word}\b", line.lower()) for word in negative), line
 
 
 def test_api_vibe(fake, client):

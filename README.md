@@ -272,6 +272,11 @@ gespeicherten Zahlen (das Modell muss nicht laufen).
   ohne Text. Läuft mit `python -m backend.vision`; Ergebnis ansehen:
   `python -m backend.image_tags`. Schwellen (wie sicher das Modell sein muss) stehen oben
   in der Datei.
+- **Herren oder Damen?** Bei Mode-Pins erkennt das Modell zusätzlich Herren-/Damenmode
+  (`image_gender`), dazu zählen Wörter wie „men's“ oder „Damen“ (`matching.audience`). Zeigt
+  das Board klar eine Richtung, sucht die App bei eBay/Etsy z.B. „Herren oversized Hose“, und
+  Vibes wie „Clean Girl“ oder „Coquette“ werden bei Herren-Boards nicht vorgeschlagen
+  (stattdessen z.B. „Laid-back Casual“ oder „Clean Basics“).
 
 **Einstellungen:** Modell per `.env` wählbar (`CLIP_MODEL=…`, Standard
 `patrickjohncyh/fashion-clip`; für Wohnen & Deko evtl. `openai/clip-vit-base-patch32`).

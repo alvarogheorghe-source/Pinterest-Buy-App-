@@ -12,7 +12,7 @@ Neue Vibes oder Sprüche? Einfach unten in VIBES ergänzen.
 import random
 from dataclasses import dataclass
 
-from backend.matching import StyleProfile, build_style_profile
+from backend.matching import StyleProfile, audience, build_style_profile
 
 # Farbtupfer für die Vibe-Karte zum Teilen (frontend/vibecard.js)
 SWATCHES = {
@@ -29,7 +29,7 @@ LOOKS = {
     "Clean-Girl-Aesthetic": "clean", "Japandi-Ruhepol": "clean",
     "Streetwear-Ikone": "street", "Y2K-Icon": "street", "Sporty Spice": "street",
     "Cozy Cloud": "erde", "Boho-Fee": "erde", "Cottagecore-Träumerei": "erde",
-    "Vintage Soul": "erde",
+    "Vintage Soul": "erde", "Laid-back Casual": "street", "Clean Basics": "clean",
     "Coquette-Darling": "romantisch", "Old-Money-Eleganz": "romantisch",
 }
 
@@ -45,6 +45,7 @@ class Vibe:
     emoji: str
     terms: dict[str, float]   # Begriff -> Gewicht
     lines: list[str]          # mögliche Sprüche (immer positiv!)
+    audience: str | None = None  # "damen": nicht vorschlagen, wenn das Board klar Herrenmode zeigt
 
 
 VIBES = [
@@ -58,7 +59,7 @@ VIBES = [
          {"clean": 2, "minimalistisch": 1.5, "weiß": 0.8, "beige": 0.6}, [
         "Effortless und glowy. Dein Pinterest riecht nach Vanille und guten Entscheidungen.",
         "So aufgeräumt, dass sogar mein Bau neidisch ist. Less is more – und du bist more.",
-    ]),
+    ], audience="damen"),
     Vibe("Streetwear-Ikone", "🧢",
          {"streetwear": 2, "oversized": 1.5, "sportlich": 0.5, "utility": 0.5}, [
         "Oversized, aber nie overdressed. Du würdest sogar in einer Karottentüte cool aussehen.",
@@ -88,7 +89,7 @@ VIBES = [
     Vibe("Coquette-Darling", "🎀", {"coquette": 3, "romantisch": 1.5, "rosa": 1}, [
         "Schleifen überall und Herzchen in den Augen. Du bist so süß, dass ich Konkurrenz bekomme.",
         "Ballerinas, Rosa, Romantik – du lebst in einem Liebesbrief.",
-    ]),
+    ], audience="damen"),
     Vibe("Cottagecore-Träumerei", "🍓", {"cottagecore": 3, "romantisch": 0.5, "natur": 0.5}, [
         "Du backst bestimmt Brot und pflückst Erdbeeren. Ich bring die Karotten fürs Picknick!",
     ]),
@@ -98,6 +99,21 @@ VIBES = [
     ]),
     Vibe("Sporty Spice", "⚡", {"sportlich": 2, "outdoor": 1}, [
         "Immer in Bewegung! Du bist schneller als ich – und ich bin ein Hase.",
+    ]),
+]
+
+# Neutral – passen zu jedem Board, z.B. lässige Herrenmode mit Baggy Jeans
+VIBES += [
+    Vibe("Laid-back Casual", "👟", {"casual": 2, "oversized": 0.8, "utility": 0.4}, [
+        "Entspannt, aber nie egal. Du siehst aus, als wärst du zufällig so cool – "
+        "und genau das ist die Kunst.",
+        "Baggy Jeans, gute Laune, null Stress. Dein Pinterest ist ein Sonntagnachmittag "
+        "in Outfit-Form.",
+    ]),
+    Vibe("Clean Basics", "🤍", {"minimalistisch": 2, "clean": 1, "klassisch": 0.5,
+                                "schwarz": 0.4, "weiß": 0.4, "grau": 0.4}, [
+        "Wenige Teile, alle perfekt. Dein Kleiderschrank ist aufgeräumter als mein Bau.",
+        "Basics auf Level 100. Du beweist: Schlicht ist das neue Laut.",
     ]),
 ]
 
@@ -123,7 +139,10 @@ def vibe_check(pins: list[dict], rng: random.Random | None = None) -> dict:
     if profile.pin_count == 0:
         best, second = NO_PINS, None
     else:
-        ranked = sorted(VIBES, key=lambda v: score(v, profile), reverse=True)
+        # Zeigt das Board klar Herrenmode, passen z.B. "Clean Girl" oder "Coquette" nicht
+        who = audience(pins)
+        candidates = [v for v in VIBES if not (v.audience and who and v.audience != who)]
+        ranked = sorted(candidates, key=lambda v: score(v, profile), reverse=True)
         best_score = score(ranked[0], profile)
         if best_score < MIN_SCORE:
             best, second = UNIQUE, None

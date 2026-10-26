@@ -41,7 +41,7 @@ def test_every_style_and_category_has_a_description():
 
 def test_clear_image_gets_style_and_category():
     pin = axis(("style:goth", 1.0), ("category:Jacken", 1.0))
-    assert image_tags.tag(pin, LABELS) == {"styles": ["goth"], "categories": ["Jacken"]}
+    assert image_tags.tag(pin, LABELS) == {"styles": ["goth"], "categories": ["Jacken"], "gender": None}
 
 
 def test_two_strong_styles():
@@ -52,7 +52,7 @@ def test_two_strong_styles():
 def test_food_photo_gets_no_category_and_unclear_image_nothing():
     assert image_tags.tag(axis(("category:_food", 1.0)), LABELS)["categories"] == []
     unclear = vision.normalize([1.0] * len(KEYS))      # passt zu allem gleich wenig
-    assert image_tags.tag(unclear, LABELS) == {"styles": [], "categories": []}
+    assert image_tags.tag(unclear, LABELS) == {"styles": [], "categories": [], "gender": None}
 
 
 def test_pins_without_text_get_a_profile_and_a_vibe(fake):
@@ -75,3 +75,16 @@ def test_pins_without_text_get_a_profile_and_a_vibe(fake):
     # Sätze werden nur einmal berechnet
     image_tags.tag_pins(embedder, vision.EmbeddingStore("fake-model"))
     assert embedder.texts == len(KEYS)
+
+
+def test_outfit_photo_gets_two_categories_and_gender():
+    pin = axis(("style:casual", 1.0), ("category:Hosen", 1.0), ("category:Oberteile", 0.997),
+               ("gender:herren", 1.0))
+    result = image_tags.tag(pin, LABELS)
+    assert result["categories"] == ["Hosen", "Oberteile"]
+    assert result["gender"] == "herren"
+
+
+def test_no_gender_for_home_decor():
+    pin = axis(("category:Leuchten", 1.0), ("gender:damen", 1.0))
+    assert image_tags.tag(pin, LABELS)["gender"] is None

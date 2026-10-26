@@ -6,8 +6,8 @@ Etsy auf Englisch ("beige oversized sweater") – dort sind die meisten Titel en
 
 from dataclasses import dataclass, field
 
-from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, build_style_profile,
-                              classify_pin, find_terms, pin_text)
+from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, audience,
+                              build_style_profile, classify_pin, find_terms, pin_text)
 
 QUERIES_PER_DEPARTMENT = 4       # 2 Welten × 4 Suchen = 8 Anfragen pro Quelle und Stunde
 
@@ -24,6 +24,7 @@ class SearchWords:
     categories: dict[str, str]                       # Kategorie -> Suchwort
     styles: dict[str, str | None]                    # Stil -> Suchwort, None = weglassen
     colors: dict[str, str] = field(default_factory=dict)  # Farbe -> Suchwort (sonst gleich)
+    audience: dict[str, str] = field(default_factory=dict)  # "herren" -> "Herren"
 
     def style(self, style: str) -> str | None:
         return self.styles.get(style, style)
@@ -47,6 +48,7 @@ GERMAN = SearchWords(
         "utility": "Cargo", "goth": "Gothic", "coquette": "Schleife", "cottagecore": "Blumen",
         "natur": "Natur", "clean": None, "cozy": None, "casual": None, "sommer": "Sommer",
     },
+    audience={"herren": "Herren", "damen": "Damen"},
 )
 
 ENGLISH = SearchWords(
@@ -67,6 +69,7 @@ ENGLISH = SearchWords(
         "grün": "green", "oliv": "olive", "rosa": "pink", "rot": "red", "gelb": "yellow",
         "silber": "silver",
     },
+    audience={"herren": "men's", "damen": "women's"},
 )
 
 
@@ -113,4 +116,10 @@ def build_queries(pins: list[dict], department: str,
 
     for fallback in DEFAULT_CATEGORIES[department]:
         add(words.query(color, style, fallback), fallback)
-    return queries[:QUERIES_PER_DEPARTMENT]
+    queries = queries[:QUERIES_PER_DEPARTMENT]
+
+    # Mode: zeigt das Board klar Herren- oder Damenmode? -> "Herren Baggy Jeans"
+    who = audience(pins) if department == "mode" else None
+    if who and words.audience.get(who):
+        queries = [(f"{words.audience[who]} {text}", category) for text, category in queries]
+    return queries
