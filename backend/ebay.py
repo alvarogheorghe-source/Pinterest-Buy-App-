@@ -186,3 +186,39 @@ class EbayProductSource(CachedSource):
                         seen.add(product.id)
                         products.append(product)
         return products
+
+
+def main() -> None:
+    """Prüft eBay Schritt für Schritt:  python -m backend.ebay
+    Zeigt pro Suche, wie viele Angebote eBay liefert und wie viele davon übrig bleiben."""
+    from backend import config  # noqa: F401  (lädt .env)
+    if not configured():
+        print("EBAY_CLIENT_ID / EBAY_CLIENT_SECRET fehlen in .env.")
+        return
+    marketplace = os.getenv("EBAY_MARKETPLACE", "").strip() or "EBAY_DE"
+    print(f"Server: {'SANDBOX (nur Testdaten!)' if sandbox() else 'Production'} | Marktplatz: {marketplace}")
+    try:
+        app_token()
+    except ProductSourceError as err:
+        print(err)
+        return
+    print("Anmeldung: ok")
+    pins = storage.load_pins()["pins"]
+    queries = [(q, c, d) for d in DEPARTMENTS for q, c in build_queries(pins, d, GERMAN)]
+    if not queries:
+        print("Keine Pins gefunden – teste mit einem Beispiel.")
+        queries = [("schwarze Hose", "Hosen", "mode")]
+    total = 0
+    for query, category, department in queries:
+        items = search(query)
+        kept = [p for p in (to_product(i, department, category) for i in items) if p]
+        total += len(kept)
+        print(f"  {query:<35} eBay: {len(items):>2}  übrig: {len(kept):>2}")
+        if items and not kept:
+            first = items[0]
+            print(f"    z.B. {first.get('title', '')[:50]!r} | Preis: {first.get('price')}")
+    print(f"\nZusammen: {total} Angebote.")
+
+
+if __name__ == "__main__":
+    main()

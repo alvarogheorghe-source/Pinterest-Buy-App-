@@ -206,3 +206,11 @@ def test_sandbox_keys_and_ebay_reason(fake_ebay, client, monkeypatch):
     monkeypatch.setenv("EBAY_CLIENT_ID", "Malipin-app-SBX-1234")
     assert client.get("/api/recommendations").status_code == 200
     assert {r.url.host for r in fake_ebay.requests} >= {"api.sandbox.ebay.com"}
+
+
+def test_check_command(fake_ebay, capsys):
+    save_pins("beige oversized hoodie")
+    fake_ebay.results["beige oversized Pullover"] = [item("10", "Beige Oversized Hoodie")]
+    ebay.main()
+    out = capsys.readouterr().out
+    assert "Anmeldung: ok" in out and "Zusammen: 1 Angebote" in out
