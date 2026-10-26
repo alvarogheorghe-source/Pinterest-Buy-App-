@@ -23,21 +23,21 @@ def test_goth_pins_give_goth_baddie():
 
 def test_other_vibes():
     assert vibe.vibe_check(pins("oversized streetwear hoodie", "baggy cargo street style"))[
-        "title"] == "Streetwear-Ikone"
+        "title"] == "Streetwear Icon"
     assert vibe.vibe_check(pins("coquette bows", "pink ballet flats, romantic"))[
-        "title"] == "Coquette-Darling"
-    assert vibe.vibe_check(pins("Japandi living room", "scandi wood"))["title"] == "Japandi-Ruhepol"
+        "title"] == "Coquette Era"
+    assert vibe.vibe_check(pins("Japandi living room", "scandi wood"))["title"] == "Japandi Zen"
 
 
 def test_second_vibe_when_close():
     result = vibe.vibe_check(pins("goth black", "goth outfit", "y2k glitter", "y2k pink"))
     assert result["title"] == "Goth Baddie"
-    assert result["second"] == "💿 Y2K-Icon"
+    assert result["second"] == "💿 Y2K Baby"
 
 
 def test_no_pins_and_unclear_pins():
     assert vibe.vibe_check([])["title"] == "Noch ein Geheimnis"
-    assert vibe.vibe_check(pins("fit 🤍", "inspo"))["title"] == "Einzigartiges Unikat"
+    assert vibe.vibe_check(pins("fit 🤍", "inspo"))["title"] == "Main Character"
 
 
 def test_lines_vary_with_random():
@@ -81,3 +81,8 @@ def test_every_vibe_has_a_known_look():
         assert f"{look}:" in card, f"{v.title} -> {look} fehlt in vibecard.js"
     result = vibe.vibe_check([{"title": "goth grunge black"}], random.Random(1))
     assert result["look"] == "dunkel" and "🖤" not in result["title"]
+
+
+def test_gorpcore_for_outdoor_pins():
+    result = vibe.vibe_check(pins("hiking outfit", "gorpcore jacket", "outdoor cargo"), random.Random(1))
+    assert result["title"] == "Gorpcore" and result["look"] == "erde"

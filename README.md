@@ -24,7 +24,7 @@ backend/
   evaluate.py   misst die Genauigkeit der Vorschläge mit einem Testset
   feedback.py   👍/👎: blendet Dislikes aus, schiebt Ähnliches zu Likes nach oben
   vision.py     Bilderkennung (FashionCLIP): Bild-Vektoren berechnen und vergleichen
-  vibe.py       Malis Vibe-Check („Goth Baddie 🖤“, „Clean-Girl-Aesthetic 🤍“ …)
+  vibe.py       Malis Vibe-Check („Goth Baddie 🖤“, „Clean Girl 🤍“, „Quiet Luxury 💸“ …)
 eval/           demo_testset.json: Beispiel-Pins mit von Hand gewählten passenden Produkten
 scripts/        make_placeholders.py: erzeugt die Produkt-Platzhalterbilder (frontend/img/products)
   demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
@@ -276,7 +276,7 @@ gespeicherten Zahlen (das Modell muss nicht laufen).
   (`image_gender`), dazu zählen Wörter wie „men's“ oder „Damen“ (`matching.audience`). Zeigt
   das Board klar eine Richtung, sucht die App bei eBay/Etsy z.B. „Herren oversized Hose“, und
   Vibes wie „Clean Girl“ oder „Coquette“ werden bei Herren-Boards nicht vorgeschlagen
-  (stattdessen z.B. „Laid-back Casual“ oder „Clean Basics“).
+  (stattdessen z.B. „Effortless Cool“ oder „Clean Fit“).
 - **Marken** (`backend/brands.py`): 22 Sneaker-Modelle und Streetwear-Marken (Air Force 1,
   Samba, New Balance 550, Carhartt, North Face …). Erkannt im Bild (nur sehr sichere Treffer,
   `image_tags.BRAND_MIN`) und im Text („sambas“, „af1“). Jede erkannte Marke bekommt eine

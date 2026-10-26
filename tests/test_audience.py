@@ -29,10 +29,10 @@ def test_searches_get_herren_or_damen():
 def test_mens_board_gets_a_neutral_vibe():
     board = pins(5, image_gender="herren", image_styles=["casual", "oversized"],
                  image_categories=["Hosen"])
-    assert vibe.vibe_check(board, random.Random(1))["title"] == "Laid-back Casual"
+    assert vibe.vibe_check(board, random.Random(1))["title"] == "Effortless Cool"
     clean = [{"title": "minimal clean white outfit", "image_gender": "herren",
               "image_categories": ["Oberteile"]} for _ in range(4)]
-    assert vibe.vibe_check(clean, random.Random(1))["title"] == "Clean Basics"
+    assert vibe.vibe_check(clean, random.Random(1))["title"] == "Clean Fit"
     # Ohne Herren-Hinweis bleibt "Clean Girl" möglich
     girl = [{"title": "minimal clean girl outfit white"} for _ in range(4)]
-    assert vibe.vibe_check(girl, random.Random(1))["title"] == "Clean-Girl-Aesthetic"
+    assert vibe.vibe_check(girl, random.Random(1))["title"] == "Clean Girl"
