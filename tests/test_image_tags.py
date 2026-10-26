@@ -41,7 +41,8 @@ def test_every_style_and_category_has_a_description():
 
 def test_clear_image_gets_style_and_category():
     pin = axis(("style:goth", 1.0), ("category:Jacken", 1.0))
-    assert image_tags.tag(pin, LABELS) == {"styles": ["goth"], "categories": ["Jacken"], "gender": None}
+    assert image_tags.tag(pin, LABELS) == {"styles": ["goth"], "categories": ["Jacken"], "gender": None,
+                                             "brands": []}
 
 
 def test_two_strong_styles():
@@ -52,7 +53,7 @@ def test_two_strong_styles():
 def test_food_photo_gets_no_category_and_unclear_image_nothing():
     assert image_tags.tag(axis(("category:_food", 1.0)), LABELS)["categories"] == []
     unclear = vision.normalize([1.0] * len(KEYS))      # passt zu allem gleich wenig
-    assert image_tags.tag(unclear, LABELS) == {"styles": [], "categories": [], "gender": None}
+    assert image_tags.tag(unclear, LABELS) == {"styles": [], "categories": [], "gender": None, "brands": []}
 
 
 def test_pins_without_text_get_a_profile_and_a_vibe(fake):
@@ -88,3 +89,14 @@ def test_outfit_photo_gets_two_categories_and_gender():
 def test_no_gender_for_home_decor():
     pin = axis(("category:Leuchten", 1.0), ("gender:damen", 1.0))
     assert image_tags.tag(pin, LABELS)["gender"] is None
+
+
+def test_brand_only_when_clearly_visible():
+    sneaker = axis(("category:Schuhe", 1.0), ("brand:Adidas Samba", 1.0))
+    assert image_tags.tag(sneaker, LABELS)["brands"] == ["Adidas Samba"]
+    plain = axis(("category:Schuhe", 1.0), ("brand:_plain_shoes", 1.0))
+    assert image_tags.tag(plain, LABELS)["brands"] == []
+    unsure = axis(("category:Schuhe", 1.0), ("brand:Adidas Samba", 1.0), ("brand:Adidas Gazelle", 1.0))
+    assert image_tags.tag(unsure, LABELS)["brands"] == []          # 50/50 -> lieber nichts
+    lamp = axis(("category:Leuchten", 1.0), ("brand:Carhartt", 1.0))
+    assert image_tags.tag(lamp, LABELS)["brands"] == []            # Marken nur bei Mode

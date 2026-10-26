@@ -8,6 +8,7 @@ welche am besten zum Bild passen. Die Gewinner landen als Begriffe am Pin:
     pin["image_styles"]     = ["goth"]
     pin["image_categories"] = ["Jacken"]          # bis zu 2 (Outfit-Fotos zeigen mehrere Teile)
     pin["image_gender"]     = "damen"             # nur bei Mode: "herren", "damen" oder None
+    pin["image_brands"]     = ["Adidas Samba"]    # nur sehr sichere Treffer (brands.py)
 
 matching.build_style_profile() zählt sie wie Wörter aus dem Pin-Text – so funktionieren
 Stilprofil, Vibe-Check und die Suche bei eBay/Etsy auch bei Pins ohne Text.
@@ -19,6 +20,7 @@ Ergebnis pro Pin ansehen:           python -m backend.image_tags
 import math
 
 from backend import storage
+from backend.brands import BRANDS, NO_BRAND_PROMPTS
 from backend.matching import CATEGORY_SYNONYMS
 from backend.vision import cosine
 
@@ -69,6 +71,7 @@ SECOND_STYLE_MIN = 0.20   # ein zweiter Stil ab 20 %
 CATEGORY_MIN = 0.40       # Kategorie ab 40 % (und nur, wenn nicht "Sonstiges" gewinnt)
 SECOND_CATEGORY_MIN = 0.25  # zweites Teil im Bild (z.B. Hose UND Oberteil) ab 25 %
 GENDER_MIN = 0.70         # Herren/Damen nur, wenn ziemlich eindeutig
+BRAND_MIN = 0.60          # Marke nur, wenn sie klar vor allen anderen UND "keine Marke" liegt
 
 
 def softmax(scores: dict[str, float]) -> dict[str, float]:
@@ -84,6 +87,9 @@ def all_prompts() -> dict[str, str]:
     prompts.update({f"category:{k}": TEMPLATE.format(v)
                     for k, v in {**CATEGORY_PROMPTS, **OTHER_PROMPTS}.items()})
     prompts.update({f"gender:{k}": TEMPLATE.format(v) for k, v in GENDER_PROMPTS.items()})
+    brand_prompts = {name: brand.prompt for name, brand in BRANDS.items()}
+    prompts.update({f"brand:{k}": TEMPLATE.format(v)
+                    for k, v in {**brand_prompts, **NO_BRAND_PROMPTS}.items()})
     return prompts
 
 
@@ -99,7 +105,7 @@ def label_vectors(embedder, store) -> dict[str, list[float]]:
 
 
 def tag(pin_vector: list[float], labels: dict[str, list[float]]) -> dict:
-    """Ein Pin-Bild -> {"styles": [...], "categories": [...], "gender": "herren"/"damen"/None}"""
+    """Ein Pin-Bild -> {"styles": [...], "categories": [...], "gender": …, "brands": [...]}"""
     def scores(prefix):
         return {key[len(prefix):]: cosine(pin_vector, vector)
                 for key, vector in labels.items() if key.startswith(prefix)}
@@ -117,11 +123,13 @@ def tag(pin_vector: list[float], labels: dict[str, list[float]]) -> dict:
         if p2 >= SECOND_CATEGORY_MIN and not second.startswith("_"):
             categories.append(second)
 
-    gender = None
+    gender, brands = None, []
     if any(CATEGORY_SYNONYMS[c][0] == "mode" for c in categories):
         name, p = max(softmax(scores("gender:")).items(), key=lambda kv: kv[1])
         gender = name if p >= GENDER_MIN else None
-    return {"styles": chosen_styles, "categories": categories, "gender": gender}
+        name, p = max(softmax(scores("brand:")).items(), key=lambda kv: kv[1])
+        brands = [name] if p >= BRAND_MIN and not name.startswith("_") else []
+    return {"styles": chosen_styles, "categories": categories, "gender": gender, "brands": brands}
 
 
 def tag_pins(embedder, store) -> int:
@@ -137,6 +145,7 @@ def tag_pins(embedder, store) -> int:
         result = tag(vector, labels)
         pin["image_styles"], pin["image_categories"] = result["styles"], result["categories"]
         pin["image_gender"] = result["gender"]
+        pin["image_brands"] = result["brands"]
         tagged += 1
     if tagged:
         storage.save_pins(data)   # leert auch den eBay/Etsy-Zwischenspeicher (neues Profil)
@@ -152,7 +161,8 @@ def main() -> None:
         return
     for pin in tagged:
         text = (pin.get("title") or pin.get("description") or "(ohne Text)")[:45]
-        found = pin["image_styles"] + pin["image_categories"] + [pin.get("image_gender") or ""]
+        found = (pin["image_styles"] + pin["image_categories"] + [pin.get("image_gender") or ""]
+                 + pin.get("image_brands", []))
         found = [f for f in found if f]
         print(f"{text:<47} -> {', '.join(found) or '–'}")
     print(f"\n{len(tagged)} Pins mit Bild-Begriffen.")

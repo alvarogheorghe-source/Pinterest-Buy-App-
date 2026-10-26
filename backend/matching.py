@@ -13,6 +13,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 
+from backend.brands import BRANDS
 from backend.products import DEPARTMENTS, Product
 
 # Feste Begriffe (wie in products.json) -> Wörter, die in Pins dafür stehen können.
@@ -140,6 +141,7 @@ STYLE_PATTERNS = _compile(STYLE_SYNONYMS)
 CATEGORY_PATTERNS = _compile({c: words for c, (_, words) in CATEGORY_SYNONYMS.items()},
                              suffix=PLURAL)
 DEPARTMENT_PATTERNS = _compile(DEPARTMENT_WORDS)
+BRAND_PATTERNS = _compile({name: list(brand.words) for name, brand in BRANDS.items()})
 
 
 @dataclass
@@ -149,6 +151,7 @@ class StyleProfile:
     colors: Counter = field(default_factory=Counter)
     styles: Counter = field(default_factory=Counter)
     categories: Counter = field(default_factory=Counter)  # z.B. "Deko": 3
+    brands: Counter = field(default_factory=Counter)      # z.B. "Adidas Samba": 2
 
     def mentions(self, term: str) -> int:
         """In wie vielen Pins kommt der Begriff (Farbe, Stil oder Kategorie) vor?"""
@@ -169,6 +172,7 @@ class StyleProfile:
             "top_colors": [term for term, _ in self.colors.most_common(3)],
             "top_styles": [term for term, _ in self.styles.most_common(3)],
             "top_categories": [term for term, _ in self.categories.most_common(3)],
+            "brands": dict(self.brands.most_common()),
         }
 
 
@@ -261,6 +265,10 @@ def build_style_profile(pins: list[dict], department: str | None = None) -> Styl
         if department:  # nur Kategorien der gewählten Welt
             categories = {c for c in categories if CATEGORY_SYNONYMS[c][0] == department}
         profile.categories.update(categories)
+        # Marken (brands.py): aus dem Text oder aus dem Bild
+        brands = find_terms(text, BRAND_PATTERNS) | set(pin.get("image_brands", []))
+        profile.brands.update(b for b in brands
+                              if not department or CATEGORY_SYNONYMS[BRANDS[b].category][0] == department)
     return profile
 
 

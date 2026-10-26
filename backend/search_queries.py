@@ -6,10 +6,12 @@ Etsy auf Englisch ("beige oversized sweater") – dort sind die meisten Titel en
 
 from dataclasses import dataclass, field
 
+from backend.brands import BRANDS
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, audience,
                               build_style_profile, classify_pin, find_terms, pin_text)
 
 QUERIES_PER_DEPARTMENT = 4       # 2 Welten × 4 Suchen = 8 Anfragen pro Quelle und Stunde
+BRAND_MIN_PINS = 2               # Marke bekommt eine eigene Suche ab so vielen Pins
 
 # Ohne Pins: diese Kategorien zuerst
 DEFAULT_CATEGORIES = {
@@ -116,6 +118,12 @@ def build_queries(pins: list[dict], department: str,
 
     for fallback in DEFAULT_CATEGORIES[department]:
         add(words.query(color, style, fallback), fallback)
+
+    # Marke in mind. 2 Pins (Bild oder Text)? -> eigene Suche ganz vorne, z.B. "Adidas Samba".
+    # Gerade Second Hand findet man so genau das Modell aus den Pins.
+    for brand, count in profile.brands.most_common(2):
+        if count >= BRAND_MIN_PINS and brand not in (q for q, _ in queries):
+            queries.insert(0, (brand, BRANDS[brand].category))
     queries = queries[:QUERIES_PER_DEPARTMENT]
 
     # Mode: zeigt das Board klar Herren- oder Damenmode? -> "Herren Baggy Jeans"
