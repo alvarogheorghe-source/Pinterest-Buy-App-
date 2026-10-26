@@ -11,6 +11,9 @@ from backend import pin_colors, pinterest, storage
 # Obergrenze pro Board: genug für ein gutes Stilprofil, aber schnell geladen
 # und schonend für die Abfragegrenzen (Rate Limits) des Pinterest-Testzugangs.
 MAX_PINS_PER_BOARD = 250
+# Über alle Boards höchstens so viele Pins analysieren – die neuesten zuerst (zeigen den
+# aktuellen Geschmack). Hält Bilderkennung und Shop auch bei riesigen Boards schnell.
+MAX_PINS_TOTAL = 500
 
 # Bevorzugte Bildgrößen, in dieser Reihenfolge. 600x ist scharf genug, aber nicht riesig.
 IMAGE_SIZES = ["600x", "1200x", "400x300", "originals", "150x150"]
@@ -43,6 +46,8 @@ def simplify_pin(pin: dict, board_id: str, board_name: str | None = None) -> dic
         "dominant_color": pin.get("dominant_color"),
         # Ziel-Link des Pins, z.B. ein Depop-Angebot (siehe shop_links.py)
         "link": pin.get("link"),
+        # z.B. "2026-03-01T12:00:00" – für "die neuesten Pins zuerst"
+        "created_at": pin.get("created_at"),
     }
 
 
@@ -82,6 +87,11 @@ def load_pins_for_selected_boards() -> dict:
             if pin["id"] not in seen_ids:
                 seen_ids.add(pin["id"])
                 all_pins.append(pin)
+
+    # Zu viele? -> die neuesten behalten (Pins ohne Datum kommen ans Ende)
+    if len(all_pins) > MAX_PINS_TOTAL:
+        all_pins.sort(key=lambda pin: pin.get("created_at") or "", reverse=True)
+        all_pins = all_pins[:MAX_PINS_TOTAL]
 
     # Pinterest liefert meist eine Hauptfarbe mit – nur fehlende aus dem Bild ausrechnen
     pin_colors.fill_missing_colors(all_pins)

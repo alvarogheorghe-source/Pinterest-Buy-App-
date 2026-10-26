@@ -16,8 +16,10 @@ Die KI-Pakete sind optional:  pip install -r requirements-ai.txt
 Ohne sie (oder ohne data/embeddings.json) funktioniert die App wie bisher.
 """
 
+import hashlib
 import io
 import math
+import operator
 import os
 import sys
 from typing import Protocol
@@ -37,6 +39,16 @@ VISUAL_WEIGHT = 2.0
 # Kosinus-Werte zwischen zwei Fotos liegen bei CLIP selten unter ~0.5. Wir rechnen
 # deshalb 0.5..1.0 auf 0..1 um, sonst bekäme fast alles Punkte.
 VISUAL_FLOOR = 0.5
+# Viele Pins? Dann werden ähnliche Pins zu Stil-Schwerpunkten (Gruppen) zusammengefasst.
+# Ein Produkt wird erst mit den Schwerpunkten verglichen und dann nur mit den Pins der
+# CLUSTER_PROBE ähnlichsten Gruppen – statt mit allen Pins. Bei 500 Pins ca. 5× weniger
+# Rechenarbeit, bei 3000 noch viel mehr. Kleine Boards brauchen das nicht.
+CLUSTERS = 12             # mindestens so viele Gruppen …
+PINS_PER_CLUSTER = 40     # … bei vielen Pins ca. eine Gruppe pro 40 Pins
+MAX_CLUSTERS = 80
+CLUSTER_PROBE = 2
+CLUSTER_MIN_PINS = 60     # darunter wird jeder Pin direkt verglichen (schnell genug)
+
 # Ab hier sagen wir "Sieht aus wie deine Pins"
 VISUAL_HINT_THRESHOLD = 0.6
 
@@ -58,8 +70,8 @@ def normalize(vector: list[float]) -> list[float]:
 
 
 def cosine(a: list[float], b: list[float]) -> float:
-    """Kosinus-Ähnlichkeit zweier NORMALISIERTER Vektoren."""
-    return sum(x * y for x, y in zip(a, b))
+    """Kosinus-Ähnlichkeit zweier NORMALISIERTER Vektoren (map + mul: ca. doppelt so schnell)."""
+    return sum(map(operator.mul, a, b))
 
 
 def visual_score(similarity: float) -> float:
@@ -150,6 +162,9 @@ class ClipEmbedder:
 
 # --- Speicher für die Vektoren -----------------------------------------------------------------
 
+_loaded: dict = {}   # zuletzt gelesene embeddings.json (siehe load_existing)
+
+
 class EmbeddingStore:
     """data/embeddings.json: {"model": "...", "items": {"product:prod-001": {"url", "vector"}}}
 
@@ -158,18 +173,32 @@ class EmbeddingStore:
     Modelle sind nicht vergleichbar).
     """
 
-    def __init__(self, model: str):
-        data = storage.read_json(EMBEDDINGS_FILE, default=None) or {}
+    def __init__(self, model: str, data: dict | None = None):
+        if data is None:
+            data = storage.read_json(EMBEDDINGS_FILE, default=None) or {}
         self.model = model
-        self.items = data.get("items", {}) if data.get("model") == model else {}
+        same = data.get("model") == model
+        self.items = data.get("items", {}) if same else {}
+        # Stil-Schwerpunkte je Welt: {"mode": {"pins": <Fingerabdruck>, "groups": [...]}}
+        self.clusters = data.get("clusters", {}) if same else {}
 
     @classmethod
     def load_existing(cls) -> "EmbeddingStore | None":
-        """Den gespeicherten Stand laden, egal mit welchem Modell (für die App)."""
-        data = storage.read_json(EMBEDDINGS_FILE, default=None)
-        if not data or not data.get("items"):
+        """Den gespeicherten Stand laden, egal mit welchem Modell (für die App).
+
+        Die Datei kann viele MB groß sein – sie wird nur neu gelesen, wenn sie sich
+        geändert hat, sonst kommt der Stand aus dem Speicher.
+        """
+        path = storage.DATA_DIR / EMBEDDINGS_FILE
+        try:
+            stamp = (str(path), path.stat().st_mtime_ns)
+        except FileNotFoundError:
             return None
-        return cls(data["model"])
+        if _loaded.get("stamp") != stamp:
+            data = storage.read_json(EMBEDDINGS_FILE, default=None)
+            store = cls(data["model"], data) if data and data.get("items") else None
+            _loaded.update(stamp=stamp, store=store)
+        return _loaded["store"]
 
     def get(self, key: str, url: str | None = None) -> list[float] | None:
         entry = self.items.get(key)
@@ -181,7 +210,8 @@ class EmbeddingStore:
         self.items[key] = {"url": url, "vector": vector}
 
     def save(self) -> None:
-        storage.write_json(EMBEDDINGS_FILE, {"model": self.model, "items": self.items})
+        storage.write_json(EMBEDDINGS_FILE, {"model": self.model, "items": self.items,
+                                             "clusters": self.clusters})
 
     def vectors(self, prefix: str) -> dict[str, list[float]]:
         """Alle Vektoren einer Sorte, z.B. prefix="product:" -> {"prod-001": [...]}"""
@@ -232,6 +262,66 @@ def pin_affinity(product_vector: list[float], pin_vectors: list[list[float]],
     return visual_score(sum(best) / len(best))
 
 
+def pins_fingerprint(pin_ids: list[str]) -> str:
+    """Kurzer Fingerabdruck einer Pin-Auswahl – ändern sich die Pins, passen die Gruppen nicht mehr."""
+    return hashlib.sha1(",".join(sorted(pin_ids)).encode()).hexdigest()[:16]
+
+
+def mean_direction(vectors: list[list[float]]) -> list[float]:
+    return normalize([sum(column) / len(vectors) for column in zip(*vectors)])
+
+
+def kmeans(vectors: dict[str, list[float]], k: int = CLUSTERS, rounds: int = 8) -> list[dict]:
+    """Fasst ähnliche Pins zu k Gruppen zusammen -> [{"center": [...], "pins": [ids]}].
+
+    Start: der erste Pin, dann immer der Pin, der allen bisherigen Mittelpunkten am
+    unähnlichsten ist (so sind die Startpunkte gut verteilt und das Ergebnis jedes Mal gleich).
+    """
+    ids = list(vectors)
+    centers = [vectors[ids[0]]]
+    nearest = [cosine(vectors[i], centers[0]) for i in ids]
+    while len(centers) < min(k, len(ids)):
+        far = min(range(len(ids)), key=lambda n: nearest[n])
+        centers.append(vectors[ids[far]])
+        nearest = [max(old, cosine(vectors[i], centers[-1])) for old, i in zip(nearest, ids)]
+
+    assignment: list[int] = []
+    for _ in range(rounds):
+        new = [max(range(len(centers)), key=lambda c: cosine(vectors[i], centers[c])) for i in ids]
+        if new == assignment:
+            break
+        assignment = new
+        for c in range(len(centers)):
+            members = [vectors[i] for i, a in zip(ids, assignment) if a == c]
+            if members:
+                centers[c] = mean_direction(members)
+    return [{"center": centers[c], "pins": [i for i, a in zip(ids, assignment) if a == c]}
+            for c in range(len(centers)) if c in assignment]
+
+
+def build_clusters(store: EmbeddingStore, pins: list[dict]) -> None:
+    """Stil-Schwerpunkte je Welt berechnen (beim Analysieren, nicht bei jedem Klick)."""
+    from backend.matching import classify_pin
+    from backend.products import DEPARTMENTS
+    store.clusters = {}
+    for department in DEPARTMENTS:
+        vectors = {pin["id"]: store.get(f"pin:{pin['id']}") for pin in pins
+                   if department in classify_pin(pin)}
+        vectors = {pin_id: v for pin_id, v in vectors.items() if v}
+        if len(vectors) >= CLUSTER_MIN_PINS:
+            k = min(MAX_CLUSTERS, max(CLUSTERS, len(vectors) // PINS_PER_CLUSTER))
+            store.clusters[department] = {"pins": pins_fingerprint(list(vectors)),
+                                          "groups": kmeans(vectors, k)}
+
+
+def clustered_affinity(product_vector: list[float], groups: list[dict],
+                       pin_vectors: dict[str, list[float]]) -> float:
+    """Wie pin_affinity, aber nur mit den Pins der ähnlichsten Gruppen."""
+    best = sorted(groups, key=lambda g: -cosine(product_vector, g["center"]))[:CLUSTER_PROBE]
+    candidates = [pin_vectors[i] for group in best for i in group["pins"] if i in pin_vectors]
+    return pin_affinity(product_vector, candidates)
+
+
 def apply_visual(ranked: list[dict], pins: list[dict], department: str,
                  store: "EmbeddingStore | None") -> list[dict]:
     """Ergänzt die Text-Punkte aus matching.rank_products() um "sieht aus wie deine Pins".
@@ -241,17 +331,27 @@ def apply_visual(ranked: list[dict], pins: list[dict], department: str,
     from backend.matching import classify_pin
     if store is None:
         return ranked
-    pin_vectors = [store.get(f"pin:{pin['id']}") for pin in pins
-                   if department in classify_pin(pin)]
-    pin_vectors = [v for v in pin_vectors if v]
+    pin_vectors = {pin["id"]: store.get(f"pin:{pin['id']}") for pin in pins
+                   if department in classify_pin(pin)}
+    pin_vectors = {pin_id: v for pin_id, v in pin_vectors.items() if v}
     product_vectors = store.vectors("product:")
     if not pin_vectors:
         return ranked
 
+    # Passende Stil-Schwerpunkte vorhanden? (nur wenn sie zu genau diesen Pins gehören)
+    clusters = store.clusters.get(department)
+    groups = clusters["groups"] if clusters and clusters["pins"] == pins_fingerprint(list(pin_vectors)) \
+        else None
+
     results = []
     for item in ranked:
         vector = product_vectors.get(item["id"])
-        affinity = pin_affinity(vector, pin_vectors) if vector else 0.0
+        if not vector:
+            affinity = 0.0
+        elif groups:
+            affinity = clustered_affinity(vector, groups, pin_vectors)
+        else:
+            affinity = pin_affinity(vector, list(pin_vectors.values()))
         results.append({
             **item,
             "score": round(item["score"] + VISUAL_WEIGHT * affinity, 3),
@@ -276,8 +376,14 @@ def main() -> None:
     print(f"Gespeichert in {storage.DATA_DIR / EMBEDDINGS_FILE}")
     # Was ist auf den Pin-Bildern? -> Stil + Kategorie als Begriffe am Pin
     from backend import image_tags
-    tagged = image_tags.tag_pins(embedder, EmbeddingStore(embedder.name))
+    store = EmbeddingStore(embedder.name)
+    tagged = image_tags.tag_pins(embedder, store)
     print(f"Bild-Begriffe für {tagged} Pins erkannt – ansehen mit:  python -m backend.image_tags")
+    # Viele Pins? -> Stil-Schwerpunkte, damit der Shop schnell bleibt
+    build_clusters(store, storage.load_pins()["pins"])
+    store.save()
+    for department, info in store.clusters.items():
+        print(f"{department}: {len(info['groups'])} Stil-Schwerpunkte aus den Pins gebildet")
 
 
 if __name__ == "__main__":

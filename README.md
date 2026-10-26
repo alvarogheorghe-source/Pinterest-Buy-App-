@@ -284,6 +284,15 @@ gespeicherten Zahlen (das Modell muss nicht laufen).
   Tiger Mexico 66“), Kleidungsmarken mit dem Teil („Herren Carhartt Jacke“, „Ralph Lauren
   Polo“). Neue Marke = eine Zeile in `brands.py`.
 
+**Viele Pins** (gemessen mit simulierten Boards, 160 Produkte):
+- Höchstens **500 Pins** über alle Boards, die neuesten zuerst (`pins.MAX_PINS_TOTAL`).
+- **Stil-Schwerpunkte:** Beim Analysieren fasst `vision.build_clusters` ähnliche Pins zu
+  Gruppen zusammen (≥ 12, ca. eine pro 40 Pins). Ein Produkt wird erst mit den Gruppen und dann
+  nur mit den Pins der 2 ähnlichsten Gruppen verglichen. Shop-Aufruf bei 500 Pins: 0,3 s statt
+  1,9 s; bei 3000 Pins: 0,9 s statt 10,6 s – bei praktisch gleichem Ergebnis. Ändern sich die
+  Pins, rechnet die App automatisch wieder genau, bis `python -m backend.vision` neu lief.
+- `data/embeddings.json` (bei vielen Pins mehrere MB) wird nur neu gelesen, wenn sie sich ändert.
+
 **Einstellungen:** Modell per `.env` wählbar (`CLIP_MODEL=…`, Standard
 `patrickjohncyh/fashion-clip`; für Wohnen & Deko evtl. `openai/clip-vit-base-patch32`).
 Gewichte oben in `vision.py` (`VISUAL_WEIGHT`, `VISUAL_FLOOR`). Vor kommerzieller Nutzung

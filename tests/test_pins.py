@@ -42,6 +42,7 @@ def test_pins_are_loaded_saved_and_simplified(fake, client):
         "image_url": "big.jpg",   # 600x wird gegenüber 150x150 bevorzugt
         "dominant_color": "#d8c3a5",
         "link": "https://www.depop.com/products/seller-beige-hoodie/",
+        "created_at": None,
     }]
     assert saved["fetched_at"] is not None
 
@@ -96,3 +97,14 @@ def test_pick_image_url_variants():
     assert pins.pick_image_url({"images": {"originals": {"url": "o.jpg"}}}) == "o.jpg"
     # Video-Pin: kein "images", aber ein Vorschaubild
     assert pins.pick_image_url({"media_type": "video", "cover_image_url": "v.jpg"}) == "v.jpg"
+
+
+def test_only_the_newest_pins_are_kept(fake, client, monkeypatch):
+    """Riesige Boards: höchstens MAX_PINS_TOTAL Pins, die neuesten zuerst."""
+    monkeypatch.setattr(pins, "MAX_PINS_TOTAL", 3)
+    save_tokens()
+    storage.save_selected_boards(["111"])
+    fake.board_pins["111"] = [[{"id": f"p{day}", "title": "Pin",
+                                "created_at": f"2026-01-{day:02d}T10:00:00"} for day in (5, 1, 9, 3, 7)]]
+    client.post("/api/pins/refresh")
+    assert [pin["id"] for pin in client.get("/api/pins").json()["pins"]] == ["p9", "p7", "p5"]
