@@ -48,6 +48,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;              /* Logo und Navigation berühren sich nie */
   padding: 14px 16px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -1107,8 +1108,8 @@ section + section {
   color: var(--accent);
 }
 
-/* Sehr kleine Handys: Navigation enger, "Mein Pinterest" -> "Pinterest" */
-@media (max-width: 380px) {
+/* Handys: Navigation enger, "Mein Pinterest" -> "Pinterest", nie umbrechen */
+@media (max-width: 440px) {
   .header-nav {
     gap: 12px;
   }
@@ -1119,6 +1120,27 @@ section + section {
 
   .nav-prefix {
     display: none;
+  }
+}
+
+/* Sehr kleine Handys (≤ 350 px): Schrift, Logo und Abstände noch etwas kleiner */
+@media (max-width: 350px) {
+  .header-nav {
+    gap: 9px;
+  }
+
+  .header-link {
+    font-size: 0.88rem;
+  }
+
+  .logo {
+    font-size: 1.12rem;
+    gap: 4px;
+  }
+
+  .logo-pin {
+    width: 21px;
+    height: 24px;
   }
 }
 
