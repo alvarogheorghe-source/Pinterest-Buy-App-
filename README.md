@@ -280,6 +280,16 @@ gespeicherten Zahlen (das Modell muss nicht laufen).
   ohne Text. Läuft mit `python -m backend.vision`; Ergebnis ansehen:
   `python -m backend.image_tags`. Schwellen (wie sicher das Modell sein muss) stehen oben
   in der Datei.
+- **Vorprüfung:** Zuerst entscheidet das Modell, ob das Bild Mode, Wohnen oder etwas anderes
+  zeigt (Bildschirm/Gerät, Text, Essen, Landschaft, Tier, Fahrzeug, Meme). Nur bei Mode/Wohnen
+  gibt es Begriffe – und die Kategorie nur aus dieser Welt (ein Outfit vor einem Poster wird
+  nicht zu „Wandgestaltung“). Jeder Begriff wird mit 3 Formulierungen beschrieben und gemittelt
+  (zuverlässiger). Die Foto-Suche sagt bei z.B. einem Desktop-Screenshot freundlich, dass sie
+  kein Outfit sieht, statt Produkte zu zeigen.
+- **Genauigkeit messen:** Testbilder in `testbilder/<Kategorie>/` bzw. `testbilder/_kein/`
+  legen (Marke optional im Dateinamen: `bild__Adidas Samba.jpg`), dann
+  `python -m backend.image_eval` – zeigt pro Bild erkannt vs. erwartet und die Trefferquoten.
+  Der Ordner wird nicht hochgeladen.
 - **Herren oder Damen?** Bei Mode-Pins erkennt das Modell zusätzlich Herren-/Damenmode
   (`image_gender`), dazu zählen Wörter wie „men's“ oder „Damen“ (`matching.audience`). Zeigt
   das Board klar eine Richtung, sucht die App bei eBay/Etsy z.B. „Herren oversized Hose“, und

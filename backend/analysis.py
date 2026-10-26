@@ -20,6 +20,8 @@ from collections import Counter
 from backend import pin_colors, storage
 
 STATE_FILE = "analysis.json"
+# Erhöhen, wenn sich die Erkennung ändert -> gespeicherte Pins werden automatisch neu angeschaut
+VERSION = 2
 STEPS = ["farben", "vorbereiten", "bilder", "stil", "schwerpunkte"]
 
 _lock = threading.Lock()
@@ -29,7 +31,7 @@ _state: dict = {}
 def pins_fingerprint(data: dict) -> str:
     """Ändert sich, sobald andere Pins geladen wurden -> dann ist eine neue Analyse nötig."""
     ids = ",".join(sorted(pin["id"] for pin in data.get("pins", [])))
-    return hashlib.sha1(f"{data.get('fetched_at')}|{ids}".encode()).hexdigest()[:16]
+    return hashlib.sha1(f"v{VERSION}|{data.get('fetched_at')}|{ids}".encode()).hexdigest()[:16]
 
 
 def _load_state() -> dict:

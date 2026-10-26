@@ -3,7 +3,7 @@
 import pytest
 
 from backend import analysis, storage, vision
-from tests.test_image_tags import LABELS, FakeTextEmbedder, axis
+from tests.test_image_tags import MODE, FakeTextEmbedder, axis
 
 
 class FakeEmbedder(FakeTextEmbedder):
@@ -15,8 +15,8 @@ class FakeEmbedder(FakeTextEmbedder):
 
     def embed_image_urls(self, urls):
         self.images += len(urls)
-        return [None if "kaputt" in url else axis(("style:goth", 1.0), ("category:Jacken", 1.0))
-                for url in urls]
+        return [None if "kaputt" in url
+                else axis(MODE, ("style:goth", 1.0), ("category:Jacken", 1.0)) for url in urls]
 
 
 @pytest.fixture

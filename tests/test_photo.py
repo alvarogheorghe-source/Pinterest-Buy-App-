@@ -13,7 +13,7 @@ from backend import ebay, storage, vision
 from tests.test_ebay import FakeEbay, item
 from tests.test_image_tags import FakeTextEmbedder, axis
 
-PHOTO_VECTOR = axis(("style:streetwear", 1.0), ("category:Jacken", 1.0),
+PHOTO_VECTOR = axis(("gate:person", 1.0), ("style:streetwear", 1.0), ("category:Jacken", 1.0),
                     ("brand:Carhartt", 1.0), ("gender:herren", 1.0))
 
 
@@ -96,3 +96,13 @@ def test_online_search_only_for_what_is_on_the_photo(fake, client, model, monkey
     # Gemerkt -> ♡ und Detailseite funktionieren auch für Foto-Ergebnisse
     assert client.post("/api/feedback", json={"product_id": "ebay-match", "vote": "like"}).status_code == 200
     assert client.get("/api/products/ebay-match").status_code == 200
+
+
+def test_desktop_screenshot_finds_nothing(fake, client, monkeypatch):
+    class DesktopEmbedder(PhotoEmbedder):
+        def embed_image_bytes(self, images):
+            return [axis(("gate:desktop", 1.0), ("style:minimalistisch", 1.0),
+                         ("category:Wandgestaltung", 1.0)) for _ in images]
+    monkeypatch.setattr(vision, "get_embedder", DesktopEmbedder)
+    result = upload(client, jpeg("#3a6ea5")).json()
+    assert result == {"relevant": False, "seen": "desktop", "found": None, "products": []}

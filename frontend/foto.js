@@ -120,7 +120,26 @@ function chip(text) {
   return Object.assign(document.createElement("span"), { className: "chip", textContent: text });
 }
 
+// Kein Outfit, nichts fürs Zuhause: was Mali stattdessen sieht (Vorprüfung, image_tags.py)
+const NOT_FASHION = {
+  desktop: "Hmm, ich seh da eher einen Bildschirm als ein Outfit.",
+  device: "Das sieht nach einem Gerät aus – Kleidung oder Deko find ich darauf nicht.",
+  text: "Da steht vor allem Text – ich such aber nach Teilen zum Anziehen oder Hinstellen.",
+  food: "Sieht lecker aus! Aber anziehen kann man das leider nicht.",
+  landscape: "Schöne Aussicht! Nur ein Outfit find ich darauf nicht.",
+  animal: "Süß! Aber Mode für Tiere hab ich noch nicht im Angebot.",
+  vehicle: "Schickes Fahrzeug – ich such aber Kleidung und Deko.",
+  meme: "Haha! Aber da ist kein Teil drauf, das ich suchen kann.",
+};
+
 function showResult(data) {
+  if (data.relevant === false) {
+    say(`${NOT_FASHION[data.seen] || "Darauf seh ich weder Kleidung noch etwas fürs Zuhause."} `
+      + "Probier einen Screenshot von einem Fit oder ein Foto von einem Teil!");
+    drawMali("idle");
+    addAgainButton();
+    return;
+  }
   const f = data.found;
   const seen = [...f.categories, ...f.brands, ...f.colors, ...f.styles];
   if (f.gender) seen.push(GENDER[f.gender]);

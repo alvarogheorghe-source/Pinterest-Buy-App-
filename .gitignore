@@ -18,5 +18,8 @@ __pycache__/
 .venv/
 .pytest_cache/
 
+# Eigene Testbilder für die Genauigkeitsmessung (backend/image_eval.py)
+testbilder/
+
 # Gebaute Vorstellungsseite (scripts/build_site.py)
 site/

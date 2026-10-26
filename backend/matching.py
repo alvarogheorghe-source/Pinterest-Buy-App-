@@ -255,7 +255,9 @@ def build_style_profile(pins: list[dict], department: str | None = None) -> Styl
     for pin in pins:
         text = pin_text(pin)
         colors = find_terms(text, COLOR_PATTERNS)
-        image_color = color_from_hex(pin.get("dominant_color"))
+        # Bildfarbe nur, wenn das Bild Mode/Wohnen zeigt (nicht z.B. ein Essensfoto)
+        image_color = color_from_hex(pin.get("dominant_color")) \
+            if pin.get("image_relevant") is not False else None
         if image_color:
             colors.add(image_color)  # Menge -> zählt pro Pin trotzdem nur einmal
         profile.colors.update(colors)

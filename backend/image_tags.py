@@ -9,6 +9,13 @@ welche am besten zum Bild passen. Die Gewinner landen als Begriffe am Pin:
     pin["image_categories"] = ["Jacken"]          # bis zu 2 (Outfit-Fotos zeigen mehrere Teile)
     pin["image_gender"]     = "damen"             # nur bei Mode: "herren", "damen" oder None
     pin["image_brands"]     = ["Adidas Samba"]    # nur sehr sichere Treffer (brands.py)
+    pin["image_relevant"]   = True                # Vorprüfung: Mode oder Wohnen zu sehen?
+
+Vorprüfung zuerst: Zeigt das Bild Kleidung/Schuhe/Accessoires (Mode), Einrichtung (Wohnen)
+oder etwas anderes (Bildschirm, Text, Essen, Landschaft …)? Nur bei Mode/Wohnen wird
+weiter erkannt – und die Kategorie nur aus dieser Welt gewählt.
+Jeder Begriff wird mit mehreren Sätzen beschrieben (TEMPLATES) und gemittelt – das macht
+CLIP spürbar zuverlässiger.
 
 matching.build_style_profile() zählt sie wie Wörter aus dem Pin-Text – so funktionieren
 Stilprofil, Vibe-Check und die Suche bei eBay/Etsy auch bei Pins ohne Text.
@@ -24,7 +31,8 @@ from backend.brands import BRANDS, NO_BRAND_PROMPTS
 from backend.matching import CATEGORY_SYNONYMS
 from backend.vision import cosine
 
-TEMPLATE = "a photo of {}"
+# Mehrere Formulierungen pro Begriff, gemittelt ("Prompt-Ensemble")
+TEMPLATES = ["a photo of {}", "a close-up photo of {}", "a picture of {}"]
 
 # Stil -> Beschreibung auf Englisch (CLIP versteht Englisch am besten)
 STYLE_PROMPTS = {
@@ -55,8 +63,27 @@ CATEGORY_PROMPTS = {
 }
 OTHER_PROMPTS = {
     "_portrait": "a close-up portrait of a face", "_food": "food or a drink",
-    "_landscape": "a landscape or nature scene", "_text": "text, a quote or a screenshot",
-    "_animal": "an animal",
+    "_landscape": "a landscape or nature scene", "_text": "text, a quote or a document",
+    "_animal": "an animal", "_screen": "a computer screen, desktop or laptop",
+}
+
+# Vorprüfung: Was zeigt das Bild überhaupt? Schlüssel -> (Gruppe, Beschreibung)
+GATE_PROMPTS = {
+    "outfit": ("mode", "clothing or an outfit"),
+    "person": ("mode", "a person wearing an outfit"),
+    "shoes": ("mode", "shoes or sneakers"),
+    "accessory": ("mode", "a bag, jewelry or accessories"),
+    "social": ("mode", "a screenshot of a social media post showing an outfit"),
+    "room": ("wohnen", "an interior room with furniture"),
+    "decor": ("wohnen", "home decor like a vase, lamp, candle or pillow"),
+    "desktop": ("other", "a computer desktop screenshot with icons and windows"),
+    "device": ("other", "a laptop, phone, keyboard or electronic device"),
+    "text": ("other", "text, a document or a quote"),
+    "food": ("other", "food or a drink"),
+    "landscape": ("other", "a landscape or a city street without people"),
+    "animal": ("other", "an animal"),
+    "vehicle": ("other", "a car or vehicle"),
+    "meme": ("other", "a meme, cartoon or drawing"),
 }
 
 # Herren- oder Damenmode? Nur bei Mode-Pins – für passendere Suchen ("Herren Baggy Jeans")
@@ -72,6 +99,7 @@ CATEGORY_MIN = 0.40       # Kategorie ab 40 % (und nur, wenn nicht "Sonstiges" g
 SECOND_CATEGORY_MIN = 0.25  # zweites Teil im Bild (z.B. Hose UND Oberteil) ab 25 %
 GENDER_MIN = 0.70         # Herren/Damen nur, wenn ziemlich eindeutig
 BRAND_MIN = 0.60          # Marke nur, wenn sie klar vor allen anderen UND "keine Marke" liegt
+GATE_MIN = 0.50           # Mode + Wohnen zusammen mind. 50 % – sonst "nichts für Malipin"
 
 
 def softmax(scores: dict[str, float]) -> dict[str, float]:
@@ -81,41 +109,70 @@ def softmax(scores: dict[str, float]) -> dict[str, float]:
     return {key: value / total for key, value in exp.items()}
 
 
-def all_prompts() -> dict[str, str]:
-    """Schlüssel im Speicher -> vollständiger Satz, z.B. "style:goth" -> "a photo of goth …"."""
-    prompts = {f"style:{k}": TEMPLATE.format(v) for k, v in STYLE_PROMPTS.items()}
-    prompts.update({f"category:{k}": TEMPLATE.format(v)
-                    for k, v in {**CATEGORY_PROMPTS, **OTHER_PROMPTS}.items()})
-    prompts.update({f"gender:{k}": TEMPLATE.format(v) for k, v in GENDER_PROMPTS.items()})
+def descriptions() -> dict[str, str]:
+    """Schlüssel -> Beschreibung, z.B. "style:goth" -> "goth dark aesthetic fashion"."""
+    found = {f"style:{k}": v for k, v in STYLE_PROMPTS.items()}
+    found.update({f"category:{k}": v for k, v in {**CATEGORY_PROMPTS, **OTHER_PROMPTS}.items()})
+    found.update({f"gender:{k}": v for k, v in GENDER_PROMPTS.items()})
     brand_prompts = {name: brand.prompt for name, brand in BRANDS.items()}
-    prompts.update({f"brand:{k}": TEMPLATE.format(v)
-                    for k, v in {**brand_prompts, **NO_BRAND_PROMPTS}.items()})
-    return prompts
+    found.update({f"brand:{k}": v for k, v in {**brand_prompts, **NO_BRAND_PROMPTS}.items()})
+    found.update({f"gate:{k}": text for k, (_, text) in GATE_PROMPTS.items()})
+    return found
+
+
+def all_prompts() -> dict[str, list[str]]:
+    """Schlüssel -> alle Sätze, z.B. "style:goth" -> ["a photo of goth …", "a picture of goth …"]."""
+    return {key: [t.format(text) for t in TEMPLATES] for key, text in descriptions().items()}
 
 
 def label_vectors(embedder, store) -> dict[str, list[float]]:
-    """Vektoren der Sätze – einmal berechnet, dann im Speicher (data/embeddings.json)."""
+    """Ein Vektor pro Begriff = Mittel seiner Sätze. Einmal berechnet, dann im Speicher."""
+    from backend.vision import mean_direction
     prompts = all_prompts()
-    missing = [key for key, text in prompts.items() if store.get(f"label:{key}", text) is None]
+    missing = [key for key, texts in prompts.items()
+               if store.get(f"label:{key}", " | ".join(texts)) is None]
     if missing:
-        vectors = embedder.embed_texts([prompts[key] for key in missing])
-        for key, vector in zip(missing, vectors):
-            store.put(f"label:{key}", prompts[key], vector)
+        texts = [text for key in missing for text in prompts[key]]
+        vectors = iter(embedder.embed_texts(texts))
+        for key in missing:
+            group = [next(vectors) for _ in prompts[key]]
+            store.put(f"label:{key}", " | ".join(prompts[key]), mean_direction(group))
     return {key: store.get(f"label:{key}") for key in prompts}
 
 
+def gate(scores: dict[str, float]) -> tuple[bool, str | None, str]:
+    """Vorprüfung -> (relevant?, Welt "mode"/"wohnen"/None, stärkster Einzel-Treffer)."""
+    probs = softmax(scores)
+    groups = {"mode": 0.0, "wohnen": 0.0, "other": 0.0}
+    for key, p in probs.items():
+        groups[GATE_PROMPTS[key][0]] += p
+    relevant = groups["mode"] + groups["wohnen"] >= GATE_MIN
+    world = ("mode" if groups["mode"] >= groups["wohnen"] else "wohnen") if relevant else None
+    return relevant, world, max(probs, key=probs.get)
+
+
 def tag(pin_vector: list[float], labels: dict[str, list[float]]) -> dict:
-    """Ein Pin-Bild -> {"styles": [...], "categories": [...], "gender": …, "brands": [...]}"""
+    """Ein Pin-Bild -> {"relevant", "department", "seen", "styles", "categories", "gender", "brands"}"""
     def scores(prefix):
         return {key[len(prefix):]: cosine(pin_vector, vector)
                 for key, vector in labels.items() if key.startswith(prefix)}
+
+    relevant, world, seen = gate(scores("gate:"))
+    result = {"relevant": relevant, "department": world, "seen": seen,
+              "styles": [], "categories": [], "gender": None, "brands": []}
+    if not relevant:
+        return result   # Bildschirm, Essen, Text … -> keine Stil-Begriffe, keine Suche
 
     styles = sorted(softmax(scores("style:")).items(), key=lambda kv: -kv[1])
     chosen_styles = [name for name, p in styles[:1] if p >= STYLE_MIN]
     if chosen_styles and len(styles) > 1 and styles[1][1] >= SECOND_STYLE_MIN:
         chosen_styles.append(styles[1][0])
 
-    ranked = sorted(softmax(scores("category:")).items(), key=lambda kv: -kv[1])
+    # Kategorie nur aus der erkannten Welt (+ "Sonstiges"): ein Outfit vor einer Wand
+    # wird so nicht zu "Wandgestaltung"
+    category_scores = {k: v for k, v in scores("category:").items()
+                       if k.startswith("_") or CATEGORY_SYNONYMS[k][0] == world}
+    ranked = sorted(softmax(category_scores).items(), key=lambda kv: -kv[1])
     categories = []
     if ranked[0][1] >= CATEGORY_MIN and not ranked[0][0].startswith("_"):
         categories.append(ranked[0][0])
@@ -129,7 +186,8 @@ def tag(pin_vector: list[float], labels: dict[str, list[float]]) -> dict:
         gender = name if p >= GENDER_MIN else None
         name, p = max(softmax(scores("brand:")).items(), key=lambda kv: kv[1])
         brands = [name] if p >= BRAND_MIN and not name.startswith("_") else []
-    return {"styles": chosen_styles, "categories": categories, "gender": gender, "brands": brands}
+    result.update(styles=chosen_styles, categories=categories, gender=gender, brands=brands)
+    return result
 
 
 def tag_pins(embedder, store) -> int:
@@ -146,6 +204,7 @@ def tag_pins(embedder, store) -> int:
         pin["image_styles"], pin["image_categories"] = result["styles"], result["categories"]
         pin["image_gender"] = result["gender"]
         pin["image_brands"] = result["brands"]
+        pin["image_relevant"] = result["relevant"]
         tagged += 1
     if tagged:
         storage.save_pins(data)   # leert auch den eBay/Etsy-Zwischenspeicher (neues Profil)
@@ -164,6 +223,8 @@ def main() -> None:
         found = (pin["image_styles"] + pin["image_categories"] + [pin.get("image_gender") or ""]
                  + pin.get("image_brands", []))
         found = [f for f in found if f]
+        if pin.get("image_relevant") is False:
+            found = ["(keine Mode/Wohnen – zählt nicht)"]
         print(f"{text:<47} -> {', '.join(found) or '–'}")
     print(f"\n{len(tagged)} Pins mit Bild-Begriffen.")
 

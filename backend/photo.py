@@ -13,8 +13,7 @@ import io
 
 from backend import image_tags, pin_colors, vision
 from backend.brands import BRANDS
-from backend.matching import (CATEGORY_SYNONYMS, build_style_profile, classify_pin,
-                              color_from_hex, rank_products)
+from backend.matching import build_style_profile, classify_pin, color_from_hex, rank_products
 from backend.products import (DEPARTMENTS, JsonProductSource, Product, online_sources,
                               remember_photo_results)
 
@@ -48,13 +47,17 @@ def photo_pin(data: bytes, vector: list[float], embedder, store) -> dict:
         "id": "photo", "title": "", "description": "",
         "image_styles": tags["styles"], "image_categories": tags["categories"],
         "image_gender": tags["gender"], "image_brands": tags["brands"],
+        "image_relevant": tags["relevant"], "image_department": tags["department"],
+        "image_seen": tags["seen"],
         "dominant_color": pin_colors.dominant_hex(data),
     }
 
 
 def candidates(pin: dict) -> list[Product]:
     """Produkte, die zum Foto passen könnten: gezielte Online-Suche oder Beispielkatalog."""
-    departments = [d for d in DEPARTMENTS if d in classify_pin(pin)]
+    # Die Vorprüfung weiß, ob Mode oder Wohnen zu sehen ist – sonst wie bei Pins entscheiden
+    departments = ([pin["image_department"]] if pin.get("image_department")
+                   else [d for d in DEPARTMENTS if d in classify_pin(pin)])
     wanted = set(pin["image_categories"]) | {BRANDS[b].category for b in pin["image_brands"]}
     sources = online_sources()
     if not sources:
@@ -84,6 +87,9 @@ def recommend(data: bytes) -> dict:
         raise PhotoError("Das Foto konnte ich nicht öffnen.")
 
     pin = photo_pin(data, vector, embedder, store)
+    if not pin["image_relevant"]:
+        # Bildschirm, Essen, Text … -> keine Suche; Mali sagt freundlich, was er stattdessen sieht
+        return {"relevant": False, "seen": pin["image_seen"], "found": None, "products": []}
     ranked = rank_products(candidates(pin), build_style_profile([pin]))
 
     # Die besten Text-Treffer direkt mit dem Foto vergleichen (fehlende Bilder berechnen)
@@ -103,13 +109,15 @@ def recommend(data: bytes) -> dict:
 
     color = color_from_hex(pin["dominant_color"])
     return {
+        "relevant": True,
+        "seen": pin["image_seen"],
         "found": {
             "categories": pin["image_categories"],
             "styles": pin["image_styles"],
             "brands": pin["image_brands"],
             "colors": [color] if color else [],
             "gender": pin["image_gender"],
-            "department": next((CATEGORY_SYNONYMS[c][0] for c in pin["image_categories"]), None),
+            "department": pin["image_department"],
         },
         "products": top[:RESULTS],
     }

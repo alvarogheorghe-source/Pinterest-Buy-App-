@@ -30,8 +30,13 @@ class FakeTextEmbedder:
 
     def embed_texts(self, texts):
         self.texts += len(texts)
-        by_text = {text: key for key, text in image_tags.all_prompts().items()}
+        by_text = {text: key for key, group in image_tags.all_prompts().items() for text in group}
         return [LABELS[by_text[text]] for text in texts]
+
+
+# Vorprüfung: das Bild zeigt Mode bzw. etwas fürs Zuhause
+MODE = ("gate:outfit", 1.0)
+HOME = ("gate:decor", 1.0)
 
 
 def test_every_style_and_category_has_a_description():
@@ -40,20 +45,36 @@ def test_every_style_and_category_has_a_description():
 
 
 def test_clear_image_gets_style_and_category():
-    pin = axis(("style:goth", 1.0), ("category:Jacken", 1.0))
-    assert image_tags.tag(pin, LABELS) == {"styles": ["goth"], "categories": ["Jacken"], "gender": None,
-                                             "brands": []}
+    pin = axis(MODE, ("style:goth", 1.0), ("category:Jacken", 1.0))
+    assert image_tags.tag(pin, LABELS) == {
+        "relevant": True, "department": "mode", "seen": "outfit",
+        "styles": ["goth"], "categories": ["Jacken"], "gender": None, "brands": []}
 
 
 def test_two_strong_styles():
-    pin = axis(("style:boho", 1.0), ("style:natur", 0.995), ("category:Deko", 1.0))
+    pin = axis(HOME, ("style:boho", 1.0), ("style:natur", 0.995), ("category:Deko", 1.0))
     assert image_tags.tag(pin, LABELS)["styles"] == ["boho", "natur"]
 
 
 def test_food_photo_gets_no_category_and_unclear_image_nothing():
-    assert image_tags.tag(axis(("category:_food", 1.0)), LABELS)["categories"] == []
+    food = image_tags.tag(axis(("gate:food", 1.0), ("style:cozy", 1.0)), LABELS)
+    assert food["relevant"] is False and food["styles"] == [] and food["categories"] == []
     unclear = vision.normalize([1.0] * len(KEYS))      # passt zu allem gleich wenig
-    assert image_tags.tag(unclear, LABELS) == {"styles": [], "categories": [], "gender": None, "brands": []}
+    assert image_tags.tag(unclear, LABELS)["relevant"] is False
+
+
+def test_desktop_screenshot_is_not_fashion():
+    """Bildschirmfoto vom Desktop: keine Stile, keine Kategorie – nichts für Malipin."""
+    desktop = image_tags.tag(axis(("gate:desktop", 1.0), ("style:minimalistisch", 1.0),
+                                  ("category:Wandgestaltung", 1.0)), LABELS)
+    assert desktop == {"relevant": False, "department": None, "seen": "desktop", "styles": [],
+                       "categories": [], "gender": None, "brands": []}
+
+
+def test_outfit_in_front_of_a_wall_is_not_wall_art():
+    """Erkannte Welt Mode -> Kategorie nur aus Mode, auch wenn das Poster dahinter stark ist."""
+    pin = axis(MODE, ("category:Wandgestaltung", 1.0), ("category:Hosen", 0.9))
+    assert image_tags.tag(pin, LABELS)["categories"] == ["Hosen"]
 
 
 def test_pins_without_text_get_a_profile_and_a_vibe(fake):
@@ -61,7 +82,8 @@ def test_pins_without_text_get_a_profile_and_a_vibe(fake):
     storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": pins})
     store = vision.EmbeddingStore("fake-model")
     for pin in pins:
-        store.put(f"pin:{pin['id']}", pin["image_url"], axis(("style:goth", 1.0), ("category:Jacken", 1.0)))
+        store.put(f"pin:{pin['id']}", pin["image_url"],
+                  axis(MODE, ("style:goth", 1.0), ("category:Jacken", 1.0)))
 
     embedder = FakeTextEmbedder()
     assert image_tags.tag_pins(embedder, store) == 3
@@ -75,11 +97,11 @@ def test_pins_without_text_get_a_profile_and_a_vibe(fake):
 
     # Sätze werden nur einmal berechnet
     image_tags.tag_pins(embedder, vision.EmbeddingStore("fake-model"))
-    assert embedder.texts == len(KEYS)
+    assert embedder.texts == len(KEYS) * len(image_tags.TEMPLATES)
 
 
 def test_outfit_photo_gets_two_categories_and_gender():
-    pin = axis(("style:casual", 1.0), ("category:Hosen", 1.0), ("category:Oberteile", 0.997),
+    pin = axis(MODE, ("style:casual", 1.0), ("category:Hosen", 1.0), ("category:Oberteile", 0.997),
                ("gender:herren", 1.0))
     result = image_tags.tag(pin, LABELS)
     assert result["categories"] == ["Hosen", "Oberteile"]
@@ -87,16 +109,17 @@ def test_outfit_photo_gets_two_categories_and_gender():
 
 
 def test_no_gender_for_home_decor():
-    pin = axis(("category:Leuchten", 1.0), ("gender:damen", 1.0))
+    pin = axis(HOME, ("category:Leuchten", 1.0), ("gender:damen", 1.0))
     assert image_tags.tag(pin, LABELS)["gender"] is None
 
 
 def test_brand_only_when_clearly_visible():
-    sneaker = axis(("category:Schuhe", 1.0), ("brand:Adidas Samba", 1.0))
+    sneaker = axis(MODE, ("category:Schuhe", 1.0), ("brand:Adidas Samba", 1.0))
     assert image_tags.tag(sneaker, LABELS)["brands"] == ["Adidas Samba"]
-    plain = axis(("category:Schuhe", 1.0), ("brand:_plain_shoes", 1.0))
+    plain = axis(MODE, ("category:Schuhe", 1.0), ("brand:_plain_shoes", 1.0))
     assert image_tags.tag(plain, LABELS)["brands"] == []
-    unsure = axis(("category:Schuhe", 1.0), ("brand:Adidas Samba", 1.0), ("brand:Adidas Gazelle", 1.0))
+    unsure = axis(MODE, ("category:Schuhe", 1.0), ("brand:Adidas Samba", 1.0),
+                  ("brand:Adidas Gazelle", 1.0))
     assert image_tags.tag(unsure, LABELS)["brands"] == []          # 50/50 -> lieber nichts
-    lamp = axis(("category:Leuchten", 1.0), ("brand:Carhartt", 1.0))
+    lamp = axis(HOME, ("category:Leuchten", 1.0), ("brand:Carhartt", 1.0))
     assert image_tags.tag(lamp, LABELS)["brands"] == []            # Marken nur bei Mode
