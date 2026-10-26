@@ -1083,6 +1083,9 @@ section + section {
 }
 
 .photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   margin: 16px 0 8px;
 }
 
