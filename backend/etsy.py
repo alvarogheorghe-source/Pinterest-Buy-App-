@@ -20,6 +20,7 @@ import re
 import httpx
 
 from backend import storage
+from backend.i18n import tr
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
 from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError
@@ -66,7 +67,7 @@ def _get(path: str, params: dict) -> dict:
         raise ProductSourceError("Etsy-Anmeldung fehlgeschlagen – stimmen ETSY_API_KEY und "
                                  "ETSY_SHARED_SECRET in .env, und hat Etsy die App freigegeben?")
     if response.status_code != 200:
-        raise ProductSourceError(f"Etsy-Suche fehlgeschlagen ({response.status_code}).")
+        raise ProductSourceError(tr("Etsy-Suche fehlgeschlagen ({code}).", code=response.status_code))
     return response.json()
 
 

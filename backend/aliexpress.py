@@ -25,6 +25,7 @@ import time
 import httpx
 
 from backend import shops, storage
+from backend.i18n import tr
 from backend.counterfeit import looks_like_fake, mentions_brand
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
@@ -71,7 +72,7 @@ def search(query: str) -> list[dict]:
     with _http() as client:
         response = client.post(API_URL, data=params)
     if response.status_code != 200:
-        raise ProductSourceError(f"AliExpress-Suche fehlgeschlagen ({response.status_code}).")
+        raise ProductSourceError(tr("AliExpress-Suche fehlgeschlagen ({code}).", code=response.status_code))
     data = response.json()
     if "error_response" in data:
         raise ProductSourceError("AliExpress-Anmeldung fehlgeschlagen – stimmen ALIEXPRESS_APP_KEY, "

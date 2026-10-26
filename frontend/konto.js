@@ -13,12 +13,12 @@ async function init() {
 
   const me = await fetch("/api/me").then((r) => r.json());
   if (!me.connected) {
-    statusText.textContent = error ? `Login abgebrochen (${error}).` : "Nicht verbunden.";
+    statusText.textContent = error ? t("Login abgebrochen ({error}).", { error }) : "Nicht verbunden.";
     loginSection.hidden = false;
     return;
   }
 
-  statusText.textContent = `Verbunden als ${me.username}`;
+  statusText.textContent = t("Verbunden als {name}", { name: me.username });
   boardsSection.hidden = false;
   await loadBoards();
   await showSavedPins();
@@ -79,7 +79,7 @@ document.getElementById("save-button").addEventListener("click", async () => {
     body: JSON.stringify({ board_ids: boardIds }),
   });
   saveMessage.textContent = response.ok
-    ? `${boardIds.length} Board(s) gespeichert.`
+    ? t("{n} Board(s) gespeichert.", { n: boardIds.length })
     : "Speichern fehlgeschlagen.";
 });
 
@@ -95,8 +95,8 @@ async function showSavedPins() {
     pinsMessage.textContent = "Noch keine Pins geladen.";
     return;
   }
-  const date = new Date(data.fetched_at * 1000).toLocaleString("de-AT");
-  pinsMessage.textContent = `${data.pins.length} Pins gespeichert (Stand: ${date})`;
+  const date = new Date(data.fetched_at * 1000).toLocaleString(window.LOCALE || "de-AT");
+  pinsMessage.textContent = t("{n} Pins gespeichert (Stand: {date})", { n: data.pins.length, date });
 
   // Stilprofil (Schritt 5): die häufigsten Farben und Stile
   // Zwei Stilprofile: Mode und Wohnen & Deko
@@ -105,10 +105,10 @@ async function showSavedPins() {
   for (const [department, name] of [["mode", "Mode"], ["wohnen", "Wohnen & Deko"]]) {
     const profile = profiles[department];
     const terms = [...profile.top_colors, ...profile.top_styles];
-    if (terms.length) lines.push(`${name}: ${terms.join(" · ")}`);
+    if (terms.length) lines.push(`${t(name)}: ${terms.map((x) => t(x)).join(" · ")}`);
   }
   document.getElementById("profile-text").textContent = lines.length
-    ? `Dein Stil – ${lines.join("  |  ")}`
+    ? t("Dein Stil – {lines}", { lines: lines.join("  |  ") })
     : "In deinen Pins wurden noch keine Farb- oder Stilwörter gefunden.";
   document.getElementById("shop-link").hidden = false;
 
@@ -152,7 +152,7 @@ async function showFeedback() {
   const likes = votes.filter((v) => v.vote === "like").length;
   const dislikes = votes.length - likes;
   feedbackText.textContent = votes.length
-    ? `${likes} × 👍 und ${dislikes} × 👎. Damit sortieren wir deine Vorschläge.`
+    ? t("{likes} × 👍 und {dislikes} × 👎. Damit sortieren wir deine Vorschläge.", { likes, dislikes })
     : "Noch keine Bewertungen. Bewerte Produkte im Shop mit 👍 oder 👎.";
   feedbackReset.hidden = votes.length === 0;
 }
@@ -167,8 +167,8 @@ showFeedback();
 
 // --- Alle meine Daten löschen (DELETE /api/me) ---
 document.getElementById("delete-data-button").addEventListener("click", async () => {
-  const sure = confirm("Wirklich ALLES löschen? Pinterest-Verbindung, Pins, Merkliste und "
-    + "Bewertungen sind danach endgültig weg.");
+  const sure = confirm(t("Wirklich ALLES löschen? Pinterest-Verbindung, Pins, Merkliste und "
+    + "Bewertungen sind danach endgültig weg."));
   if (!sure) return;
   const message = document.getElementById("delete-data-message");
   const response = await fetch("/api/me", { method: "DELETE" });

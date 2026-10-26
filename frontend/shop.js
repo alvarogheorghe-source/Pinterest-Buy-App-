@@ -34,7 +34,7 @@ function writeHash(department, tab) {
 
 // Preise schön formatieren, z.B. 34.99 -> "34,99 €"
 function formatPrice(price, currency) {
-  return new Intl.NumberFormat("de-AT", { style: "currency", currency }).format(price);
+  return new Intl.NumberFormat(window.LOCALE || "de-AT", { style: "currency", currency }).format(price);
 }
 
 // Sortiert nach Preis. Teile ohne Preis oder in fremder Währung (£, $) kommen ans
@@ -99,11 +99,12 @@ const SOURCE_NAMES = { ebay: "eBay", etsy: "Etsy", aliexpress: "AliExpress", fee
 function showSources(sources) {
   const online = sources.filter((s) => SOURCE_NAMES[s]).map((s) => SOURCE_NAMES[s]);
   const text = online.length
-    ? `echte Angebote von ${online.join(" und ")} (stündlich aktualisiert)`
+    ? t("echte Angebote von {shops} (stündlich aktualisiert)", { shops: online.join(t(" und ")) })
     : "Beispielprodukte (erfunden)";
   resultCount.textContent += ` · ${text}`;
   document.getElementById("source-note").textContent =
-    online.length ? `Produkte: ${online.join(", ")}` : "Prototyp mit erfundenen Beispielprodukten";
+    online.length ? t("Produkte: {shops}", { shops: online.join(", ") })
+      : "Prototyp mit erfundenen Beispielprodukten";
   // Pflicht-Hinweis aus den Etsy-API-Bedingungen
   document.getElementById("etsy-attribution").hidden = !sources.includes("etsy");
 }
@@ -113,8 +114,8 @@ function showWarnings(warnings) {
   const box = document.getElementById("source-warning");
   box.hidden = !warnings.length;
   box.textContent = warnings.map((w) =>
-    `${SOURCE_NAMES[w.source] || w.source} antwortet gerade nicht – du siehst nur einen Teil der Angebote. `
-    + `(${w.message})`).join(" ");
+    t("{source} antwortet gerade nicht – du siehst nur einen Teil der Angebote.",
+      { source: t(SOURCE_NAMES[w.source] || w.source) }) + ` (${w.message})`).join(" ");
 }
 
 // --- Oben: Stilprofil der gewählten Welt ---------------------------------------------------
@@ -129,10 +130,10 @@ function renderBanner(profile) {
   const terms = [...profile.top_colors, ...profile.top_styles];
   if (profile.pin_count > 0 && terms.length === 0) {
     // Pins sind da, aber ohne erkennbare Wörter (z.B. nur "fit 🤍")
-    title.textContent = `Dein Stil · ${worldName}`;
+    title.textContent = t("Dein Stil · {world}", { world: t(worldName) });
     text.className = "muted";
-    text.textContent = `${profile.pin_count} Pins geladen – sie haben kaum Text. Ich sortiere ` +
-      "deshalb vor allem nach Bildern und Farben (falls die Bilderkennung eingerichtet ist).";
+    text.textContent = t("{n} Pins geladen – sie haben kaum Text. Ich sortiere deshalb vor allem "
+      + "nach Bildern und Farben (falls die Bilderkennung eingerichtet ist).", { n: profile.pin_count });
     return;
   }
   if (profile.pin_count === 0) {
@@ -144,9 +145,9 @@ function renderBanner(profile) {
     return;
   }
 
-  title.textContent = `Dein Stil · ${worldName}`;
+  title.textContent = t("Dein Stil · {world}", { world: t(worldName) });
   text.className = "muted";
-  text.textContent = `Aus ${profile.pin_count} Pins erkannt:`;
+  text.textContent = t("Aus {n} Pins erkannt:", { n: profile.pin_count });
   banner.appendChild(tagList(terms));
 
   // Welche Arten von Teilen zeigen die Pins? (z.B. "Deko", "Leuchten")
@@ -168,7 +169,7 @@ function connectButton() {
     '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' +
     '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/>' +
     '<path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>' +
-    "Mit Pinterest verbinden";
+    t("Mit Pinterest verbinden");
   return button;
 }
 
@@ -188,7 +189,7 @@ function tagList(terms, className = "tag") {
 
 function renderGrid(cards, singular, plural, emptyText) {
   grid.innerHTML = "";
-  resultCount.textContent = `${cards.length} ${cards.length === 1 ? singular : plural}`;
+  resultCount.textContent = `${cards.length} ${t(cards.length === 1 ? singular : plural)}`;
   if (cards.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty muted";
@@ -203,7 +204,7 @@ function renderGrid(cards, singular, plural, emptyText) {
 function productToCard(product, hasProfile) {
   return {
     imageUrl: product.image_url,
-    topLine: `${product.shop} · ${product.category}`,
+    topLine: `${product.shop} · ${t(product.category)}`,
     title: product.name,
     price: formatPrice(product.price, product.currency),
     note: hasProfile ? product.reason : "",
@@ -222,7 +223,7 @@ function productToCard(product, hasProfile) {
     // Nur wenn wir am Link verdienen (Affiliate), ist es Werbung – sonst "Link zu eBay"
     // sponsored = bezahlter Link (für Suchmaschinen), noopener = Shop kann unsere Seite nicht steuern
     rel: product.sponsored ? "sponsored noopener" : "noopener",
-    label: product.sponsored ? "Werbung" : `Link zu ${shopName(product)}`,
+    label: product.sponsored ? "Werbung" : t("Link zu {shop}", { shop: shopName(product) }),
     labelClass: product.sponsored ? "ad-label" : "source-label",
   };
 }
@@ -231,10 +232,11 @@ function productToCard(product, hasProfile) {
 function pinItemToCard(item) {
   return {
     imageUrl: item.image_url,
-    topLine: `${item.platform} · ${item.platform_type}`,
+    topLine: `${item.platform} · ${t(item.platform_type)}`,
     title: item.title || "Ohne Titel",
     // "ca.", weil der Preis nur aus dem Pin-Text gelesen wurde
-    price: item.price != null ? `ca. ${formatPrice(item.price, item.currency)}` : "Preis im Shop",
+    price: item.price != null ? t("ca. {price}", { price: formatPrice(item.price, item.currency) })
+      : "Preis im Shop",
     note: item.description,
     buttonText: "Zum Angebot",
     href: item.link,

@@ -19,7 +19,7 @@ def test_translate_texts_attributes_and_text_after_icons():
 
 
 def test_every_homepage_text_has_an_english_translation():
-    """Schlägt fehl? Neuen deutschen Text in website/en.json übersetzen."""
+    """Schlägt fehl? Neuen deutschen Text in frontend/i18n/en.json übersetzen."""
     german = build_site.static_index((build_site.FRONTEND / "index.html").read_text("utf-8"))
     translations, same = i18n.load()
     assert i18n.missing(german, translations, same) == []

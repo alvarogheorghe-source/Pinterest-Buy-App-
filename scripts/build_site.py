@@ -75,6 +75,8 @@ def static_index(source: str) -> str:
                         "<p>Malipin startet bald.</p>")
     # Kein Server -> kein Merklisten-Zähler; Mali weiß, dass er auf der Vorstellungsseite ist
     page = page.replace('  <script src="/nav.js" defer></script>\n', "")
+    page = page.replace('  <!-- Sprache (Deutsch/Englisch) – vor allen anderen Skripten -->\n'
+                        '  <script src="/i18n-en.js"></script>\n  <script src="/i18n.js"></script>\n', "")
     page = page.replace("<body", "<body data-static", 1)
 
     leftovers = re.findall(r'href="/(?:konto|shop|merkliste|produkt|foto)\.html|href="/auth/', page)
@@ -289,7 +291,7 @@ def english_index(german: str) -> str:
     translations, same = i18n.load()
     missing = i18n.missing(german, translations, same)
     if missing:
-        raise BuildError("Englische Übersetzung fehlt in website/en.json für:\n  - "
+        raise BuildError("Englische Übersetzung fehlt in frontend/i18n/en.json für:\n  - "
                          + "\n  - ".join(missing))
     return localize(i18n.translate(german, translations), "en")
 

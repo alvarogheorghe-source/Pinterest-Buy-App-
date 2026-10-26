@@ -142,7 +142,7 @@
     ctx.textAlign = "center";
     ctx.font = `600 32px ${SANS}`;
     ctx.fillStyle = look.muted;
-    ctx.fillText("MEIN PINTEREST-VIBE", W / 2, 222);
+    ctx.fillText(t("MEIN PINTEREST-VIBE"), W / 2, 222);
 
     // --- Malis Sprechblase: "Du bist …" + Vibe + Spruch ---
     const boxX = 80;
@@ -181,14 +181,14 @@
 
     ctx.font = `600 38px ${SANS}`;
     ctx.fillStyle = "#6f5a63";
-    ctx.fillText("Du bist …", W / 2, yDu);
+    ctx.fillText(t("Du bist …"), W / 2, yDu);
     ctx.font = `700 ${titleSize}px ${SERIF}`;
     ctx.fillStyle = look.title;
     titleLines.forEach((line, i) => ctx.fillText(line, W / 2, yTitle[i]));
     if (second) {
       ctx.font = `italic 42px ${SERIF}`;
       ctx.fillStyle = "#6f5a63";
-      ctx.fillText(`… mit einer Prise ${second}`, W / 2, ySecond);
+      ctx.fillText(t("… mit einer Prise {second}", { second }), W / 2, ySecond);
     }
     ctx.font = `38px ${SANS}`;
     ctx.fillStyle = "#2f2328";
@@ -222,7 +222,7 @@
         ctx.stroke();
         ctx.font = `600 30px ${SANS}`;
         ctx.fillStyle = look.muted;
-        ctx.fillText(color.name, x, y + 88);
+        ctx.fillText(t(color.name), x, y + 88);
         x += gap;
       }
       y += 150;
@@ -232,7 +232,7 @@
     if (vibe.terms && vibe.terms.length && y <= bottom + 30) {
       ctx.font = `600 36px ${SANS}`;
       ctx.fillStyle = look.accent;
-      ctx.fillText(vibe.terms.map((t) => `#${t.replace(/\s+/g, "")}`).join("  "), W / 2, y);
+      ctx.fillText(vibe.terms.map((term) => `#${t(term).replace(/\s+/g, "")}`).join("  "), W / 2, y);
     }
 
     // Fuß: Einladung
@@ -241,7 +241,7 @@
     ctx.fill();
     ctx.font = `700 42px ${SANS}`;
     ctx.fillStyle = look.ctaText;
-    ctx.fillText(`Finde deinen Vibe → ${SITE}`, W / 2, H - 150);
+    ctx.fillText(t("Finde deinen Vibe → {site}", { site: SITE }), W / 2, H - 150);
 
     return canvas;
   }
@@ -272,12 +272,12 @@
     const overlay = document.createElement("div");
     overlay.className = "vibecard-overlay";
     overlay.setAttribute("role", "dialog");
-    overlay.setAttribute("aria-label", "Deine Vibe-Karte");
+    overlay.setAttribute("aria-label", t("Deine Vibe-Karte"));
     const box = document.createElement("div");
     box.className = "vibecard-box";
     const img = Object.assign(document.createElement("img"), {
       src: URL.createObjectURL(blob),
-      alt: `Vibe-Karte: ${vibe.title}`,
+      alt: t("Vibe-Karte: {title}", { title: vibe.title }),
       className: "vibecard-image",
     });
     const actions = document.createElement("div");
@@ -292,7 +292,7 @@
         await navigator.share({
           files: [file],
           title: "Mein Malipin-Vibe",
-          text: `Mein Pinterest-Vibe: ${vibe.title} – finde deinen auf ${SITE}`,
+          text: t("Mein Pinterest-Vibe: {title} – finde deinen auf {site}", { title: vibe.title, site: SITE }),
         });
       } catch (error) {
         // Abgebrochen ist okay; bei anderen Fehlern einfach herunterladen

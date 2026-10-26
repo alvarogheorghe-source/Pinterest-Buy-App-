@@ -121,7 +121,7 @@
     const lines = TALK[state.step] || TALK.bilder;
     // Ab und zu den echten Fortschritt erwähnen
     if (state.step === "bilder" && state.total && talkIndex % 3 === 2) {
-      say(`Schon ${state.done} von ${state.total} Bildern – läuft! 🏃`);
+      say(t("Schon {done} von {total} Bildern – läuft! 🏃", { done: state.done, total: state.total }));
     } else {
       say(lines[talkIndex % lines.length]);
     }
@@ -138,8 +138,9 @@
       li.className = s.status === "done" || i < current ? "done" : i === current ? "active" : "";
     });
     count.textContent = s.status === "running" && s.step === "bilder" && s.total
-      ? `${s.done} von ${s.total} Bildern` : "";
-    pill.textContent = s.status === "running" ? `🥕 Mali arbeitet … ${pct} %` : "🥕 Mali ist fertig!";
+      ? t("{done} von {total} Bildern", { done: s.done, total: s.total }) : "";
+    pill.textContent = s.status === "running" ? t("🥕 Mali arbeitet … {pct} %", { pct })
+      : "🥕 Mali ist fertig!";
 
     actions.replaceChildren();
     found.replaceChildren();
@@ -150,7 +151,7 @@
       if (s.vision === false) {
         say("Fertig! Ohne Bilderkennung hab ich mir Farben und Texte angeschaut.");
       } else if (s.found && s.found.length) {
-        say(`Ich hab dich durchschaut: ${s.found.slice(0, 3).join(", ")} … 😏`);
+        say(t("Ich hab dich durchschaut: {terms} … 😏", { terms: s.found.slice(0, 3).map((x) => t(x)).join(", ") }));
         for (const term of s.found) found.appendChild(el("span", "chip", term));
       } else {
         say("Fertig! Deine Pins sind jetzt in meinem Hasen-Gedächtnis. 🥕");

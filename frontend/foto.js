@@ -151,8 +151,8 @@ const NOT_FASHION_UNSURE = [
 function showResult(data) {
   if (data.relevant === false) {
     const unsure = NOT_FASHION_UNSURE[Math.floor(Math.random() * NOT_FASHION_UNSURE.length)];
-    say(`${NOT_FASHION[data.seen] || unsure} `
-      + "Probier einen Screenshot von einem Fit oder ein Foto von einem Teil!");
+    say(`${t(NOT_FASHION[data.seen] || unsure)} `
+      + t("Probier einen Screenshot von einem Fit oder ein Foto von einem Teil!"));
     drawMali("idle");
     addAgainButton();
     addForceButton();
@@ -162,7 +162,7 @@ function showResult(data) {
   const seen = [...f.categories, ...(f.details || []), ...f.brands, ...f.colors, ...f.styles];
   if (f.gender) seen.push(GENDER[f.gender]);
   if (seen.length) {
-    say(`Ich seh: ${seen.slice(0, 3).join(", ")}! Hier sind ähnliche Teile 🥕`);
+    say(t("Ich seh: {terms}! Hier sind ähnliche Teile 🥕", { terms: seen.slice(0, 3).map((x) => t(x)).join(", ") }));
     foundBox.append(Object.assign(document.createElement("p"), { textContent: "Mali sieht:" }));
     for (const term of seen) foundBox.appendChild(chip(term));
   } else {
@@ -215,7 +215,7 @@ function addAgainButton() {
 // --- Produktkarte (wie im Shop) ------------------------------------------------------------------
 
 function formatPrice(price, currency = "EUR") {
-  return new Intl.NumberFormat("de-AT", { style: "currency", currency }).format(price);
+  return new Intl.NumberFormat(window.LOCALE || "de-AT", { style: "currency", currency }).format(price);
 }
 
 function el(tag, className, text) {
@@ -244,9 +244,9 @@ function card(product) {
   });
   actionsRow.append(shop, product.sponsored
     ? el("span", "ad-label", "Werbung")
-    : el("span", "source-label", `Link zu ${shopName(product)}`));
+    : el("span", "source-label", t("Link zu {shop}", { shop: shopName(product) })));
   body.append(
-    el("p", "card-shop", `${product.shop} · ${product.category}`),
+    el("p", "card-shop", `${product.shop} · ${t(product.category)}`),
     titleLink,
     el("p", "card-price", formatPrice(product.price, product.currency)),
     el("p", "card-reason", product.looks_like_photo ? "Sieht aus wie dein Foto" : product.reason),

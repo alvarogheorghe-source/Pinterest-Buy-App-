@@ -12,6 +12,7 @@ Neue Vibes oder Sprüche? Einfach unten in VIBES ergänzen.
 import random
 from dataclasses import dataclass
 
+from backend.i18n import tr
 from backend.matching import StyleProfile, audience, build_style_profile
 
 # Farbtupfer für die Vibe-Karte zum Teilen (frontend/vibecard.js)
@@ -215,16 +216,17 @@ def vibe_check(pins: list[dict], rng: random.Random | None = None, avoid: str | 
                 else None
 
     top_terms = [t for t, _ in (profile.styles + profile.colors).most_common(3)]
+    lines = [tr(line) for line in best.lines]          # in der Sprache der Person
     return {
-        "title": best.title,
+        "title": tr(best.title),
         "emoji": best.emoji,
         # "Anderer Spruch": nie zweimal hintereinander derselbe (avoid = der letzte)
-        "text": rng.choice([line for line in best.lines if line != avoid] or best.lines),
-        "second": f"{second.emoji} {second.title}".strip() if second else None,
-        "second_title": second.title if second else None,    # ohne Emoji, für die Karte
+        "text": rng.choice([line for line in lines if line != avoid] or lines),
+        "second": f"{second.emoji} {tr(second.title)}".strip() if second else None,
+        "second_title": tr(second.title) if second else None,    # ohne Emoji, für die Karte
         "look": LOOKS.get(best.title, "rosa"),
-        "terms": top_terms,
-        "colors": [{"name": name, "hex": SWATCHES[name]}
+        "terms": [tr(term) for term in top_terms],
+        "colors": [{"name": tr(name), "hex": SWATCHES[name]}
                    for name, _ in profile.colors.most_common(4) if name in SWATCHES],
         "pin_count": profile.pin_count,
     }

@@ -115,10 +115,11 @@ class CachedSource(ProductSource):
         cached = storage.read_json(self.cache_file, default=None)
         if cached and cached.get("fetched_at", 0) > time.time() - self.cache_seconds:
             return [Product(**p) for p in cached["products"]]
+        from backend.i18n import tr
         try:
             products = self.fetch()
         except httpx.HTTPError as err:   # kein Internet, Zeitüberschreitung …
-            raise ProductSourceError(f"{self.name} ist gerade nicht erreichbar.") from err
+            raise ProductSourceError(tr("{name} ist gerade nicht erreichbar.", name=self.name)) from err
         storage.write_json(self.cache_file, {"fetched_at": time.time(),
                                              "products": [p.model_dump() for p in products]})
         return products

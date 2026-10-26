@@ -1,7 +1,7 @@
 """Übersetzt die Startseite für die öffentliche Website (scripts/build_site.py -> /en/).
 
 Deutsch bleibt die einzige Quelle (frontend/index.html). Die englischen Texte stehen in
-website/en.json als "deutscher Text" -> "englischer Text". Übersetzt werden:
+frontend/i18n/en.json als "deutscher Text" -> "englischer Text". Übersetzt werden:
 - sichtbare Texte zwischen den Tags
 - Attribute, die Menschen lesen: aria-label, alt, title, placeholder
 - Meta-Texte für Google & Teilen: description, og:title, og:description, og:image:alt
@@ -17,7 +17,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-TRANSLATIONS = ROOT / "website" / "en.json"
+TRANSLATIONS = ROOT / "frontend" / "i18n" / "en.json"
 
 # Bereiche, die nicht übersetzt werden (Code, Grafiken, Kommentare)
 _PROTECTED = re.compile(r"<script\b.*?</script>|<style\b.*?</style>|<svg\b.*?</svg>|<!--.*?-->",

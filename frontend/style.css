@@ -1345,3 +1345,14 @@ section + section {
   color: #6b4e16;
   font-size: 0.9rem;
 }
+
+/* Sprachumschalter (i18n.js): am Handy ist die Kopfzeile zu eng -> nur unten im Footer */
+.footer-lang {
+  margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+  body:not(.landing) .header-nav .lang-switch {
+    display: none;
+  }
+}

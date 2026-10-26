@@ -6,7 +6,7 @@ const masonry = document.getElementById("masonry");
 const backLink = document.getElementById("back-link");
 
 function formatPrice(price, currency) {
-  return new Intl.NumberFormat("de-AT", { style: "currency", currency }).format(price);
+  return new Intl.NumberFormat(window.LOCALE || "de-AT", { style: "currency", currency }).format(price);
 }
 
 // Kleiner Helfer: Element mit Klasse und Text bauen (Text immer über textContent)
@@ -41,7 +41,7 @@ function shopButton(product) {
   link.rel = product.sponsored ? "sponsored noopener" : "noopener";
   actions.append(link, product.sponsored
     ? el("span", "ad-label", "Werbung")
-    : el("span", "source-label", `Link zu ${shopName(product)}`));
+    : el("span", "source-label", t("Link zu {shop}", { shop: shopName(product) })));
   return actions;
 }
 
@@ -112,7 +112,7 @@ function renderSimilar(items) {
       body.appendChild(el("p", "card-hint", "Sieht ähnlich aus")); // Bilderkennung
     }
     if (item.shared.length) {
-      body.appendChild(el("p", "pin-card-shared", `Auch ${item.shared.slice(0, 3).join(" · ")}`));
+      body.appendChild(el("p", "pin-card-shared", t("Auch {terms}", { terms: item.shared.slice(0, 3).map((x) => t(x)).join(" · ") })));
     }
     card.append(imageBox, body);
 

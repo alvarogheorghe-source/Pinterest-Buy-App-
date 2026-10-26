@@ -9,13 +9,14 @@ import time
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import (analysis, feedback, matching, photo, pins, pinterest, products,
+from backend import (analysis, feedback, i18n, matching, photo, pins, pinterest, products,
                      shop_links, shops, similar, storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
@@ -58,25 +59,41 @@ def multi_user() -> bool:
 
 # Reihenfolge: die Session (äußere Schicht) muss da sein, bevor UserMiddleware sie liest
 app.add_middleware(UserMiddleware)
+app.add_middleware(i18n.LanguageMiddleware)   # Sprache pro Anfrage (Cookie "lang" / Browser)
 app.add_middleware(SessionMiddleware, secret_key=session_secret, same_site="lax",
                    max_age=365 * 24 * 3600)  # Kennung bleibt ein Jahr (sonst Daten "weg")
 
 
 # --- Fehlerbehandlung -------------------------------------------------------------
 
+# Fehlermeldungen in der Sprache der Person (Wörterbuch frontend/i18n/en.json)
 @app.exception_handler(pinterest.NotConnectedError)
 def not_connected(request: Request, exc: pinterest.NotConnectedError):
-    return JSONResponse(status_code=401, content={"detail": str(exc)})
+    return JSONResponse(status_code=401, content={"detail": i18n.tr(str(exc))})
 
 
 @app.exception_handler(products.ProductSourceError)
 def products_broken(request: Request, exc: products.ProductSourceError):
-    return JSONResponse(status_code=500, content={"detail": str(exc)})
+    return JSONResponse(status_code=500, content={"detail": i18n.tr(str(exc))})
 
 
 @app.exception_handler(ConfigError)
 def config_missing(request: Request, exc: ConfigError):
-    return JSONResponse(status_code=500, content={"detail": str(exc)})
+    return JSONResponse(status_code=500, content={"detail": i18n.tr(str(exc))})
+
+
+@app.exception_handler(StarletteHTTPException)
+def http_error(request: Request, exc: StarletteHTTPException):
+    detail = i18n.tr(exc.detail) if isinstance(exc.detail, str) else exc.detail
+    return JSONResponse(status_code=exc.status_code, content={"detail": detail},
+                        headers=getattr(exc, "headers", None))
+
+
+@app.get("/i18n-en.js", include_in_schema=False)
+def english_dictionary():
+    """Wörterbuch für den Browser (frontend/i18n.js) – kurz zwischenspeicherbar."""
+    return Response(i18n.dictionary_script(), media_type="application/javascript",
+                    headers={"Cache-Control": "public, max-age=300"})
 
 
 # --- Allgemein ----------------------------------------------------------------------

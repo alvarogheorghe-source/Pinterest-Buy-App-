@@ -333,18 +333,19 @@ def audience(pins: list[dict]) -> str | None:
 
 def explain(matched: list[str], profile: StyleProfile) -> str:
     """Ein Satz, warum ein Produkt passt."""
+    from backend.i18n import tr   # Sprache der Person (Deutsch/Englisch)
     if not matched:
-        return "Kein direkter Treffer mit deinem Stilprofil – zum Entdecken."
+        return tr("Kein direkter Treffer mit deinem Stilprofil – zum Entdecken.")
 
     def pins_text(term: str) -> str:
         n = profile.mentions(term)
-        return f"{term} ({n} {'Pin' if n == 1 else 'Pins'})"
+        return tr("{term} ({n} Pin)" if n == 1 else "{term} ({n} Pins)", term=tr(term), n=n)
 
     top = matched[:2]  # die zwei wichtigsten Gründe reichen
     if len(top) == 1:
-        return f"Passt zu dir, weil {pins_text(top[0])} oft in deinen Pins vorkommt."
-    return (f"Passt zu dir, weil {pins_text(top[0])} und {pins_text(top[1])} "
-            f"oft in deinen Pins vorkommen.")
+        return tr("Passt zu dir, weil {a} oft in deinen Pins vorkommt.", a=pins_text(top[0]))
+    return tr("Passt zu dir, weil {a} und {b} oft in deinen Pins vorkommen.",
+              a=pins_text(top[0]), b=pins_text(top[1]))
 
 
 DETAIL_WEIGHT = 0.6     # Bootcut gepinnt + Bootcut im Titel -> bis zu 0.6 Punkte extra

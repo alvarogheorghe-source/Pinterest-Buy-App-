@@ -460,7 +460,7 @@ Einmalig nötig: GitHub → Settings → Pages → Source „GitHub Actions“ u
 
 Die öffentliche Website gibt es zweisprachig: `/` (Deutsch) und `/en/` (Englisch).
 Deutsch bleibt die einzige Quelle (`frontend/index.html`); die englischen Texte stehen in
-`website/en.json` („deutscher Text“ → „englischer Text“). Der Build (`scripts/i18n.py`)
+`frontend/i18n/en.json` („deutscher Text“ → „englischer Text“). Der Build (`scripts/i18n.py`)
 übersetzt sichtbare Texte, Bild-/Knopf-Beschreibungen und Meta-Texte und **bricht ab, wenn
 ein deutscher Text keine Übersetzung hat** – die englische Seite kann also nie halb deutsch
 online gehen. Dazu: `hreflang`-Links, Sitemap mit Sprachvarianten, englisches Vorschaubild
@@ -468,7 +468,19 @@ online gehen. Dazu: `hreflang`-Links, Sitemap mit Sprachvarianten, englisches Vo
 mit nicht-deutschem Browser ein kleiner Hinweis „Switch to English“ (kein Zwangs-Umleiten).
 Mali spricht die Sprache der Seite (`bunny.js`).
 
-**Text auf der Startseite geändert?** Neuen Text in `website/en.json` übersetzen – der Test
+**Die App** (Shop, Konto, Merkliste, Foto-Suche, Vibe-Check, Mali) ist ebenfalls zweisprachig:
+- `frontend/i18n.js` (in jedem `<head>`) wählt die Sprache – gespeicherte Wahl, sonst
+  Browsersprache (Deutsch → Deutsch, alles andere → Englisch) – und setzt das Cookie `lang`.
+  Auf Englisch übersetzt es **automatisch jeden Text**, der auf der Seite erscheint, auch
+  später eingefügte. Nur Sätze mit Zahlen/Namen brauchen im Code `t("… {n} …", { n })`.
+- Das Backend (`backend/i18n.py`) übersetzt mit demselben Wörterbuch: Fehlermeldungen,
+  Begründungen („Suits you because …“), Vibe-Check samt allen Sprüchen. `tr("… {n} …", n=3)`.
+- Schnitt & Details übersetzt es automatisch aus `details.py`.
+- Sprachumschalter: oben in der Kopfzeile (am Handy unten im Footer).
+- Die Admin-Seite bleibt Deutsch (nur intern).
+- `tests/test_app_i18n.py` meldet jeden Text ohne Übersetzung.
+
+**Text auf der Startseite geändert?** Neuen Text in `frontend/i18n/en.json` übersetzen – der Test
 `tests/test_i18n.py` sagt genau, welcher fehlt.
 
 ### SEO (Google & Teilen)

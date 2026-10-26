@@ -26,6 +26,7 @@ import time
 import httpx
 
 from backend import storage
+from backend.i18n import tr
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
 from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError
@@ -91,10 +92,11 @@ def app_token() -> str:
             reason = response.json().get("error_description") or response.json().get("error")
         except ValueError:
             reason = None
-        raise ProductSourceError("eBay-Anmeldung fehlgeschlagen – stimmen EBAY_CLIENT_ID und "
-                                 "EBAY_CLIENT_SECRET in .env? (Production-Keys, Keyset nicht "
-                                 "gesperrt?) " + (f"eBay sagt: {str(reason)[:150]}" if reason
-                                                  else f"Status {response.status_code}"))
+        detail = (tr("eBay sagt: {reason}", reason=str(reason)[:150]) if reason
+                  else f"Status {response.status_code}")
+        raise ProductSourceError(tr("eBay-Anmeldung fehlgeschlagen – stimmen EBAY_CLIENT_ID und "
+                                    "EBAY_CLIENT_SECRET in .env? (Production-Keys, Keyset nicht "
+                                    "gesperrt?) {detail}", detail=detail))
     data = response.json()
     _token.update(value=data["access_token"], expires_at=time.time() + data.get("expires_in", 7200))
     return _token["value"]
@@ -121,7 +123,7 @@ def search(query: str) -> list[dict]:
     with _http() as client:
         response = client.get(_url(SEARCH_URL), params=params, headers=headers)
     if response.status_code != 200:
-        raise ProductSourceError(f"eBay-Suche fehlgeschlagen ({response.status_code}).")
+        raise ProductSourceError(tr("eBay-Suche fehlgeschlagen ({code}).", code=response.status_code))
     return response.json().get("itemSummaries", [])
 
 

@@ -6,8 +6,14 @@ const deptChips = document.getElementById("dept-chips");
 
 let department = "";  // "" = alle, "mode", "wohnen"
 
+// "3 Teile · zusammen 89,70 €" (übersetzt, Preis im Format der Sprache)
+function summaryText(count, total) {
+  return t(count === 1 ? "{n} Teil · zusammen {total}" : "{n} Teile · zusammen {total}",
+    { n: count, total: formatPrice(total) });
+}
+
 function formatPrice(price, currency = "EUR") {
-  return new Intl.NumberFormat("de-AT", { style: "currency", currency }).format(price);
+  return new Intl.NumberFormat(window.LOCALE || "de-AT", { style: "currency", currency }).format(price);
 }
 
 function el(tag, className, text) {
@@ -40,7 +46,7 @@ function render(items) {
 
   // Summe nur für Euro-Preise (alle Katalog-Produkte sind in Euro)
   const total = items.reduce((sum, item) => sum + item.price, 0);
-  summary.textContent = `${items.length} ${items.length === 1 ? "Teil" : "Teile"} · zusammen ${formatPrice(total)}`;
+  summary.textContent = summaryText(items.length, total);
 
   for (const item of items) savedGrid.appendChild(card(item));
 }
@@ -71,9 +77,9 @@ function card(item) {
   // Nur Affiliate-Links sind Werbung
   actions.append(shopLink, item.sponsored
     ? el("span", "ad-label", "Werbung")
-    : el("span", "source-label", `Link zu ${shopName(item)}`));
+    : el("span", "source-label", t("Link zu {shop}", { shop: shopName(item) })));
   body.append(
-    el("p", "card-shop", `${item.shop} · ${item.category}`),
+    el("p", "card-shop", `${item.shop} · ${t(item.category)}`),
     titleLink,
     el("p", "card-price", formatPrice(item.price, item.currency)),
     el("p", "card-reason", ""),
@@ -101,7 +107,7 @@ function removeWithUndo(box, item) {
   undo.addEventListener("click", async () => {
     if (await sendVote(item.id, "like")) loadSaved();
   });
-  placeholder.append(el("p", "", `„${item.name}“ entfernt.`), undo);
+  placeholder.append(el("p", "", t("„{name}“ entfernt.", { name: item.name })), undo);
   box.replaceWith(placeholder);
   updateSummaryAfterRemove();
 }
@@ -112,7 +118,7 @@ async function updateSummaryAfterRemove() {
   const items = await fetch(`/api/saved${query}`).then((r) => r.json());
   const total = items.reduce((sum, item) => sum + item.price, 0);
   summary.textContent = items.length
-    ? `${items.length} ${items.length === 1 ? "Teil" : "Teile"} · zusammen ${formatPrice(total)}`
+    ? summaryText(items.length, total)
     : "Alles entfernt.";
 }
 
