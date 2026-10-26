@@ -157,10 +157,12 @@ def remember_photo_results(found: list[Product]) -> None:
 
 def online_sources() -> list[CachedSource]:
     """Alle Online-Quellen, für die Schlüssel in .env stehen."""
-    from backend import ebay, etsy  # erst hier, sonst importieren sich die Dateien gegenseitig
+    # erst hier, sonst importieren sich die Dateien gegenseitig
+    from backend import aliexpress, ebay, etsy
     if os.getenv("PRODUCT_SOURCE", "").strip().lower() == "demo":
         return []
-    candidates = [(ebay.configured, ebay.EbayProductSource), (etsy.configured, etsy.EtsyProductSource)]
+    candidates = [(ebay.configured, ebay.EbayProductSource), (etsy.configured, etsy.EtsyProductSource),
+                  (aliexpress.configured, aliexpress.AliExpressProductSource)]
     return [source() for configured, source in candidates if configured()]
 
 

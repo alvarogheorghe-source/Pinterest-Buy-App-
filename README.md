@@ -138,6 +138,15 @@ Kinder-/Tiersachen werden aussortiert. Schlüssel: https://www.etsy.com/develope
 Etsy verlangt einen Hinweis, dass die App nicht von Etsy ist – er erscheint automatisch
 in der Fußzeile, sobald Etsy-Produkte angezeigt werden.
 
+### AliExpress – „Der Look – ohne Fake“ (nach Freigabe)
+
+Mit `ALIEXPRESS_APP_KEY`, `ALIEXPRESS_APP_SECRET` und `ALIEXPRESS_TRACKING_ID` in `.env`
+(Partnerprogramm portals.aliexpress.com + App auf openservice.aliexpress.com) kommen
+AliExpress-Angebote dazu (`backend/aliexpress.py`) – **nur markenlose Teile**:
+`backend/counterfeit.py` wirft Angebote mit Markennamen (brands.py + bekannte Luxus-/Sportmarken)
+oder Fake-Wörtern („replica“, „1:1“ …) raus, und es wird nie nach Marken gesucht. Partnerlinks
+→ immer „Werbung“. Gegen die echte API noch nicht getestet (Zugang fehlt).
+
 ### Mehrere Quellen
 
 Sind eBay **und** Etsy eingerichtet, mischt der Shop beide (`products.CombinedSource`) –

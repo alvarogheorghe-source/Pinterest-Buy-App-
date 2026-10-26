@@ -32,7 +32,8 @@ GLOBAL_FILES = {"embeddings.json"}
 
 # Frühere Einzel-Dateien, die beim ersten Start in die Datenbank (Person "local") wandern
 LEGACY_FILES = ["tokens.json", "selected_boards.json", "pins.json", "feedback.json",
-                "analysis.json", "ebay_cache.json", "etsy_cache.json", "photo_results.json"]
+                "analysis.json", "ebay_cache.json", "etsy_cache.json", "photo_results.json",
+                "aliexpress_cache.json"]
 LEGACY_FOLDER = "alt-vor-datenbank"
 
 _current_user: contextvars.ContextVar[str] = contextvars.ContextVar("malipin_user",
@@ -199,7 +200,7 @@ def load_pins() -> dict:
 
 
 # Zwischengespeicherte Online-Suchen (siehe products.CachedSource)
-SEARCH_CACHES = ["ebay_cache.json", "etsy_cache.json"]
+SEARCH_CACHES = ["ebay_cache.json", "etsy_cache.json", "aliexpress_cache.json"]
 
 
 def save_pins(data: dict) -> None:
