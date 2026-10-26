@@ -119,16 +119,40 @@ class CombinedSource(ProductSource):
         self.sources = sources
 
     def load(self) -> list[Product]:
-        products, errors = [], []
+        products, errors, seen = [], [], set()
         for source in self.sources:
             try:
-                products.extend(source.load())
+                for product in source.load():
+                    if product.id not in seen:      # gleiches Angebot aus zwei Quellen nur einmal
+                        seen.add(product.id)
+                        products.append(product)
             except ProductSourceError as error:
                 errors.append(error)
                 logger.warning("Produktquelle %s fällt aus: %s", type(source).__name__, error)
         if errors and len(errors) == len(self.sources):
             raise errors[0]
         return products
+
+
+PHOTO_RESULTS_FILE = "photo_results.json"
+MAX_PHOTO_RESULTS = 200
+
+
+class PhotoResultsSource(ProductSource):
+    """Produkte aus Foto-Suchen (backend/photo.py) – damit ♡, Detailseite und "Mehr wie das"
+    auch für sie funktionieren. Gespeichert werden nur die Produkte, NIE das Foto."""
+
+    def load(self) -> list[Product]:
+        from backend import storage
+        return [Product(**p) for p in storage.read_json(PHOTO_RESULTS_FILE, default=[])]
+
+
+def remember_photo_results(found: list[Product]) -> None:
+    """Neue Foto-Ergebnisse vorne anfügen (höchstens MAX_PHOTO_RESULTS)."""
+    from backend import storage
+    ids = {p.id for p in found}
+    old = [p for p in storage.read_json(PHOTO_RESULTS_FILE, default=[]) if p["id"] not in ids]
+    storage.write_json(PHOTO_RESULTS_FILE, ([p.model_dump() for p in found] + old)[:MAX_PHOTO_RESULTS])
 
 
 def online_sources() -> list[CachedSource]:
@@ -147,9 +171,12 @@ def get_product_source() -> ProductSource:
     PRODUCT_SOURCE=demo in .env erzwingt die Beispielprodukte.
     Später kommen weitere Quellen dazu (z.B. ein Awin-Feed).
     """
-    sources = online_sources()
+    from backend import storage
+    sources: list[ProductSource] = list(online_sources())
     if not sources:
         return JsonProductSource()
+    if (storage.DATA_DIR / PHOTO_RESULTS_FILE).exists():
+        sources.append(PhotoResultsSource())
     return sources[0] if len(sources) == 1 else CombinedSource(sources)
 
 

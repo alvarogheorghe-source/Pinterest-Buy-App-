@@ -306,6 +306,23 @@ gespeicherten Zahlen (das Modell muss nicht laufen).
 Gewichte oben in `vision.py` (`VISUAL_WEIGHT`, `VISUAL_FLOOR`). Vor kommerzieller Nutzung
 die **Lizenz des Modells** prüfen.
 
+## 📷 Foto hochladen → Mali findet's
+
+`/foto.html` (Link „📷 Foto“ oben, Hinweis im Shop): Foto auswählen, aufnehmen (Handy),
+hineinziehen oder mit ⌘V einfügen – **ohne Pinterest-Login**. Ablauf (`backend/photo.py`):
+
+1. Der Browser verkleinert das Foto auf max. 768 px (JPEG, ohne Ortsdaten) und schickt es an
+   `POST /api/photo`. Der Server analysiert es **nur im Arbeitsspeicher – gespeichert wird es nie.**
+2. FashionCLIP erkennt Teil, Stil, Herren/Damen und Marke (wie bei Pins), dazu die Hauptfarbe.
+3. Gezielte Suche bei eBay/Etsy nur nach dem, was auf dem Foto ist (z.B. „Herren Carhartt
+   Jacke“), sonst im Beispielkatalog.
+4. Sortiert nach Begriffen, dann vergleicht das Modell die besten 36 Treffer direkt mit dem
+   Foto („Sieht aus wie dein Foto“); erkannte Marke gibt einen Bonus.
+
+Gefundene Online-Produkte merkt sich die App (`data/photo_results.json`, max. 200), damit ♡,
+Detailseite und „Mehr wie das“ auch für sie funktionieren – das Foto selbst nicht.
+Braucht die KI-Pakete (`requirements-ai.txt`), sonst eine freundliche Meldung.
+
 ## ♡ Merkliste
 
 Das ♡ auf jeder Produktkachel merkt ein Teil (und schiebt Ähnliches nach oben).

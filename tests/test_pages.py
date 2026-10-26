@@ -28,7 +28,7 @@ def test_many_connect_buttons_all_lead_to_konto(fake, client):
     assert set(buttons) == {"/konto.html"}
 
 
-@pytest.mark.parametrize("path", ["/", "/shop.html", "/konto.html", "/produkt.html",
+@pytest.mark.parametrize("path", ["/", "/shop.html", "/konto.html", "/produkt.html", "/foto.html",
                                   "/merkliste.html"])
 def test_every_page_loads_mali(fake, client, path):
     html = client.get(path).text
@@ -56,7 +56,7 @@ def test_logout_brings_the_start_page_back(fake, client):
     assert response.status_code == 200 and "Kostenlos starten" in response.text
 
 
-@pytest.mark.parametrize("path", ["/", "/shop.html", "/konto.html", "/produkt.html", "/merkliste.html"])
+@pytest.mark.parametrize("path", ["/", "/shop.html", "/konto.html", "/produkt.html", "/merkliste.html", "/foto.html"])
 def test_every_page_has_the_mali_logo(client, path):
     """Logo (Mali als Pinnadel) und Tab-Symbol – erzeugt von scripts/make_logo.py."""
     html = client.get(path).text

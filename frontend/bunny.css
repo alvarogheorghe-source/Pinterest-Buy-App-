@@ -586,7 +586,9 @@ html.splash-open {
 
 /* Solange die Ansicht offen ist, sitzt Mali dort – der kleine Mali unten macht Pause */
 body.analysis-open .mali,
-body.analysis-open .mali-bubble {
+body.analysis-open .mali-bubble,
+body.photo-open .mali,
+body.photo-open .mali-bubble {
   visibility: hidden;
 }
 

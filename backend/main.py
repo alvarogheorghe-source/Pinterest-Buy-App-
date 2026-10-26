@@ -11,10 +11,11 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import (analysis, feedback, matching, pins, pinterest, products, shop_links,
-                     similar, storage, vibe, vision)
+from backend import (analysis, feedback, matching, photo, pins, pinterest, products,
+                     shop_links, similar, storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Malipin")
@@ -145,6 +146,23 @@ def refresh_pins():
     # Mali schaut sich die neuen Pins gleich im Hintergrund an (Farben, Bilder, Stil, Marken)
     analysis.start()
     return {"count": len(data["pins"]), "board_count": len(data["board_ids"])}
+
+
+@app.post("/api/photo")
+async def upload_photo(request: Request):
+    """Foto hochladen → ähnliche Teile. Das Bild kommt als Rohdaten (z.B. image/jpeg),
+    wird nur im Arbeitsspeicher analysiert und NICHT gespeichert."""
+    if not request.headers.get("content-type", "").startswith("image/"):
+        raise HTTPException(415, "Bitte ein Foto schicken (JPG, PNG, WebP …).")
+    data = await request.body()
+    try:
+        # Rechnen im Hintergrund-Thread, damit die App währenddessen erreichbar bleibt
+        return await run_in_threadpool(photo.recommend, data)
+    except photo.PhotoError as err:
+        raise HTTPException(400, str(err))
+    except vision.VisionUnavailable:
+        raise HTTPException(503, "Die Bilderkennung ist hier nicht installiert "
+                                 "(pip install -r requirements-ai.txt).")
 
 
 @app.get("/api/analysis")

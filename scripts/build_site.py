@@ -46,6 +46,7 @@ def static_index(source: str) -> str:
     page = re.sub(r'\s*<a href="/shop\.html" class="button large outline">.*?</a>', "", page)
     page = re.sub(r'\s*<a href="/shop\.html" class="header-link">.*?</a>', "", page)
     page = re.sub(r'\s*<a href="/merkliste\.html"[^>]*>.*?</a>', "", page, flags=re.DOTALL)
+    page = re.sub(r'\s*<a href="/foto\.html"[^>]*>.*?</a>', "", page, flags=re.DOTALL)
     # Welten-Karten: keine Links mehr, Pfeil-Text -> "Bald verfügbar"
     page = re.sub(r'<a href="/shop\.html#(mode|wohnen)" class="world', r'<a class="world', page)
     page = re.sub(r'<span class="world-link">.*?</span>\s*(?=</a>)',
@@ -61,7 +62,7 @@ def static_index(source: str) -> str:
     page = page.replace('  <script src="nav.js"></script>\n', "")
     page = page.replace("<body", "<body data-static", 1)
 
-    leftovers = re.findall(r'href="/(?:konto|shop|merkliste|produkt)\.html|href="/auth/', page)
+    leftovers = re.findall(r'href="/(?:konto|shop|merkliste|produkt|foto)\.html|href="/auth/', page)
     if leftovers:
         raise BuildError(f"Noch Links zum Server in der Startseite: {leftovers}")
     return page

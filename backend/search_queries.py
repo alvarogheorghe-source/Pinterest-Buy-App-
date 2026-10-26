@@ -136,7 +136,10 @@ def build_queries(pins: list[dict], department: str,
     queries = queries[:QUERIES_PER_DEPARTMENT]
 
     # Mode: zeigt das Board klar Herren- oder Damenmode? -> "Herren Baggy Jeans"
-    who = audience(pins) if department == "mode" else None
+    who = None
+    if department == "mode":
+        # Ein einzelnes Foto (photo.py): dessen Erkennung zählt direkt, sonst das ganze Board
+        who = pins[0].get("image_gender") if len(pins) == 1 else audience(pins)
     if who and words.audience.get(who):
         queries = [(f"{words.audience[who]} {text}", category) for text, category in queries]
     return queries

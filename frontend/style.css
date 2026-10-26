@@ -963,3 +963,161 @@ section + section {
   font-family: var(--serif);
   margin-top: 1.8em;
 }
+
+/* --- Foto-Suche (foto.html) --- */
+.photo-page {
+  max-width: 1100px;
+}
+
+.photo-lead {
+  max-width: 640px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.photo-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 640px;
+  margin-top: 18px;
+  padding: 36px 20px;
+  border: 2px dashed #f0b8ca;
+  border-radius: 24px;
+  background: #fff;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.photo-drop:hover,
+.photo-drop.over,
+.photo-drop:focus-within {
+  border-color: var(--accent);
+  background: #fff4f7;
+}
+
+.photo-drop-icon {
+  font-size: 2.4rem;
+}
+
+.photo-drop-hint {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.photo-privacy {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.photo-top {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.photo-preview {
+  width: 160px;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(58, 42, 48, 0.15);
+}
+
+.photo-mali {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex: 1;
+  min-width: 240px;
+}
+
+.photo-sprite {
+  width: 72px;
+  height: 72px;
+  flex: none;
+  image-rendering: pixelated;
+}
+
+.photo-bubble {
+  position: relative;
+  flex: 1;
+  max-width: 420px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #f3dbe3;
+  border-radius: 16px;
+  background: #fff4f7;
+  line-height: 1.45;
+}
+
+.photo-bubble::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  bottom: 14px;
+  width: 14px;
+  height: 14px;
+  background: #fff4f7;
+  border-left: 1px solid #f3dbe3;
+  border-bottom: 1px solid #f3dbe3;
+  transform: rotate(45deg);
+}
+
+.photo-found {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.photo-found p {
+  margin: 0 4px 0 0;
+  font-weight: 600;
+}
+
+.photo-actions {
+  margin: 16px 0 8px;
+}
+
+/* Hinweis im Shop: "Ein Teil gesehen? Foto hochladen" */
+.photo-teaser {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #f3dbe3;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.photo-teaser:hover {
+  border-color: var(--accent);
+}
+
+.photo-teaser strong {
+  color: var(--accent);
+}
+
+/* Sehr kleine Handys: Navigation enger, "Mein Pinterest" -> "Pinterest" */
+@media (max-width: 380px) {
+  .header-nav {
+    gap: 12px;
+  }
+
+  .header-link {
+    white-space: nowrap;
+  }
+
+  .nav-prefix {
+    display: none;
+  }
+}

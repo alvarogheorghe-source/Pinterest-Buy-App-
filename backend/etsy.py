@@ -127,10 +127,16 @@ class EtsyProductSource(CachedSource):
     cache_file = "etsy_cache.json"
 
     def fetch(self) -> list[Product]:
-        pins = storage.load_pins()["pins"]
+        return self.fetch_for(storage.load_pins()["pins"], DEPARTMENTS)
+
+    def fetch_for(self, pins: list[dict], departments, keep=None) -> list[Product]:
+        """Suche passend zu beliebigen Pins (auch zu einem hochgeladenen Foto).
+        keep(query, category) -> False überspringt eine Suche."""
         products, seen = [], set()
-        for department in DEPARTMENTS:
+        for department in departments:
             for query, category in build_queries(pins, department, ENGLISH):
+                if keep and not keep(query, category):
+                    continue
                 for listing in search(query):
                     product = to_product(listing, department, category)
                     if product and product.id not in seen:

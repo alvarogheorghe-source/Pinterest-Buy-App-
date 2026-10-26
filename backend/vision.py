@@ -89,6 +89,8 @@ class Embedder(Protocol):
 
     def embed_texts(self, texts: list[str]) -> list[list[float]]: ...
 
+    def embed_image_bytes(self, images: list[bytes]) -> list[list[float] | None]: ...
+
 
 class ClipEmbedder:
     """Das echte Modell (CLIP/FashionCLIP über die Bibliothek "transformers")."""
@@ -128,15 +130,31 @@ class ClipEmbedder:
         return Image.open(io.BytesIO(response.content)).convert("RGB")
 
     def embed_image_urls(self, urls: list[str]) -> list[list[float] | None]:
-        import torch
-        images, positions = [], []
-        for i, url in enumerate(urls):
+        images: list = []
+        for url in urls:
             try:
                 images.append(self.download(url))
-                positions.append(i)
             except Exception:
-                pass  # kaputtes/fehlendes Bild -> None
-        results: list[list[float] | None] = [None] * len(urls)
+                images.append(None)  # kaputtes/fehlendes Bild -> None
+        return self._embed(images)
+
+    def embed_image_bytes(self, images: list[bytes]) -> list[list[float] | None]:
+        """Hochgeladene Fotos (Foto-Suche) – direkt aus dem Speicher, nichts wird gespeichert."""
+        from PIL import Image
+        opened: list = []
+        for data in images:
+            try:
+                opened.append(Image.open(io.BytesIO(data)).convert("RGB"))
+            except Exception:
+                opened.append(None)
+        return self._embed(opened)
+
+    def _embed(self, opened: list) -> list[list[float] | None]:
+        """Bilder (PIL, None = nicht ladbar) -> Vektoren."""
+        import torch
+        images = [image for image in opened if image is not None]
+        positions = [i for i, image in enumerate(opened) if image is not None]
+        results: list[list[float] | None] = [None] * len(opened)
         if images:
             with torch.no_grad():  # nur rechnen, nicht trainieren
                 inputs = self.processor(images=images, return_tensors="pt")

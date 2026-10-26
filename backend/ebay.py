@@ -150,10 +150,16 @@ class EbayProductSource(CachedSource):
     cache_file = "ebay_cache.json"
 
     def fetch(self) -> list[Product]:
-        pins = storage.load_pins()["pins"]
+        return self.fetch_for(storage.load_pins()["pins"], DEPARTMENTS)
+
+    def fetch_for(self, pins: list[dict], departments, keep=None) -> list[Product]:
+        """Suche passend zu beliebigen Pins (auch zu einem hochgeladenen Foto).
+        keep(query, category) -> False überspringt eine Suche."""
         products, seen = [], set()
-        for department in DEPARTMENTS:
+        for department in departments:
             for query, category in build_queries(pins, department, GERMAN):
+                if keep and not keep(query, category):
+                    continue
                 for item in search(query):
                     product = to_product(item, department, category)
                     if product and product.id not in seen:
