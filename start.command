@@ -16,6 +16,9 @@ fi
 
 source .venv/bin/activate
 
+# Neue Pakete nachinstallieren, falls requirements.txt sich geändert hat (sonst in 1–2 Sekunden fertig)
+pip install -q -r requirements.txt
+
 # Alten Server beenden (falls einer läuft)
 lsof -ti :8000 | xargs kill 2>/dev/null
 sleep 1

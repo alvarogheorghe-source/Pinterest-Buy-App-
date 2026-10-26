@@ -6,7 +6,7 @@ ID, Titel, Beschreibung, Bild-URL und die Hauptfarbe, die Pinterest mitliefert.
 
 import time
 
-from backend import pinterest, storage
+from backend import pin_colors, pinterest, storage
 
 # Obergrenze pro Board: genug für ein gutes Stilprofil, aber schnell geladen
 # und schonend für die Abfragegrenzen (Rate Limits) des Pinterest-Testzugangs.
@@ -83,6 +83,8 @@ def load_pins_for_selected_boards() -> dict:
                 seen_ids.add(pin["id"])
                 all_pins.append(pin)
 
+    # Pinterest liefert meist eine Hauptfarbe mit – nur fehlende aus dem Bild ausrechnen
+    pin_colors.fill_missing_colors(all_pins)
     data = {"fetched_at": time.time(), "board_ids": board_ids, "pins": all_pins}
     storage.save_pins(data)
     return data

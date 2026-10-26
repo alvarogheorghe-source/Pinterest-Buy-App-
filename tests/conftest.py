@@ -80,6 +80,14 @@ def demo_products(monkeypatch):
     monkeypatch.setenv("PRODUCT_SOURCE", "demo")
 
 
+@pytest.fixture(autouse=True)
+def no_image_downloads(monkeypatch):
+    """Pin-Bilder werden in Tests nie wirklich geladen (backend/pin_colors.py)."""
+    from backend import pin_colors
+    transport = httpx.MockTransport(lambda request: httpx.Response(404))
+    monkeypatch.setattr(pin_colors, "_http", lambda: httpx.Client(transport=transport))
+
+
 @pytest.fixture
 def fake(monkeypatch, tmp_path):
     """Richtet für jeden Test eine saubere Umgebung ein."""

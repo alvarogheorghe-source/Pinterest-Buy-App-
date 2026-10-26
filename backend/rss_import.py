@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ET
 
 import httpx
 
-from backend import storage
+from backend import pin_colors, storage
 
 FEED_URL = "https://www.pinterest.com/{path}.rss"
 
@@ -107,6 +107,9 @@ def main() -> None:
     if not all_pins:
         print("Keine Pins geladen – ist das Board öffentlich und der Name richtig?")
         sys.exit(1)
+    # RSS liefert keine Hauptfarbe -> aus den Bildern ausrechnen
+    colored = pin_colors.fill_missing_colors(all_pins)
+    print(f"Farben aus {colored} Pin-Bildern erkannt.")
     storage.save_pins({"fetched_at": time.time(), "board_ids": ["rss"],
                        "source": "rss-test", "pins": all_pins})
     print(f"\n{len(all_pins)} Pins gespeichert (ersetzt die bisherigen Pins).")

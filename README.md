@@ -312,6 +312,11 @@ RSS-Feed. `python -m backend.rss_import benutzer/board` lädt die letzten ~20–
 (Bild, Titel, Beschreibung) in `data/pins.json`. Nicht offiziell dokumentiert und nicht immer
 zuverlässig – nur zum Testen, die echte App nutzt die API. Am besten eigene Boards nehmen.
 
+**Farben aus Pin-Bildern:** Die Pinterest-API liefert zu jedem Pin die Hauptfarbe
+(`dominant_color`), RSS nicht. Fehlt sie, rechnet `backend/pin_colors.py` sie aus dem Bild aus
+(Bildmitte, ohne weiße/graue Hintergründe; braucht Pillow). Passiert automatisch beim Laden
+der Pins; für schon gespeicherte Pins: `python -m backend.pin_colors`.
+
 **Ohne Pinterest-Login testen:** `python -m backend.demo_pins` schreibt 19 Beispiel-Pins (Mode + Wohnen)
 nach `data/pins.json`. Echte Pins („Pins laden“) überschreiben sie.
 
