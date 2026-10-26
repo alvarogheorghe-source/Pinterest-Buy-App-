@@ -439,7 +439,7 @@
 
     const title = document.createElement("p");
     title.className = "mali-title";
-    title.textContent = `Du bist: ${vibe.emoji} ${vibe.title}`;
+    title.textContent = `Du bist: ${vibe.emoji ? `${vibe.emoji} ` : ""}${vibe.title}`;
     const parts = [title, vibe.text];
     if (vibe.second) parts.push(`… mit einer Prise ${vibe.second}`);
     if (vibe.terms.length) {

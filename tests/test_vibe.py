@@ -16,7 +16,7 @@ def pins(*titles):
 def test_goth_pins_give_goth_baddie():
     result = vibe.vibe_check(pins("Gothic outfit black lace", "witchy vibes", "dark aesthetic"),
                              random.Random(0))
-    assert result["title"] == "Goth Baddie" and result["emoji"] == "🖤"
+    assert result["title"] == "Goth Baddie" and result["emoji"] == ""
     assert result["text"] in vibe.VIBES[0].lines
     assert result["pin_count"] == 3
 

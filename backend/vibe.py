@@ -50,9 +50,9 @@ class Vibe:
 
 
 VIBES = [
-    Vibe("Goth Baddie", "🖤", {"goth": 3, "grunge": 2, "schwarz": 1.2}, [
+    Vibe("Goth Baddie", "", {"goth": 3, "grunge": 2, "schwarz": 1.2}, [
         "Dark, mysteriös und trotzdem die süßeste Aura im Raum. "
-        "Sogar meine Karotte trägt jetzt Schwarz. 🖤",
+        "Sogar meine Karotte trägt jetzt Schwarz.",
         "It's giving Wednesday Addams – nur mit besserem Outfit. Slay in Schwarz.",
         "Deine Aura: +1000. Mein Mut, dich anzusprechen: −3. Iconic.",
         "Du trägst Schwarz nicht – Schwarz trägt dich. Ich bin ein bisschen eingeschüchtert. "
@@ -220,7 +220,7 @@ def vibe_check(pins: list[dict], rng: random.Random | None = None, avoid: str | 
         "emoji": best.emoji,
         # "Anderer Spruch": nie zweimal hintereinander derselbe (avoid = der letzte)
         "text": rng.choice([line for line in best.lines if line != avoid] or best.lines),
-        "second": f"{second.emoji} {second.title}" if second else None,
+        "second": f"{second.emoji} {second.title}".strip() if second else None,
         "second_title": second.title if second else None,    # ohne Emoji, für die Karte
         "look": LOOKS.get(best.title, "rosa"),
         "terms": top_terms,

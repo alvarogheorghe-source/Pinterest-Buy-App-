@@ -24,7 +24,7 @@ backend/
   evaluate.py   misst die Genauigkeit der Vorschläge mit einem Testset
   feedback.py   👍/👎: blendet Dislikes aus, schiebt Ähnliches zu Likes nach oben
   vision.py     Bilderkennung (FashionCLIP): Bild-Vektoren berechnen und vergleichen
-  vibe.py       Malis Vibe-Check („Goth Baddie 🖤“, „Clean Girl 🤍“, „Quiet Luxury 💸“ …)
+  vibe.py       Malis Vibe-Check („Goth Baddie“, „Clean Girl 🤍“, „Quiet Luxury 💸“ …)
 eval/           demo_testset.json: Beispiel-Pins mit von Hand gewählten passenden Produkten
 scripts/        make_placeholders.py: erzeugt die Produkt-Platzhalterbilder (frontend/img/products)
   demo_pins.py  schreibt Beispiel-Pins, um ohne Pinterest-Login zu testen
