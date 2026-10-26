@@ -65,7 +65,11 @@ def app_token() -> str:
     """Holt einen App-Token (gilt ca. 2 Stunden) und merkt ihn sich."""
     if _token.get("value") and _token["expires_at"] > time.time() + 60:
         return _token["value"]
-    credentials = f"{os.getenv('EBAY_CLIENT_ID', '').strip()}:{os.getenv('EBAY_CLIENT_SECRET', '').strip()}"
+    client_id = os.getenv("EBAY_CLIENT_ID", "").strip()
+    if "-SBX-" in client_id:   # Sandbox-Keys funktionieren nur mit eBays Testdaten
+        raise ProductSourceError("In .env stehen eBay-Sandbox-Keys (…-SBX-…). Nimm die Keys aus der "
+                                 "Spalte \"Production\" (…-PRD-…).")
+    credentials = f"{client_id}:{os.getenv('EBAY_CLIENT_SECRET', '').strip()}"
     with _http() as client:
         response = client.post(
             TOKEN_URL,
@@ -74,8 +78,15 @@ def app_token() -> str:
             data={"grant_type": "client_credentials", "scope": SCOPE},
         )
     if response.status_code != 200:
+        # eBays eigener Grund (z.B. "client authentication failed") – enthält keine Schlüssel
+        try:
+            reason = response.json().get("error_description") or response.json().get("error")
+        except ValueError:
+            reason = None
         raise ProductSourceError("eBay-Anmeldung fehlgeschlagen – stimmen EBAY_CLIENT_ID und "
-                                 "EBAY_CLIENT_SECRET in .env?")
+                                 "EBAY_CLIENT_SECRET in .env? (Production-Keys, Keyset nicht "
+                                 "gesperrt?) " + (f"eBay sagt: {str(reason)[:150]}" if reason
+                                                  else f"Status {response.status_code}"))
     data = response.json()
     _token.update(value=data["access_token"], expires_at=time.time() + data.get("expires_in", 7200))
     return _token["value"]

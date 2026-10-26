@@ -195,3 +195,10 @@ def test_marketplace_and_affiliate_headers(fake_ebay, monkeypatch):
     assert request.headers["X-EBAY-C-ENDUSERCTX"] == "affiliateCampaignId=5338"
     assert parse_qs(request.url.query.decode())["filter"] == [
         "buyingOptions:{FIXED_PRICE},price:[5..],priceCurrency:EUR"]
+
+
+def test_sandbox_keys_and_ebay_reason(fake_ebay, client, monkeypatch):
+    fake_ebay.token_ok = False
+    assert "invalid_client" in client.get("/api/recommendations").json()["detail"]
+    monkeypatch.setenv("EBAY_CLIENT_ID", "Malipin-app-SBX-1234")
+    assert "Sandbox" in client.get("/api/recommendations").json()["detail"]
