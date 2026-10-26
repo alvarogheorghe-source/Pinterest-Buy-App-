@@ -3,7 +3,7 @@
 Ablauf wie bei eBay/Etsy:
 1. Suchbegriffe aus den Pins (Englisch) – aber NIE nach Marken (counterfeit.py)
 2. Suche über die Affiliate-API (aliexpress.affiliate.product.query), Preise in Euro,
-   Versand in dein Land (ALIEXPRESS_SHIP_TO)
+   Versand ins Land der Person (region.py)
 3. Fälschungs-Filter: Angebote mit Markennamen oder Fake-Wörtern fliegen raus
    -> "Der Look – ohne Fake."
 4. 1 Stunde Zwischenspeicher (pro Person)
@@ -24,7 +24,7 @@ import time
 
 import httpx
 
-from backend import shops, storage
+from backend import region, shops, storage
 from backend.i18n import tr
 from backend.counterfeit import looks_like_fake, mentions_brand
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
@@ -63,9 +63,9 @@ def search(query: str) -> list[dict]:
         "timestamp": str(int(time.time() * 1000)),
         "keywords": query,
         "page_size": str(RESULTS_PER_QUERY),
-        "target_currency": "EUR",
+        "target_currency": region.current().currency,
         "target_language": "DE",
-        "ship_to_country": os.getenv("ALIEXPRESS_SHIP_TO", "").strip() or "AT",
+        "ship_to_country": region.current().code,      # ins Land der Person (region.py)
         "tracking_id": os.getenv("ALIEXPRESS_TRACKING_ID", "").strip(),
     }
     params["sign"] = sign(params, os.getenv("ALIEXPRESS_APP_SECRET", "").strip())
@@ -95,13 +95,13 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
         return None
     try:
         price = float(item.get("target_sale_price") or item.get("sale_price"))
-        currency = item.get("target_sale_price_currency") or "EUR"
+        currency = item.get("target_sale_price_currency") or region.current().currency
         url = item.get("promotion_link") or ""
         image = item.get("product_main_image_url") or ""
         product_id = re.sub(r"[^0-9A-Za-z]", "", str(item["product_id"]))
     except (KeyError, TypeError, ValueError):
         return None
-    if currency != "EUR" or price < MIN_PRICE or not url.startswith("https://") \
+    if currency != region.current().currency or price < MIN_PRICE or not url.startswith("https://") \
             or not image.startswith("https://") or not product_id:
         return None
 

@@ -465,7 +465,9 @@
     "Mein Pinterest-Vibe: {title} – finde deinen auf {site}": "My Pinterest vibe: {title} – find yours at {site}",
     "Bereich": "Section",
     "Mein": "My",
-    "{n} Pins": "{n} pins"
+    "{n} Pins": "{n} pins",
+    "bis {price}": "up to {price}",
+    "Land": "Country"
   },
   "same": [
     "mal",

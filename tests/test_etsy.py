@@ -99,7 +99,7 @@ def test_vintage_items():
     {"title": "Printable wall art"},
     {"listing_type": "download"},
     {"is_supply": True},                                 # Bastelmaterial
-    {"price": {"amount": 3000, "divisor": 100, "currency_code": "USD"}},
+    {"price": {"amount": 3000, "divisor": 100, "currency_code": "XYZ"}},   # unbekannte Währung
     {"price": {"amount": 299, "divisor": 100, "currency_code": "EUR"}},   # unter 5 €
     {"title": "Dog sweater beige"},
 ])
@@ -173,3 +173,11 @@ def test_attribution_notice_on_pages(client):
     """Etsy verlangt den Hinweis – er steht auf jeder Seite mit Produkten bereit."""
     for page in ("/shop.html", "/produkt.html", "/merkliste.html"):
         assert etsy.ATTRIBUTION in " ".join(client.get(page).text.split())
+
+
+def test_other_currencies_are_kept_and_converted_later():
+    """Dollar-Preise bleiben Dollar – umgerechnet wird erst für die Person (currency.py)."""
+    product = etsy.to_product({**listing(1, "Beige linen dress"),
+                               "price": {"amount": 3000, "divisor": 100, "currency_code": "USD"}},
+                              "mode", "Kleider & Röcke")
+    assert (product.price, product.currency) == (30.0, "USD")

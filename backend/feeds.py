@@ -241,6 +241,7 @@ def to_product(row: dict, feed: dict) -> Product | None:
         style_tags=sorted(find_terms(text, STYLE_PATTERNS)),
         image_url=image, affiliate_url=url,
         sponsored=True,                       # Feeds kommen immer über Partnerprogramme
+        countries=[c.upper() for c in feed.get("countries", [])],
     )
 
 

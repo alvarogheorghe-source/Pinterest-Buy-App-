@@ -109,7 +109,8 @@ eBay-Angebote** (neu und Second Hand) statt der Beispielprodukte (`backend/ebay.
 1. Aus deinem Stilprofil werden Suchbegriffe, z.B. „beige oversized Pullover“ (4 pro Welt).
    Farbe und Stil kommen aus den Pins mit genau dieser Kategorie: weiße Sneaker-Pins →
    „weiß streetwear Sneaker“, auch wenn sonst Beige dominiert.
-2. Die offizielle eBay Browse API sucht damit (nur Sofort-Kaufen, Marktplatz `EBAY_MARKETPLACE`).
+2. Die offizielle eBay Browse API sucht damit (nur Sofort-Kaufen, auf dem eBay-Marktplatz des
+   Landes der Person – siehe „Länder & Währungen“).
 3. Aussortiert werden: unter 5 €, Kinder-/Puppen-/Tiersachen, Sammelpakete, Defektes,
    Ersatzteile. Fotos werden in größerer Auflösung geladen (bessere Bilderkennung).
 4. Farben, Stile und Kategorie liest die App aus dem Titel – Ranking, ♡/👎 und Bilderkennung
@@ -479,6 +480,20 @@ Mali spricht die Sprache der Seite (`bunny.js`).
 - Sprachumschalter: oben in der Kopfzeile (am Handy unten im Footer).
 - Die Admin-Seite bleibt Deutsch (nur intern).
 - `tests/test_app_i18n.py` meldet jeden Text ohne Übersetzung.
+
+### Länder & Währungen
+
+Jede Person bekommt ihr Land (`backend/region.py`): bewusste Wahl im Footer (Cookie `country`),
+sonst ein Länder-Header vom Hosting (z.B. Cloudflare `CF-IPCountry`), sonst die Browsersprache
+(`en-US` → USA), sonst `DEFAULT_COUNTRY` aus `.env`. Zum Start: AT, DE, CH, GB, IE, US, CA, AU.
+- **Preise & Budget** in der eigenen Währung; umgerechnet mit den täglichen Kursen der EZB
+  (`backend/currency.py`, Ersatzkurse falls offline). Umgerechnete Preise zeigen „≈“; im Shop
+  gilt der Originalpreis.
+- **eBay** sucht auf dem Marktplatz des Landes (ebay.at, ebay.com, ebay.co.uk …), in dessen
+  Sprache und Währung; der Zwischenspeicher gilt pro Land.
+- **AliExpress** liefert ins Land der Person; **Feeds** zeigen nur Produkte für Länder aus
+  ihrem `"countries"`-Eintrag.
+- Neues Land: eine Zeile in `REGIONS` (region.py).
 
 **Text auf der Startseite geändert?** Neuen Text in `frontend/i18n/en.json` übersetzen – der Test
 `tests/test_i18n.py` sagt genau, welcher fehlt.

@@ -83,11 +83,13 @@ def test_budget_hides_only_items_surely_too_expensive(fake, client):
         {"id": "billig", "title": "Top 15€", "link": "https://www.vinted.at/items/1"},
         {"id": "teuer", "title": "Mantel 80€", "link": "https://www.vinted.at/items/2"},
         {"id": "pfund", "title": "Jacke £80", "link": "https://www.vinted.at/items/3"},
+        {"id": "pfund-billig", "title": "Shirt £10", "link": "https://www.vinted.at/items/5"},
         {"id": "ohne", "title": "Hoodie", "link": "https://www.vinted.at/items/4"},
     ]})
     ids = [i["id"] for i in client.get("/api/pin-items?max_price=30").json()]
-    assert ids == ["billig", "pfund", "ohne"]  # nur "teuer" ist sicher über dem Budget
-    assert len(client.get("/api/pin-items").json()) == 4
+    # £80 ist umgerechnet über 30 €, £10 darunter; ohne Preis bleibt sichtbar
+    assert ids == ["billig", "pfund-billig", "ohne"]
+    assert len(client.get("/api/pin-items").json()) == 5
 
 
 def test_pin_items_get_department():

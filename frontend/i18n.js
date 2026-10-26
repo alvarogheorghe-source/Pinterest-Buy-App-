@@ -22,6 +22,10 @@
   const lang = choose();
   document.documentElement.lang = lang;
   document.cookie = `lang=${lang}; path=/; max-age=31536000; samesite=lax`;
+  // Land & Währung: nur eine bewusste Wahl wird gespeichert – sonst entscheidet der Server
+  // (Browsersprache "en-US" -> USA, Hosting-Ländercode …), siehe backend/region.py
+  const country = read("malipin-country");
+  if (country) document.cookie = `country=${country}; path=/; max-age=31536000; samesite=lax`;
   const dict = lang === "en" ? (window.MALIPIN_EN || {}) : {};
   const norm = (text) => text.replace(/\s+/g, " ").trim();
 
@@ -31,9 +35,23 @@
     return out.replace(/\{(\w+)\}/g, (all, key) => (key in values ? values[key] : all));
   }
 
+  // Preis eines Produkts in der Währung der Person (Server rechnet um: local_price/local_currency).
+  // Umgerechnet -> "≈ 27,40 $", sonst der Originalpreis.
+  function money(item) {
+    const amount = item.local_price ?? item.price;
+    const currency = item.local_currency ?? item.currency ?? "EUR";
+    const text = new Intl.NumberFormat(window.LOCALE, { style: "currency", currency }).format(amount);
+    return item.converted ? `≈ ${text}` : text;
+  }
+
   window.t = t;
+  window.money = money;
   window.LANG = lang;
-  window.LOCALE = lang === "en" ? "en-GB" : "de-AT";   // Zahlen & Preise
+  // Zahlen & Preise im Format des eigenen Browsers ("$70.19" in den USA, "£55.24" in UK),
+  // solange dessen Sprache zur gewählten passt – sonst Standard
+  const browserLocale = (navigator.languages || [navigator.language || ""])
+    .find((l) => l.toLowerCase().startsWith(lang) && l.includes("-"));
+  window.LOCALE = browserLocale || (lang === "en" ? "en-GB" : "de-AT");
   window.setLanguage = (next) => {
     try { localStorage.setItem("malipin-lang", next); } catch { /* privat: nur Cookie */ }
     document.cookie = `lang=${next}; path=/; max-age=31536000; samesite=lax`;
@@ -59,8 +77,29 @@
       const line = Object.assign(document.createElement("p"), { className: "footer-lang" });
       line.append(makeLink("lang-switch", other === "en" ? "English" : "Deutsch"));
       footer.append(line);
+      addCountryChoice(line);
     }
   });
+
+  // Land wählen (Footer): "Österreich · EUR" – Wechsel lädt die Seite neu
+  async function addCountryChoice(line) {
+    let data;
+    try { data = await fetch("/api/region").then((r) => r.json()); } catch { return; }
+    const select = Object.assign(document.createElement("select"), { className: "country-select" });
+    select.setAttribute("aria-label", lang === "en" ? "Country" : "Land");
+    select.dataset.noI18n = "";
+    for (const c of data.countries) {
+      select.append(Object.assign(document.createElement("option"),
+        { value: c.code, textContent: `${c.name} · ${c.currency}`, selected: c.code === data.country }));
+    }
+    select.addEventListener("change", () => {
+      try { localStorage.setItem("malipin-country", select.value); } catch { /* nur Cookie */ }
+      document.cookie = `country=${select.value}; path=/; max-age=31536000; samesite=lax`;
+      location.reload();
+    });
+    window.CURRENCY = data.currency;
+    line.append(" · ", select);
+  }
 
   if (lang !== "en") return;
 

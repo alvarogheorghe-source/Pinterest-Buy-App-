@@ -16,7 +16,8 @@ from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import (analysis, feedback, i18n, matching, photo, pins, pinterest, products,
+from backend import (analysis, currency, feedback, i18n, matching, photo, pins, pinterest,
+                     products, region,
                      shop_links, shops, similar, storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
@@ -60,6 +61,7 @@ def multi_user() -> bool:
 # Reihenfolge: die Session (äußere Schicht) muss da sein, bevor UserMiddleware sie liest
 app.add_middleware(UserMiddleware)
 app.add_middleware(i18n.LanguageMiddleware)   # Sprache pro Anfrage (Cookie "lang" / Browser)
+app.add_middleware(region.RegionMiddleware)   # Land & Währung pro Anfrage (Cookie "country" …)
 app.add_middleware(SessionMiddleware, secret_key=session_secret, same_site="lax",
                    max_age=365 * 24 * 3600)  # Kennung bleibt ein Jahr (sonst Daten "weg")
 
@@ -87,6 +89,31 @@ def http_error(request: Request, exc: StarletteHTTPException):
     detail = i18n.tr(exc.detail) if isinstance(exc.detail, str) else exc.detail
     return JSONResponse(status_code=exc.status_code, content={"detail": detail},
                         headers=getattr(exc, "headers", None))
+
+
+def local(items: list[dict]) -> list[dict]:
+    """Preise in der Währung der Person: local_price/local_currency (+ converted, wenn umgerechnet).
+    Der Originalpreis bleibt in price/currency – im Shop zählt er."""
+    target, table = region.current().currency, currency.rates()
+    for item in items:
+        if item.get("price") is None or not item.get("currency"):
+            continue
+        converted = currency.convert(item["price"], item["currency"], target, table)
+        if converted is not None:
+            item.update(local_price=converted, local_currency=target,
+                        converted=item["currency"] != target)
+    return items
+
+
+@app.get("/api/region")
+def get_region():
+    """Land & Währung der Person + alle wählbaren Länder (für die Auswahl im Footer)."""
+    here = region.current()
+    english = i18n.current() == "en"
+    return {"country": here.code, "currency": here.currency,
+            "countries": [{"code": r.code, "currency": r.currency,
+                           "name": r.name_en if english else r.name_de}
+                          for r in region.REGIONS.values()]}
 
 
 @app.get("/i18n-en.js", include_in_schema=False)
@@ -309,7 +336,9 @@ async def upload_photo(request: Request, force: bool = False):
     data = await request.body()
     try:
         # Rechnen im Hintergrund-Thread, damit die App währenddessen erreichbar bleibt
-        return await run_in_threadpool(photo.recommend, data, force)
+        result = await run_in_threadpool(photo.recommend, data, force)
+        local(result.get("products", []))
+        return result
     except photo.PhotoError as err:
         raise HTTPException(400, str(err))
     except vision.VisionUnavailable:
@@ -345,7 +374,7 @@ def get_pin_items(max_price: float | None = None,
     items = shop_links.find_pin_items(storage.load_pins()["pins"])
     if department:
         items = [item for item in items if item["department"] == department]
-    return shop_links.filter_by_budget(items, max_price)
+    return local(shop_links.filter_by_budget(items, max_price, region.current().currency))
 
 
 # --- Produkte (Schritt 4) -------------------------------------------------------------
@@ -356,7 +385,10 @@ def get_products(min_price: float | None = None, max_price: float | None = None,
                  department: products.Department | None = None):
     """Produkte, optional gefiltert. Beispiel: /api/products?max_price=30&department=wohnen"""
     all_products = products.get_product_source().load()
-    return products.filter_products(all_products, min_price, max_price, category, department)
+    here = region.current()
+    found = products.filter_products(all_products, min_price, max_price, category, department,
+                                     currency=here.currency, country=here.code)
+    return local([p.model_dump() for p in found])
 
 
 @app.get("/api/products/{product_id}")
@@ -385,9 +417,9 @@ def get_product_detail(product_id: str, limit: int = Query(12, ge=1, le=48)):
     for item in similar_items:
         item["vote"] = votes.get(item["id"], {}).get("vote")
     return {
-        "product": detail,
+        "product": local([detail])[0],
         "has_profile": profile.pin_count > 0,
-        "similar": similar_items,
+        "similar": local(similar_items),
     }
 
 
@@ -418,8 +450,9 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     profile = matching.build_style_profile(pins_list, department)
     source = products.get_product_source()
     all_products = source.load()
+    here = region.current()   # Budget in der eigenen Währung, nur Lieferbares
     selection = products.filter_products(all_products, min_price, max_price, category,
-                                         department)
+                                         department, currency=here.currency, country=here.code)
     if trusted_only:
         selection = [p for p in selection if p.trusted]
     ranked = shops.apply_bonus(matching.rank_products(selection, profile))
@@ -432,7 +465,8 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
         # Ausgefallene Quellen (z.B. eBay-Keys noch gesperrt) -> Hinweis im Shop statt still leer
         "warnings": source.warnings(),
         # 👍/👎 einrechnen: Dislikes raus, Ähnliches zu Likes nach oben
-        "products": feedback.apply_feedback(ranked, all_products, feedback.load_feedback()),
+        "products": local(feedback.apply_feedback(ranked, all_products, feedback.load_feedback())),
+        "currency": here.currency,
     }
 
 
@@ -477,7 +511,7 @@ def get_saved(department: products.Department | None = None):
         if p.id in liked and (department is None or p.department == department)
     ]
     saved.sort(key=lambda item: item["saved_at"], reverse=True)
-    return saved
+    return local(saved)
 
 
 @app.delete("/api/feedback")

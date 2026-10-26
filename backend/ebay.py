@@ -25,12 +25,12 @@ import time
 
 import httpx
 
-from backend import storage
+from backend import region, storage
 from backend.i18n import tr
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
 from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError
-from backend.search_queries import GERMAN, build_queries, search_with_fallback
+from backend.search_queries import ENGLISH, GERMAN, build_queries, search_with_fallback
 
 TOKEN_URL = "https://api.ebay.com/identity/v1/oauth2/token"
 SEARCH_URL = "https://api.ebay.com/buy/browse/v1/item_summary/search"
@@ -61,6 +61,11 @@ def _http() -> httpx.Client:
 # --- Anmeldung (App-Token, kein Nutzer-Login nötig) ---------------------------------------
 
 _token: dict = {}
+
+
+def search_words():
+    """Deutsche Suchwörter für ebay.at/.de/.ch, englische für ebay.com/.co.uk/…"""
+    return GERMAN if region.current().search_lang == "de" else ENGLISH
 
 
 def sandbox() -> bool:
@@ -112,10 +117,12 @@ def large_image(url: str) -> str:
 def search(query: str) -> list[dict]:
     """Eine Suche auf eBay (nur Sofort-Kaufen)."""
     params = {"q": query, "limit": RESULTS_PER_QUERY,
-              "filter": f"buyingOptions:{{FIXED_PRICE}},price:[{MIN_PRICE}..],priceCurrency:EUR"}
+              "filter": f"buyingOptions:{{FIXED_PRICE}},price:[{MIN_PRICE}..],"
+                        f"priceCurrency:{region.current().currency}"}
     headers = {
         "Authorization": f"Bearer {app_token()}",
-        "X-EBAY-C-MARKETPLACE-ID": os.getenv("EBAY_MARKETPLACE", "").strip() or "EBAY_DE",
+        # Marktplatz des Landes der Person (region.py): ebay.at, ebay.com, ebay.co.uk …
+        "X-EBAY-C-MARKETPLACE-ID": region.current().ebay,
     }
     campaign = os.getenv("EBAY_EPN_CAMPAIGN_ID", "").strip()
     if campaign:  # eBay liefert dann Partnerlinks mit (itemAffiliateWebUrl)
@@ -131,7 +138,7 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
     """eBay-Ergebnis -> Product. None, wenn wichtige Angaben fehlen."""
     try:
         price = float(item["price"]["value"])
-        currency = item["price"].get("currency", "EUR")
+        currency = item["price"].get("currency", region.current().currency)
         image = (item.get("image") or {}).get("imageUrl") or \
             (item.get("thumbnailImages") or [{}])[0].get("imageUrl")
         # Partnerlink, falls eBay einen geliefert hat – sonst der normale Link
@@ -140,7 +147,8 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
     except (KeyError, TypeError, ValueError, IndexError):
         return None
     title = item.get("title", "")
-    if not image or not url.startswith("https://") or currency != "EUR" or JUNK_PATTERN.search(title):
+    if not image or not url.startswith("https://") or currency != region.current().currency \
+            or JUNK_PATTERN.search(title):
         return None
 
     # Kategorie aus dem Titel – passt sie nicht zur Welt, die der Suche
@@ -179,7 +187,7 @@ class EbayProductSource(CachedSource):
         keep(query, category) -> False überspringt eine Suche."""
         products, seen = [], set()
         for department in departments:
-            for planned in build_queries(pins, department, GERMAN):
+            for planned in build_queries(pins, department, search_words()):
                 query, category = planned
                 if keep and not keep(query, category):
                     continue
@@ -198,7 +206,7 @@ def main() -> None:
     if not configured():
         print("EBAY_CLIENT_ID / EBAY_CLIENT_SECRET fehlen in .env.")
         return
-    marketplace = os.getenv("EBAY_MARKETPLACE", "").strip() or "EBAY_DE"
+    marketplace = region.current().ebay
     print(f"Server: {'SANDBOX (nur Testdaten!)' if sandbox() else 'Production'} | Marktplatz: {marketplace}")
     try:
         app_token()
@@ -207,7 +215,7 @@ def main() -> None:
         return
     print("Anmeldung: ok")
     pins = storage.load_pins()["pins"]
-    queries = [(q, d) for d in DEPARTMENTS for q in build_queries(pins, d, GERMAN)]
+    queries = [(q, d) for d in DEPARTMENTS for q in build_queries(pins, d, search_words())]
     if not queries:
         print("Keine Pins gefunden – teste mit einem Beispiel.")
         queries = [(("schwarze Hose", "Hosen"), "mode")]
@@ -255,7 +263,7 @@ Created: {now}
 
 App ID (Client ID): {client_id}
 Environment:        {"Sandbox" if sandbox() else "Production"}
-Marketplace:        {os.getenv("EBAY_MARKETPLACE", "").strip() or "EBAY_DE"}
+Marketplace:        {region.current().ebay}
 
 REQUEST
   POST {_url(TOKEN_URL)}

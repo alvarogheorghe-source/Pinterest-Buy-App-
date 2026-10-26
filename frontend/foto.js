@@ -214,9 +214,6 @@ function addAgainButton() {
 
 // --- Produktkarte (wie im Shop) ------------------------------------------------------------------
 
-function formatPrice(price, currency = "EUR") {
-  return new Intl.NumberFormat(window.LOCALE || "de-AT", { style: "currency", currency }).format(price);
-}
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -248,7 +245,7 @@ function card(product) {
   body.append(
     el("p", "card-shop", `${product.shop} · ${t(product.category)}`),
     titleLink,
-    el("p", "card-price", formatPrice(product.price, product.currency)),
+    el("p", "card-price", money(product)),
     el("p", "card-reason", product.looks_like_photo ? "Sieht aus wie dein Foto" : product.reason),
     actionsRow,
   );

@@ -32,17 +32,12 @@ function writeHash(department, tab) {
   location.hash = tab === "pins" ? `${department}/pins` : department;
 }
 
-// Preise schön formatieren, z.B. 34.99 -> "34,99 €"
-function formatPrice(price, currency) {
-  return new Intl.NumberFormat(window.LOCALE || "de-AT", { style: "currency", currency }).format(price);
-}
 
-// Sortiert nach Preis. Teile ohne Preis oder in fremder Währung (£, $) kommen ans
-// Ende – £35 ist nicht dasselbe wie 35 € und ohne Wechselkurs nicht vergleichbar.
+// Sortiert nach Preis in deiner Währung (der Server rechnet £, $ … um).
+// Teile ohne Preis oder ohne Wechselkurs kommen ans Ende.
 function sortByPrice(items) {
-  const euroPrice = (item) =>
-    item.price != null && item.currency === "EUR" ? item.price : Infinity;
-  return [...items].sort((a, b) => euroPrice(a) - euroPrice(b));
+  const localPrice = (item) => item.local_price ?? Infinity;   // vom Server umgerechnet
+  return [...items].sort((a, b) => localPrice(a) - localPrice(b));
 }
 
 // --- Daten laden ---------------------------------------------------------------------------
@@ -68,6 +63,7 @@ async function load() {
     return;
   }
   const recommendations = await recResponse.json();
+  labelBudgetChips(recommendations.currency);
   const pinItems = await pinResponse.json();
   const profile = recommendations.profile;
 
@@ -90,6 +86,15 @@ async function load() {
     showSources(recommendations.sources || ["demo"]);
   }
   showWarnings(filters.tab === "pins" ? [] : recommendations.warnings || []);
+}
+
+// Budget-Chips in der Währung der Person: "bis 15 €", "up to $15", "up to £15" …
+function labelBudgetChips(currency = "EUR") {
+  const format = new Intl.NumberFormat(window.LOCALE || "de-AT",
+    { style: "currency", currency, maximumFractionDigits: 0 });
+  for (const chip of budgetChips.querySelectorAll(".chip[data-max]")) {
+    if (chip.dataset.max) chip.textContent = t("bis {price}", { price: format.format(chip.dataset.max) });
+  }
 }
 
 // --- Woher kommen die Produkte? (Hinweis + Fußzeile) --------------------------------------
@@ -206,7 +211,7 @@ function productToCard(product, hasProfile) {
     imageUrl: product.image_url,
     topLine: `${product.shop} · ${t(product.category)}`,
     title: product.name,
-    price: formatPrice(product.price, product.currency),
+    price: money(product),
     note: hasProfile ? product.reason : "",
     // Klick auf Bild oder Name -> Detailseite mit "Mehr wie das"
     detailUrl: `/produkt.html?id=${encodeURIComponent(product.id)}`,
@@ -235,7 +240,7 @@ function pinItemToCard(item) {
     topLine: `${item.platform} · ${t(item.platform_type)}`,
     title: item.title || "Ohne Titel",
     // "ca.", weil der Preis nur aus dem Pin-Text gelesen wurde
-    price: item.price != null ? t("ca. {price}", { price: formatPrice(item.price, item.currency) })
+    price: item.price != null ? t("ca. {price}", { price: money(item) })
       : "Preis im Shop",
     note: item.description,
     buttonText: "Zum Angebot",

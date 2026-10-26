@@ -7,14 +7,15 @@ const deptChips = document.getElementById("dept-chips");
 let department = "";  // "" = alle, "mode", "wohnen"
 
 // "3 Teile · zusammen 89,70 €" (übersetzt, Preis im Format der Sprache)
-function summaryText(count, total) {
-  return t(count === 1 ? "{n} Teil · zusammen {total}" : "{n} Teile · zusammen {total}",
-    { n: count, total: formatPrice(total) });
+// Summe in der Währung der Person (local_price vom Server; "≈", wenn etwas umgerechnet ist)
+function summaryText(items) {
+  const total = items.reduce((sum, item) => sum + (item.local_price ?? item.price), 0);
+  const currency = items[0]?.local_currency ?? items[0]?.currency ?? "EUR";
+  const converted = items.some((item) => item.converted);
+  return t(items.length === 1 ? "{n} Teil · zusammen {total}" : "{n} Teile · zusammen {total}",
+    { n: items.length, total: money({ price: total, currency, converted }) });
 }
 
-function formatPrice(price, currency = "EUR") {
-  return new Intl.NumberFormat(window.LOCALE || "de-AT", { style: "currency", currency }).format(price);
-}
 
 function el(tag, className, text) {
   const element = document.createElement(tag);
@@ -45,8 +46,7 @@ function render(items) {
   }
 
   // Summe nur für Euro-Preise (alle Katalog-Produkte sind in Euro)
-  const total = items.reduce((sum, item) => sum + item.price, 0);
-  summary.textContent = summaryText(items.length, total);
+  summary.textContent = summaryText(items);
 
   for (const item of items) savedGrid.appendChild(card(item));
 }
@@ -81,7 +81,7 @@ function card(item) {
   body.append(
     el("p", "card-shop", `${item.shop} · ${t(item.category)}`),
     titleLink,
-    el("p", "card-price", formatPrice(item.price, item.currency)),
+    el("p", "card-price", money(item)),
     el("p", "card-reason", ""),
     actions,
   );
@@ -116,9 +116,8 @@ function removeWithUndo(box, item) {
 async function updateSummaryAfterRemove() {
   const query = department ? `?department=${department}` : "";
   const items = await fetch(`/api/saved${query}`).then((r) => r.json());
-  const total = items.reduce((sum, item) => sum + item.price, 0);
   summary.textContent = items.length
-    ? summaryText(items.length, total)
+    ? summaryText(items)
     : "Alles entfernt.";
 }
 

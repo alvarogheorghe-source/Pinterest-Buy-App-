@@ -89,6 +89,13 @@ def no_background_analysis(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def no_exchange_rate_downloads(monkeypatch):
+    """Wechselkurse: in Tests nie die EZB fragen – die festen Ersatzkurse gelten."""
+    from backend import currency
+    monkeypatch.setattr(currency, "_refresh_in_background", lambda: None)
+
+
+@pytest.fixture(autouse=True)
 def no_image_downloads(monkeypatch):
     """Pin-Bilder werden in Tests nie wirklich geladen (backend/pin_colors.py)."""
     from backend import pin_colors

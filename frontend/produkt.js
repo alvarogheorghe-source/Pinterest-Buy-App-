@@ -5,9 +5,6 @@ const detail = document.getElementById("detail");
 const masonry = document.getElementById("masonry");
 const backLink = document.getElementById("back-link");
 
-function formatPrice(price, currency) {
-  return new Intl.NumberFormat(window.LOCALE || "de-AT", { style: "currency", currency }).format(price);
-}
 
 // Kleiner Helfer: Element mit Klasse und Text bauen (Text immer über textContent)
 function el(tag, className, text) {
@@ -60,7 +57,7 @@ function renderDetail(product, hasProfile) {
   info.append(
     el("p", "card-shop", `${product.shop} · ${product.category}`),
     el("h1", "detail-name", product.name),
-    el("p", "detail-price", formatPrice(product.price, product.currency)),
+    el("p", "detail-price", money(product)),
   );
   if (hasProfile) info.appendChild(el("p", "detail-reason", product.reason));
   if (product.trusted) {
@@ -106,7 +103,7 @@ function renderSimilar(items) {
     const body = el("div", "pin-card-body");
     body.append(
       el("p", "pin-card-name", item.name),
-      el("p", "pin-card-price", formatPrice(item.price, item.currency)),
+      el("p", "pin-card-price", money(item)),
     );
     if (item.looks_similar) {
       body.appendChild(el("p", "card-hint", "Sieht ähnlich aus")); // Bilderkennung

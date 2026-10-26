@@ -118,15 +118,17 @@ def find_pin_items(pins: list[dict]) -> list[dict]:
     return items
 
 
-def filter_by_budget(items: list[dict], max_price: float | None) -> list[dict]:
-    """Blendet nur Teile aus, deren Preis SICHER über dem Budget liegt.
-
-    Ohne Preis oder in fremder Währung (£, $ ...) können wir es nicht wissen,
-    deshalb bleiben diese Teile sichtbar.
+def filter_by_budget(items: list[dict], max_price: float | None,
+                     currency: str = "EUR") -> list[dict]:
+    """Blendet nur Teile aus, deren Preis SICHER über dem Budget liegt (Budget in currency,
+    fremde Währungen werden umgerechnet). Ohne Preis oder ohne Kurs bleiben Teile sichtbar.
     """
+    from backend.currency import convert
     if max_price is None:
         return items
-    return [
-        item for item in items
-        if item["currency"] != "EUR" or item["price"] <= max_price
-    ]
+    kept = []
+    for item in items:
+        price = convert(item["price"], item["currency"], currency) if item.get("price") is not None else None
+        if price is None or price <= max_price:
+            kept.append(item)
+    return kept

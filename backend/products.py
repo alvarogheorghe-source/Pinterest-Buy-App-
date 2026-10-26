@@ -46,6 +46,8 @@ class Product(BaseModel):
     # Geprüfter Shop (backend/shops.py) – wird beim Laden gesetzt
     trusted: bool = False
     trusted_note: str = ""
+    # Lieferländer (z.B. aus feeds.json); leer = überall bzw. von der Quelle schon passend
+    countries: list[str] = []
 
     @field_validator("affiliate_url")
     @classmethod
@@ -111,16 +113,18 @@ class CachedSource(ProductSource):
         raise NotImplementedError
 
     def load(self) -> list[Product]:
-        from backend import storage
+        from backend import region, storage
+        here = region.current().code          # anderes Land -> anderer Marktplatz, neu suchen
         cached = storage.read_json(self.cache_file, default=None)
-        if cached and cached.get("fetched_at", 0) > time.time() - self.cache_seconds:
+        if cached and cached.get("fetched_at", 0) > time.time() - self.cache_seconds \
+                and cached.get("region", here) == here:
             return [Product(**p) for p in cached["products"]]
         from backend.i18n import tr
         try:
             products = self.fetch()
         except httpx.HTTPError as err:   # kein Internet, Zeitüberschreitung …
             raise ProductSourceError(tr("{name} ist gerade nicht erreichbar.", name=self.name)) from err
-        storage.write_json(self.cache_file, {"fetched_at": time.time(),
+        storage.write_json(self.cache_file, {"fetched_at": time.time(), "region": here,
                                              "products": [p.model_dump() for p in products]})
         return products
 
@@ -225,15 +229,28 @@ def source_names() -> list[str]:
 
 def filter_products(products: list[Product], min_price: float | None = None,
                     max_price: float | None = None, category: str | None = None,
-                    department: str | None = None) -> list[Product]:
-    """Behält nur Produkte im Budget und (optional) in einer Welt/Kategorie."""
+                    department: str | None = None, currency: str | None = None,
+                    country: str | None = None) -> list[Product]:
+    """Behält nur Produkte im Budget und (optional) in einer Welt/Kategorie.
+
+    currency: Budget gilt in dieser Währung (Preise werden umgerechnet; ohne Kurs -> raus).
+    country: nur Produkte, die dorthin geliefert werden (leere Lieferländer = überall)."""
+    from backend.currency import convert, rates
+    table = rates() if currency else None
     result = []
     for product in products:
         if department and product.department != department:
             continue
-        if min_price is not None and product.price < min_price:
+        if country and product.countries and country not in product.countries:
             continue
-        if max_price is not None and product.price > max_price:
+        price = product.price
+        if currency and (min_price is not None or max_price is not None):
+            price = convert(product.price, product.currency, currency, table)
+            if price is None:
+                continue
+        if min_price is not None and price < min_price:
+            continue
+        if max_price is not None and price > max_price:
             continue
         if category and product.category != category:
             continue

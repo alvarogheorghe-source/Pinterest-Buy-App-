@@ -20,6 +20,7 @@ import re
 import httpx
 
 from backend import storage
+from backend.currency import rates
 from backend.i18n import tr
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
@@ -93,7 +94,8 @@ def to_product(listing: dict, department: str, query_category: str) -> Product |
     except (KeyError, TypeError, IndexError, ZeroDivisionError):
         return None
     title = html.unescape(listing.get("title", ""))
-    if (currency != "EUR" or amount < MIN_PRICE or not url.startswith("https://")
+    # Etsy-Preise in der Währung des Shops – umrechenbar muss sie sein (currency.py)
+    if (currency not in rates() or amount < MIN_PRICE or not url.startswith("https://")
             or listing.get("listing_type") == "download" or listing.get("is_supply")
             or JUNK_PATTERN.search(title)):
         return None
