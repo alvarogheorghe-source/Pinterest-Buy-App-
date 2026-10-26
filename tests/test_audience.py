@@ -21,8 +21,8 @@ def test_audience_from_images_and_text():
 
 def test_searches_get_herren_or_damen():
     board = pins(4, image_gender="herren", image_styles=["oversized"], image_categories=["Hosen"])
-    assert build_queries(board, "mode")[0] == ("Herren oversized Hose", "Hosen")
-    assert build_queries(board, "mode", ENGLISH)[0] == ("men's oversized pants", "Hosen")
+    assert build_queries(board, "mode")[0] == ("Herren Baggy Jeans", "Hosen")
+    assert build_queries(board, "mode", ENGLISH)[0] == ("men's baggy jeans", "Hosen")
     assert not build_queries(board, "wohnen")[0][0].startswith("Herren")    # Wohnen: egal
 
 

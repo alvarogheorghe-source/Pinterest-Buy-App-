@@ -29,7 +29,7 @@ from backend import storage
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
 from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError
-from backend.search_queries import GERMAN, build_queries
+from backend.search_queries import GERMAN, build_queries, search_with_fallback
 
 TOKEN_URL = "https://api.ebay.com/identity/v1/oauth2/token"
 SEARCH_URL = "https://api.ebay.com/buy/browse/v1/item_summary/search"
@@ -177,10 +177,11 @@ class EbayProductSource(CachedSource):
         keep(query, category) -> False überspringt eine Suche."""
         products, seen = [], set()
         for department in departments:
-            for query, category in build_queries(pins, department, GERMAN):
+            for planned in build_queries(pins, department, GERMAN):
+                query, category = planned
                 if keep and not keep(query, category):
                     continue
-                for item in search(query):
+                for item in search_with_fallback(search, planned):
                     product = to_product(item, department, category)
                     if product and product.id not in seen:
                         seen.add(product.id)
@@ -204,16 +205,20 @@ def main() -> None:
         return
     print("Anmeldung: ok")
     pins = storage.load_pins()["pins"]
-    queries = [(q, c, d) for d in DEPARTMENTS for q, c in build_queries(pins, d, GERMAN)]
+    queries = [(q, d) for d in DEPARTMENTS for q in build_queries(pins, d, GERMAN)]
     if not queries:
         print("Keine Pins gefunden – teste mit einem Beispiel.")
-        queries = [("schwarze Hose", "Hosen", "mode")]
+        queries = [(("schwarze Hose", "Hosen"), "mode")]
     total = 0
-    for query, category, department in queries:
-        items = search(query)
+    for planned, department in queries:
+        query, category = planned
+        items = search_with_fallback(search, planned)
         kept = [p for p in (to_product(i, department, category) for i in items) if p]
         total += len(kept)
-        print(f"  {query:<35} eBay: {len(items):>2}  übrig: {len(kept):>2}")
+        print(f"  {query:<40} eBay: {len(items):>2}  übrig: {len(kept):>2}")
+        fallback = getattr(planned, "fallback", None)
+        if fallback:
+            print(f"    (zu wenig? dann auch: {fallback})")
         if items and not kept:
             first = items[0]
             print(f"    z.B. {first.get('title', '')[:50]!r} | Preis: {first.get('price')}")

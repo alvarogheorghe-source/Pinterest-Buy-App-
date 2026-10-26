@@ -4,8 +4,10 @@ Jede Quelle sucht in "ihrer" Sprache: eBay.de/.at auf Deutsch ("beige oversized 
 Etsy auf Englisch ("beige oversized sweater") – dort sind die meisten Titel englisch.
 """
 
+import math
 from dataclasses import dataclass, field
 
+from backend import details
 from backend.brands import BRANDS
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, audience,
                               build_style_profile, classify_pin, find_terms, pin_text)
@@ -13,6 +15,33 @@ from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, audience,
 QUERIES_PER_DEPARTMENT = 4       # 2 Welten × 4 Suchen = 8 Anfragen pro Quelle und Stunde
 BRAND_MIN_PINS = 1               # erkannte Marke/Modell -> gezielte Suche (schon ab 1 Pin)
 MAX_BRAND_QUERIES = 2            # höchstens so viele der 4 Suchen pro Welt für Marken
+MAX_DETAILS = 2                  # höchstens so viele Merkmale pro Suche ("Baggy Light Wash Jeans")
+DETAIL_SHARE = 0.25              # Merkmal zählt, wenn es in mind. 25 % der Pins dieser Kategorie ist
+MIN_RESULTS = 5                  # weniger Treffer -> zusätzlich breiter suchen (Sicherheitsnetz)
+# Allgemeine Typen: bei Gleichstand gewinnt das genauere Teil ("Chelsea Boots" vor "Stiefel")
+GENERIC_TYPES = {"Stiefel", "Sneaker"}
+# Stile, die nur zu Kleidung passen (keine "oversized Stiefel")
+CLOTHING_ONLY_STYLES = {"oversized"}
+
+
+class Query(tuple):
+    """Eine Suche: verhält sich wie (Suchtext, Kategorie), hat aber zusätzlich .fallback –
+    eine breitere Suche für den Fall, dass die genaue zu wenig findet."""
+
+    def __new__(cls, text: str, category: str, fallback: str | None = None):
+        query = super().__new__(cls, (text, category))
+        query.fallback = fallback if fallback != text else None
+        return query
+
+
+def search_with_fallback(search, query) -> list:
+    """search(text) -> Treffer. Findet die genaue Suche zu wenig, kommt die breitere dazu
+    ("Baggy Light Wash Jeans" -> "Jeans"). Doppelte Angebote sortieren die Quellen selbst aus."""
+    results = search(query[0])
+    fallback = getattr(query, "fallback", None)
+    if len(results) < MIN_RESULTS and fallback:
+        results = results + search(fallback)
+    return results
 
 # Ohne Pins: diese Kategorien zuerst
 DEFAULT_CATEGORIES = {
@@ -28,6 +57,7 @@ class SearchWords:
     styles: dict[str, str | None]                    # Stil -> Suchwort, None = weglassen
     colors: dict[str, str] = field(default_factory=dict)  # Farbe -> Suchwort (sonst gleich)
     audience: dict[str, str] = field(default_factory=dict)  # "herren" -> "Herren"
+    english: bool = False                            # Suchwörter der Details: Deutsch/Englisch
 
     def style(self, style: str) -> str | None:
         return self.styles.get(style, style)
@@ -38,11 +68,24 @@ class SearchWords:
         item = brand.item or ("" if brand.category == "Schuhe" else self.categories[brand.category])
         return f"{name} {item}".strip()
 
-    def query(self, color: str | None, style: str | None, category: str) -> str:
-        words = (self.colors.get(color, color) if color else None,
+    def detail(self, name: str) -> str:
+        found = details.BY_NAME[name]
+        return found.en if self.english else found.de
+
+    def query(self, color: str | None, style: str | None, category: str,
+              adjectives: list[str] = (), noun: str | None = None) -> str:
+        """Farbe + Merkmale + Stil + Teil, z.B. "schwarz Baggy Light Wash Jeans".
+        noun: genaues Teil ("Hoodie") statt des allgemeinen Kategorie-Worts ("Pullover")."""
+        words = [self.colors.get(color, color) if color else None,
+                 *(self.detail(a) for a in adjectives),
                  self.style(style) if style else None,
-                 self.categories[category])
-        return " ".join(w for w in words if w)
+                 self.detail(noun) if noun else self.categories[category]]
+        words = [w for w in words if w]
+        # Doppeltes weg: "Cargo Cargohose" -> "Cargohose", "Mini Mini" -> "Mini"
+        kept = [w for i, w in enumerate(words)
+                if not any(w.lower() in other.lower() for j, other in enumerate(words)
+                           if j != i and (w.lower() != other.lower() or j < i))]
+        return " ".join(kept)
 
 
 GERMAN = SearchWords(
@@ -79,6 +122,7 @@ ENGLISH = SearchWords(
         "silber": "silver",
     },
     audience={"herren": "men's", "damen": "women's"},
+    english=True,
 )
 
 
@@ -89,6 +133,43 @@ def _top(counter) -> str | None:
 def _top_style(counter, words: SearchWords) -> str | None:
     """Häufigster Stil, den man auf der Plattform sinnvoll suchen kann."""
     return next((s for s, _ in counter.most_common() if words.style(s)), None)
+
+
+def _part_words(sub, color, style, category, adjectives, words) -> tuple[str | None, str | None]:
+    """Farbe und Stil für die Suche nach einem Teil – passend zu den gewählten Merkmalen."""
+    part_color = _top(sub.colors) or color
+    groups = {details.BY_NAME[a].group for a in adjectives}
+    # Waschung sagt schon die Farbe ("Light Wash") -> keine zweite ("schwarz Light Wash")
+    if "waschung" in groups:
+        part_color = None
+    # Stil: aus den Pins dieses Teils; der allgemeine Stil nur, wenn es keine Merkmale gibt
+    part_style = _top_style(sub.styles, words) or (None if adjectives else style)
+    if part_style in CLOTHING_ONLY_STYLES and (category in ("Schuhe", "Accessoires")
+                                               or "schnitt" in groups):
+        part_style = None                        # keine "oversized Stiefel", kein "oversized Baggy"
+    if len(adjectives) >= MAX_DETAILS:           # 2 Merkmale sind genauer als jeder Stil
+        part_style = None
+    return part_color, part_style
+
+
+def pick_details(profile, category: str) -> tuple[str | None, list[str]]:
+    """Welche Merkmale kommen in die Suche? -> (genaues Teil oder None, [Merkmale])
+
+    Nur Merkmale, die in genug Pins dieser Kategorie vorkommen; höchstens eins pro Gruppe
+    (nie "Skinny Bootcut"), höchstens MAX_DETAILS. Ein einzelnes Foto zählt voll."""
+    needed = max(1, math.ceil(DETAIL_SHARE * profile.categories[category]))
+    noun, adjectives, groups = None, [], set()
+    ranked = sorted(profile.top_details(category), key=lambda d: (-d[1], d[0] in GENERIC_TYPES))
+    for name, count in ranked:
+        if count < needed:
+            break
+        group = details.BY_NAME[name].group
+        if group == "typ":
+            noun = noun or name
+        elif group not in groups and len(adjectives) < MAX_DETAILS:
+            groups.add(group)
+            adjectives.append(name)
+    return noun, adjectives
 
 
 def build_queries(pins: list[dict], department: str,
@@ -107,21 +188,35 @@ def build_queries(pins: list[dict], department: str,
 
     queries: list[tuple[str, str]] = []
 
-    def add(text: str, category: str) -> None:
-        if text not in (q for q, _ in queries):
-            queries.append((text, category))
+    def add(query, category: str) -> None:
+        query = query if isinstance(query, Query) else Query(query, category)
+        if query[0] not in (text for text, _ in queries):
+            queries.append(query)
 
     for category in categories:
         matching = [pin for pin in world_pins
-                    if category in find_terms(pin_text(pin), CATEGORY_PATTERNS)]
+                    if category in find_terms(pin_text(pin), CATEGORY_PATTERNS)
+                    or category in pin.get("image_categories", [])]
         sub = build_style_profile(matching)
-        add(words.query(_top(sub.colors) or color, _top_style(sub.styles, words) or style,
-                        category), category)
+        noun, adjectives = pick_details(profile, category)
+        part_color, part_style = _part_words(sub, color, style, category, adjectives, words)
+        # Merkmale sind genauer als der Stil: bei 2 Merkmalen kein Stil-Wort mehr,
+        # und "oversized" nicht neben einem Schnitt ("oversized Baggy")
+        text = words.query(part_color, part_style, category, adjectives, noun)
+        # Sicherheitsnetz: dasselbe Teil ohne Merkmale ("schwarz Jeans")
+        add(Query(text, category, fallback=words.query(part_color, None, category, noun=noun)),
+            category)
 
     # Ein freier Platz? Dann das Lieblingsteil auch in der zweitliebsten Farbe
     second_colors = [c for c, _ in profile.colors.most_common(2)][1:]
     if categories and second_colors:
-        add(words.query(second_colors[0], style, categories[0]), categories[0])
+        noun, adjectives = pick_details(profile, categories[0])
+        color_fits, part_style = _part_words(profile, None, style, categories[0], adjectives, words)
+        # Bei "Light Wash" & Co. keine zweite Farbe (Farbe steckt schon in der Waschung)
+        second = second_colors[0] if color_fits or not adjectives else None
+        add(Query(words.query(second, part_style, categories[0], adjectives, noun),
+                  categories[0], fallback=words.query(second_colors[0], None, categories[0],
+                                                      noun=noun)), categories[0])
 
     for fallback in DEFAULT_CATEGORIES[department]:
         add(words.query(color, style, fallback), fallback)
@@ -141,5 +236,8 @@ def build_queries(pins: list[dict], department: str,
         # Ein einzelnes Foto (photo.py): dessen Erkennung zählt direkt, sonst das ganze Board
         who = pins[0].get("image_gender") if len(pins) == 1 else audience(pins)
     if who and words.audience.get(who):
-        queries = [(f"{words.audience[who]} {text}", category) for text, category in queries]
+        prefix = words.audience[who]
+        queries = [Query(f"{prefix} {q[0]}", q[1],
+                         fallback=f"{prefix} {q.fallback}" if getattr(q, "fallback", None) else None)
+                   for q in queries]
     return queries

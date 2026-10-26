@@ -76,10 +76,10 @@ def test_queries_follow_the_style_profile():
     pins = [{"title": "beige oversized hoodie"}, {"title": "beige hoodie"},
             {"title": "black cargo pants"}]
     queries = build_queries(pins, "mode")
-    assert queries[0] == ("beige oversized Pullover", "Oberteile")   # meistgepinnt zuerst
+    assert queries[0] == ("beige oversized Hoodie", "Oberteile")   # meistgepinnt zuerst, genaues Teil
     # Farbe/Stil aus den Hosen-Pins, nicht vom Hoodie übernommen; "utility" -> "Cargo"
-    assert queries[1] == ("schwarz Cargo Hose", "Hosen")
-    assert queries[2] == ("schwarz oversized Pullover", "Oberteile")  # zweitliebste Farbe
+    assert queries[1] == ("schwarz Cargohose", "Hosen")
+    assert queries[2] == ("schwarz oversized Hoodie", "Oberteile")  # zweitliebste Farbe
     assert len(queries) == QUERIES_PER_DEPARTMENT
     assert len({q for q, _ in queries}) == len(queries)                # keine doppelte Suche
 
@@ -166,7 +166,8 @@ def test_ebay_products_in_the_shop_and_cache(fake_ebay, client):
     assert data["products"][0]["name"] == "Beige Oversized Hoodie Damen"   # passt am besten
     assert data["products"][0]["affiliate_url"] == "https://www.ebay.de/itm/10"
     searches = len(fake_ebay.searches())
-    assert searches == 2 * QUERIES_PER_DEPARTMENT
+    # 4 Suchen pro Welt – plus breitere Suchen, wo die genaue zu wenig fand (Sicherheitsnetz)
+    assert 2 * QUERIES_PER_DEPARTMENT <= searches <= 4 * QUERIES_PER_DEPARTMENT
 
     # Zweites Laden: aus dem Zwischenspeicher, keine neue Suche
     client.get("/api/recommendations?department=mode")
@@ -176,7 +177,7 @@ def test_ebay_products_in_the_shop_and_cache(fake_ebay, client):
     # Neue Pins -> Zwischenspeicher weg -> neue Suche
     save_pins("schwarze lederjacke")
     client.get("/api/recommendations?department=mode")
-    assert len(fake_ebay.searches()) == 2 * searches
+    assert len(fake_ebay.searches()) > searches
 
 
 def test_wrong_keys_give_a_clear_message(fake_ebay, client):

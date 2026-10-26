@@ -29,7 +29,7 @@ from backend.counterfeit import looks_like_fake, mentions_brand
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
 from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError
-from backend.search_queries import ENGLISH, build_queries
+from backend.search_queries import ENGLISH, build_queries, search_with_fallback
 
 API_URL = "https://api-sg.aliexpress.com/sync"
 METHOD = "aliexpress.affiliate.product.query"
@@ -140,10 +140,11 @@ class AliExpressProductSource(CachedSource):
     def fetch_for(self, pins: list[dict], departments, keep=None) -> list[Product]:
         products, seen = [], set()
         for department in departments:
-            for query, category in build_queries(pins, department, ENGLISH):
+            for planned in build_queries(pins, department, ENGLISH):
+                query, category = planned
                 if not no_brand_searches(query, category) or (keep and not keep(query, category)):
                     continue
-                for item in search(query):
+                for item in search_with_fallback(search, planned):
                     product = to_product(item, department, category)
                     if product and product.id not in seen:
                         seen.add(product.id)

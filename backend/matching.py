@@ -75,16 +75,24 @@ STYLE_SYNONYMS = {
 CATEGORY_SYNONYMS = {
     # Bewusst ohne "tee": auf Deutsch ist das ein Getränk
     "Oberteile": ("mode", ["hoodie", "*pullover", "sweater", "*shirt", "t-shirt", "top",
-                           "*bluse", "blouse", "*hemd", "knit", "crop top"]),
-    "Hosen": ("mode", ["*hose", "pants", "*jeans", "trousers", "sweatpants"]),
+                           "*bluse", "blouse", "*hemd", "knit", "crop top", "cardigan",
+                           "tanktop", "tank top", "polo", "korsett", "corset", "longsleeve",
+                           "turtleneck", "*rollkragen", "sweatshirt", "crewneck", "bodysuit",
+                           "trikot", "jersey"]),
+    "Hosen": ("mode", ["*hose", "pants", "*jeans", "trousers", "sweatpants", "shorts", "jorts",
+                       "leggings", "jogger", "joggers", "cargos", "slacks"]),
     "Jacken": ("mode", ["*jacke", "jacket", "*coat", "*mantel", "trench", "puffer", "blazer",
-                        "bomber"]),
+                        "bomber", "parka", "windbreaker", "sakko", "weste", "gilet"]),
     "Kleider & Röcke": ("mode", ["*kleid", "dress", "rock", "minirock", "jeansrock",
-                                 "faltenrock", "plisseerock", "skirt"]),
+                                 "faltenrock", "plisseerock", "skirt", "jumpsuit"]),
     "Schuhe": ("mode", ["*schuhe", "shoe", "*sneaker", "boot", "*stiefel", "ballerinas",
-                        "loafer"]),
+                        "loafer", "sandalen", "sandals", "heels", "pumps", "clogs",
+                        "mary janes", "stiefelette", "stiefeletten", "trainers"]),
     "Accessoires": ("mode", ["*tasche", "bag", "tote", "schmuck", "jewelry", "jewellery",
-                             "kette", "necklace", "*gürtel", "belt", "beanie", "*mütze", "cap"]),
+                             "kette", "necklace", "*gürtel", "belt", "beanie", "*mütze", "cap",
+                             "rucksack", "backpack", "ohrringe", "earrings", "creolen",
+                             "armband", "bracelet", "sonnenbrille", "sunglasses", "schal",
+                             "scarf", "clutch", "claw clip"]),
     "Deko": ("wohnen", ["*vase", "*vasen", "*kerze", "*kerzen", "candle", "deko", "decor",
                         "dekoration"]),
     "Leuchten": ("wohnen", ["*lampe", "*lampen", "lamp", "*leuchte", "*lichterkette",
@@ -152,10 +160,22 @@ class StyleProfile:
     styles: Counter = field(default_factory=Counter)
     categories: Counter = field(default_factory=Counter)  # z.B. "Deko": 3
     brands: Counter = field(default_factory=Counter)      # z.B. "Adidas Samba": 2
+    # Schnitt & Details pro Kategorie (details.py), z.B. ("Hosen", "Bootcut"): 4
+    details: Counter = field(default_factory=Counter)
 
     def mentions(self, term: str) -> int:
-        """In wie vielen Pins kommt der Begriff (Farbe, Stil oder Kategorie) vor?"""
-        return self.colors[term] + self.styles[term] + self.categories[term]
+        """In wie vielen Pins kommt der Begriff (Farbe, Stil, Kategorie oder Detail) vor?"""
+        return (self.colors[term] + self.styles[term] + self.categories[term]
+                + sum(n for (_, name), n in self.details.items() if name == term))
+
+    def detail_share(self, category: str, name: str) -> float:
+        """Anteil der Pins einer Kategorie mit diesem Detail: 4 von 8 Hosen-Pins Bootcut -> 0.5"""
+        pins = self.categories[category]
+        return min(1.0, self.details[(category, name)] / pins) if pins else 0.0
+
+    def top_details(self, category: str) -> list[tuple[str, int]]:
+        """[("Baggy", 9), ("Light Wash", 6), …] – häufigste zuerst."""
+        return [(name, n) for (c, name), n in self.details.most_common() if c == category]
 
     def weight(self, term: str) -> float:
         """Anteil der Pins mit diesem Begriff (0.0 bis 1.0)."""
@@ -173,6 +193,8 @@ class StyleProfile:
             "top_styles": [term for term, _ in self.styles.most_common(3)],
             "top_categories": [term for term, _ in self.categories.most_common(3)],
             "brands": dict(self.brands.most_common()),
+            "details": {category: dict(self.top_details(category))
+                        for category in self.categories if self.top_details(category)},
         }
 
 
@@ -267,6 +289,10 @@ def build_style_profile(pins: list[dict], department: str | None = None) -> Styl
         if department:  # nur Kategorien der gewählten Welt
             categories = {c for c in categories if CATEGORY_SYNONYMS[c][0] == department}
         profile.categories.update(categories)
+        # Schnitt & Details (details.py): aus dem Text + was die Bilderkennung gesehen hat
+        found = details.find(text, categories) | {
+            (c, name) for c, name in pin.get("image_details", []) if c in categories}
+        profile.details.update(found)
         # Marken (brands.py): aus dem Text oder aus dem Bild
         brands = find_terms(text, BRAND_PATTERNS) | set(pin.get("image_brands", []))
         profile.brands.update(b for b in brands
@@ -321,11 +347,38 @@ def explain(matched: list[str], profile: StyleProfile) -> str:
             f"oft in deinen Pins vorkommen.")
 
 
+DETAIL_WEIGHT = 0.6     # Bootcut gepinnt + Bootcut im Titel -> bis zu 0.6 Punkte extra
+DETAIL_CLASH = 0.4      # Bootcut gepinnt, Titel sagt "Skinny" -> bis zu 0.4 Punkte weniger
+
+
+def detail_points(product: Product, profile: StyleProfile) -> tuple[float, list[str]]:
+    """Punkte für Schnitt & Details im Produkttitel -> (Punkte, passende Details).
+
+    Plus, wenn ein gepinntes Detail im Titel steht. Minus, wenn der Titel in derselben
+    Gruppe etwas anderes sagt, das du NICHT pinnst (Skinny statt Bootcut)."""
+    found = {name for _, name in details.find(product.name, [product.category])}
+    points, matched = 0.0, []
+    for name in found:
+        share = profile.detail_share(product.category, name)
+        if share > 0:
+            points += DETAIL_WEIGHT * share
+            matched.append(name)
+            continue
+        group = details.BY_NAME[name].group
+        rivals = [profile.detail_share(product.category, other)
+                  for other, _ in profile.top_details(product.category)
+                  if details.BY_NAME[other].group == group]
+        if group != "typ" and rivals:     # Typ-Unterschiede regelt schon die Kategorie
+            points -= DETAIL_CLASH * max(rivals)
+    return points, sorted(matched, key=lambda n: -profile.detail_share(product.category, n))
+
+
 def rank_products(products: list[Product], profile: StyleProfile) -> list[dict]:
     """Sortiert Produkte: beste Übereinstimmung zuerst, bei Gleichstand günstigere zuerst.
 
-    Punkte gibt es für passende Farben, Stile UND die Kategorie: Zeigen viele
-    Pins Vasen, kommen Vasen weiter nach oben.
+    Punkte gibt es für passende Farben, Stile, die Kategorie UND Schnitt & Details:
+    Zeigen viele Pins Vasen, kommen Vasen weiter nach oben; pinnst du Bootcut-Jeans,
+    kommen Bootcut-Jeans vor Skinny-Jeans.
     """
     results = []
     for product in products:
@@ -333,7 +386,9 @@ def rank_products(products: list[Product], profile: StyleProfile) -> list[dict]:
         # Nur Begriffe, die im Profil vorkommen; häufigste zuerst
         matched = sorted((t for t in terms if profile.mentions(t) > 0),
                          key=profile.weight, reverse=True)
-        score = sum(profile.weight(t) for t in matched)
+        extra, matched_details = detail_points(product, profile)
+        score = sum(profile.weight(t) for t in matched) + extra
+        matched = matched_details + matched   # das genaueste Merkmal zuerst in der Begründung
         results.append({
             **product.model_dump(),
             "score": round(score, 3),
@@ -344,3 +399,7 @@ def rank_products(products: list[Product], profile: StyleProfile) -> list[dict]:
     # Minus vor dem Score -> absteigend; Preis -> aufsteigend
     results.sort(key=lambda r: (-r["score"], r["price"]))
     return results
+
+
+# Ganz unten, weil details.py selbst Bausteine von hier benutzt (_compile, find_terms)
+from backend import details  # noqa: E402

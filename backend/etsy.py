@@ -23,7 +23,7 @@ from backend import storage
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms)
 from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError
-from backend.search_queries import ENGLISH, build_queries
+from backend.search_queries import ENGLISH, build_queries, search_with_fallback
 
 API_URL = "https://openapi.etsy.com/v3/application"
 RESULTS_PER_QUERY = 20
@@ -135,10 +135,11 @@ class EtsyProductSource(CachedSource):
         keep(query, category) -> False überspringt eine Suche."""
         products, seen = [], set()
         for department in departments:
-            for query, category in build_queries(pins, department, ENGLISH):
+            for planned in build_queries(pins, department, ENGLISH):
+                query, category = planned
                 if keep and not keep(query, category):
                     continue
-                for listing in search(query):
+                for listing in search_with_fallback(search, planned):
                     product = to_product(listing, department, category)
                     if product and product.id not in seen:
                         seen.add(product.id)

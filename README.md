@@ -162,6 +162,18 @@ Bei AliExpress dürfen geprüfte offizielle Markenstores auch Markennamen zeigen
 Große Ketten wie Zara haben kein öffentliches Partnerprogramm/API – solche Shops lassen sich
 erst über ein Affiliate-Netzwerk (z.B. Awin) als eigene Quelle anbinden.
 
+### Schnitt & Details
+
+`backend/details.py` kennt rund 150 Merkmale pro Kategorie (Deutsch + Englisch):
+Schnitt (Bootcut, Wide Leg, Baggy, Cropped …), Bund, Waschung (Light Wash, Washed Black …),
+Länge, Ausschnitt, Ärmel, Material, Muster, kleine Details und genaue Teile („Hoodie“,
+„Cargohose“, „Chelsea Boots“ – ersetzen das allgemeine Kategorie-Wort).
+Das Profil zählt sie pro Kategorie; die Suche nimmt bis zu 2 Merkmale, die in mind. 25 % der
+Pins dieser Kategorie vorkommen („Herren Baggy Light Wash Jeans“). Findet eine genaue Suche
+unter 5 Treffer, sucht die App zusätzlich breiter („Herren Jeans“). Im Ranking zählen
+passende Merkmale im Produkttitel extra; ein widersprechendes (Skinny statt Bootcut) kostet
+Punkte. Neue Merkmale einfach in `DETAILS` eintragen.
+
 ### Mehrere Quellen
 
 Sind eBay **und** Etsy eingerichtet, mischt der Shop beide (`products.CombinedSource`) –
