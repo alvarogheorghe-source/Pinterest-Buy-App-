@@ -60,7 +60,7 @@ def test_api_vibe(fake, client):
     storage.save_pins({"fetched_at": 1, "board_ids": ["111"], "pins": pins("gothic", "goth")})
     result = client.get("/api/vibe").json()
     assert result["title"] == "Goth Baddie"
-    assert set(result) == {"title", "emoji", "text", "second", "terms", "colors", "pin_count"}
+    assert set(result) == {"title", "emoji", "text", "second", "terms", "colors", "pin_count", "second_title", "look"}
 
 
 def test_vibe_has_color_swatches_for_the_share_card():
@@ -68,3 +68,14 @@ def test_vibe_has_color_swatches_for_the_share_card():
     colors = vibe.vibe_check(pins, random.Random(1))["colors"]
     assert colors[0] == {"name": "schwarz", "hex": "#1e1e1e"}
     assert {"name": "silber", "hex": "#c4c6cc"} in colors
+
+
+def test_every_vibe_has_a_known_look():
+    """Jeder Vibe bekommt einen Look, den vibecard.js kennt (sonst Standard "rosa")."""
+    from pathlib import Path
+    card = Path(__file__).resolve().parent.parent.joinpath("frontend", "vibecard.js").read_text()
+    for v in vibe.VIBES:
+        look = vibe.LOOKS.get(v.title, "rosa")
+        assert f"{look}:" in card, f"{v.title} -> {look} fehlt in vibecard.js"
+    result = vibe.vibe_check([{"title": "goth grunge black"}], random.Random(1))
+    assert result["look"] == "dunkel" and "🖤" not in result["title"]

@@ -22,6 +22,17 @@ SWATCHES = {
     "silber": "#c4c6cc", "gold": "#c9a54a",
 }
 
+# Look der Vibe-Karte (Hintergrund + Malis Outfit, siehe frontend/vibecard.js).
+# Wenige Looks teilen sich alle Vibes – bewusst einfach gehalten.
+LOOKS = {
+    "Goth Baddie": "dunkel",
+    "Clean-Girl-Aesthetic": "clean", "Japandi-Ruhepol": "clean",
+    "Streetwear-Ikone": "street", "Y2K-Icon": "street", "Sporty Spice": "street",
+    "Cozy Cloud": "erde", "Boho-Fee": "erde", "Cottagecore-Träumerei": "erde",
+    "Vintage Soul": "erde",
+    "Coquette-Darling": "romantisch", "Old-Money-Eleganz": "romantisch",
+}
+
 # Unter diesen Punkten ist kein Vibe deutlich genug -> "Unikat"
 MIN_SCORE = 0.15
 # Zweiter Vibe wird erwähnt, wenn er mindestens so viel % des besten hat
@@ -128,6 +139,8 @@ def vibe_check(pins: list[dict], rng: random.Random | None = None) -> dict:
         "emoji": best.emoji,
         "text": rng.choice(best.lines),
         "second": f"{second.emoji} {second.title}" if second else None,
+        "second_title": second.title if second else None,    # ohne Emoji, für die Karte
+        "look": LOOKS.get(best.title, "rosa"),
         "terms": top_terms,
         "colors": [{"name": name, "hex": SWATCHES[name]}
                    for name, _ in profile.colors.most_common(4) if name in SWATCHES],
