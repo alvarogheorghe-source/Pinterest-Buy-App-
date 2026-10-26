@@ -200,5 +200,9 @@ def test_marketplace_and_affiliate_headers(fake_ebay, monkeypatch):
 def test_sandbox_keys_and_ebay_reason(fake_ebay, client, monkeypatch):
     fake_ebay.token_ok = False
     assert "invalid_client" in client.get("/api/recommendations").json()["detail"]
+    # Sandbox-Keys -> eBays Test-Server
+    fake_ebay.token_ok = True
+    ebay._token.clear()
     monkeypatch.setenv("EBAY_CLIENT_ID", "Malipin-app-SBX-1234")
-    assert "Sandbox" in client.get("/api/recommendations").json()["detail"]
+    assert client.get("/api/recommendations").status_code == 200
+    assert {r.url.host for r in fake_ebay.requests} >= {"api.sandbox.ebay.com"}

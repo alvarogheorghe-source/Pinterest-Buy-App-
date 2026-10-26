@@ -33,6 +33,7 @@ from backend.search_queries import GERMAN, build_queries
 
 TOKEN_URL = "https://api.ebay.com/identity/v1/oauth2/token"
 SEARCH_URL = "https://api.ebay.com/buy/browse/v1/item_summary/search"
+SANDBOX_HOST = "https://api.sandbox.ebay.com"   # Sandbox-Keys (…-SBX-…): eBays Testdaten
 SCOPE = "https://api.ebay.com/oauth/api_scope"
 
 RESULTS_PER_QUERY = 20
@@ -61,18 +62,25 @@ def _http() -> httpx.Client:
 _token: dict = {}
 
 
+def sandbox() -> bool:
+    """Sandbox-Keys erkennt man am "-SBX-" in der App ID. Dort gibt es nur wenige Testangebote –
+    gut, um die Anmeldung zu prüfen; für echte Angebote braucht es die Production-Keys."""
+    return "-SBX-" in os.getenv("EBAY_CLIENT_ID", "")
+
+
+def _url(url: str) -> str:
+    return url.replace("https://api.ebay.com", SANDBOX_HOST) if sandbox() else url
+
+
 def app_token() -> str:
     """Holt einen App-Token (gilt ca. 2 Stunden) und merkt ihn sich."""
     if _token.get("value") and _token["expires_at"] > time.time() + 60:
         return _token["value"]
     client_id = os.getenv("EBAY_CLIENT_ID", "").strip()
-    if "-SBX-" in client_id:   # Sandbox-Keys funktionieren nur mit eBays Testdaten
-        raise ProductSourceError("In .env stehen eBay-Sandbox-Keys (…-SBX-…). Nimm die Keys aus der "
-                                 "Spalte \"Production\" (…-PRD-…).")
     credentials = f"{client_id}:{os.getenv('EBAY_CLIENT_SECRET', '').strip()}"
     with _http() as client:
         response = client.post(
-            TOKEN_URL,
+            _url(TOKEN_URL),
             headers={"Authorization": "Basic " + base64.b64encode(credentials.encode()).decode(),
                      "Content-Type": "application/x-www-form-urlencoded"},
             data={"grant_type": "client_credentials", "scope": SCOPE},
@@ -111,7 +119,7 @@ def search(query: str) -> list[dict]:
     if campaign:  # eBay liefert dann Partnerlinks mit (itemAffiliateWebUrl)
         headers["X-EBAY-C-ENDUSERCTX"] = f"affiliateCampaignId={campaign}"
     with _http() as client:
-        response = client.get(SEARCH_URL, params=params, headers=headers)
+        response = client.get(_url(SEARCH_URL), params=params, headers=headers)
     if response.status_code != 200:
         raise ProductSourceError(f"eBay-Suche fehlgeschlagen ({response.status_code}).")
     return response.json().get("itemSummaries", [])
