@@ -123,3 +123,11 @@ def test_brand_only_when_clearly_visible():
     assert image_tags.tag(unsure, LABELS)["brands"] == []          # 50/50 -> lieber nichts
     lamp = axis(HOME, ("category:Leuchten", 1.0), ("brand:Carhartt", 1.0))
     assert image_tags.tag(lamp, LABELS)["brands"] == []            # Marken nur bei Mode
+
+
+def test_unsure_what_it_is_and_force():
+    """Zufälliges Bild: Mali rät nicht, WAS drauf ist. "Da ist doch ein Fit drauf" -> Mode."""
+    unclear = vision.normalize([1.0] * len(KEYS))
+    assert image_tags.tag(unclear, LABELS)["seen"] is None
+    forced = image_tags.tag(axis(("gate:animal", 1.0), ("category:Jacken", 1.0)), LABELS, force=True)
+    assert forced["relevant"] is True and forced["department"] == "mode"

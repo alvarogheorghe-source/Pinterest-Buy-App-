@@ -84,6 +84,13 @@ GATE_PROMPTS = {
     "animal": ("other", "an animal"),
     "vehicle": ("other", "a car or vehicle"),
     "meme": ("other", "a meme, cartoon or drawing"),
+    # Mehr Auswahl, damit zufällige Bilder nicht alle bei "Tier" landen
+    "building": ("other", "a building, house front or architecture"),
+    "game": ("other", "a video game or app screenshot"),
+    "graphic": ("other", "an abstract pattern, chart or graphic"),
+    "sports": ("other", "a sports game or stadium"),
+    "object": ("other", "a random object or toy on a table"),
+    "flowers": ("other", "wild flowers or a garden outdoors"),
 }
 
 # Herren- oder Damenmode? Nur bei Mode-Pins – für passendere Suchen ("Herren Baggy Jeans")
@@ -100,6 +107,7 @@ SECOND_CATEGORY_MIN = 0.25  # zweites Teil im Bild (z.B. Hose UND Oberteil) ab 2
 GENDER_MIN = 0.70         # Herren/Damen nur, wenn ziemlich eindeutig
 BRAND_MIN = 0.60          # Marke nur, wenn sie klar vor allen anderen UND "keine Marke" liegt
 GATE_MIN = 0.50           # Mode + Wohnen zusammen mind. 50 % – sonst "nichts für Malipin"
+SEEN_MIN = 0.60           # Mali sagt nur, WAS er stattdessen sieht ("ein Tier"), wenn er sich sicher ist
 
 
 def softmax(scores: dict[str, float]) -> dict[str, float]:
@@ -140,24 +148,32 @@ def label_vectors(embedder, store) -> dict[str, list[float]]:
     return {key: store.get(f"label:{key}") for key in prompts}
 
 
-def gate(scores: dict[str, float]) -> tuple[bool, str | None, str]:
-    """Vorprüfung -> (relevant?, Welt "mode"/"wohnen"/None, stärkster Einzel-Treffer)."""
+def gate(scores: dict[str, float]) -> tuple[bool, str | None, str | None]:
+    """Vorprüfung -> (relevant?, Welt "mode"/"wohnen"/None, was zu sehen ist).
+    Bei nicht passenden Bildern ist "was zu sehen ist" None, wenn unklar – lieber nichts sagen
+    als bei einem zufälligen Bild "Süß, ein Tier!"."""
     probs = softmax(scores)
     groups = {"mode": 0.0, "wohnen": 0.0, "other": 0.0}
     for key, p in probs.items():
         groups[GATE_PROMPTS[key][0]] += p
     relevant = groups["mode"] + groups["wohnen"] >= GATE_MIN
     world = ("mode" if groups["mode"] >= groups["wohnen"] else "wohnen") if relevant else None
-    return relevant, world, max(probs, key=probs.get)
+    seen = max(probs, key=probs.get)
+    if not relevant and probs[seen] < SEEN_MIN:
+        seen = None
+    return relevant, world, seen
 
 
-def tag(pin_vector: list[float], labels: dict[str, list[float]]) -> dict:
-    """Ein Pin-Bild -> {"relevant", "department", "seen", "styles", "categories", "gender", "brands"}"""
+def tag(pin_vector: list[float], labels: dict[str, list[float]], force: bool = False) -> dict:
+    """Ein Pin-Bild -> {"relevant", "department", "seen", "styles", "categories", "gender", "brands"}
+    force: Person sagt "Da ist doch ein Fit drauf" -> Vorprüfung überspringen, als Mode lesen."""
     def scores(prefix):
         return {key[len(prefix):]: cosine(pin_vector, vector)
                 for key, vector in labels.items() if key.startswith(prefix)}
 
     relevant, world, seen = gate(scores("gate:"))
+    if force and not relevant:
+        relevant, world = True, "mode"
     result = {"relevant": relevant, "department": world, "seen": seen,
               "styles": [], "categories": [], "gender": None, "brands": []}
     if not relevant:

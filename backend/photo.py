@@ -40,9 +40,9 @@ def check_image(data: bytes) -> None:
         raise PhotoError("Das ist kein Bild, das ich lesen kann (JPG, PNG, WebP …).") from err
 
 
-def photo_pin(data: bytes, vector: list[float], embedder, store) -> dict:
+def photo_pin(data: bytes, vector: list[float], embedder, store, force: bool = False) -> dict:
     """Was ist auf dem Foto? -> ein Pin wie aus Pinterest, nur ohne Text."""
-    tags = image_tags.tag(vector, image_tags.label_vectors(embedder, store))
+    tags = image_tags.tag(vector, image_tags.label_vectors(embedder, store), force=force)
     return {
         "id": "photo", "title": "", "description": "",
         "image_styles": tags["styles"], "image_categories": tags["categories"],
@@ -77,8 +77,9 @@ def candidates(pin: dict) -> list[Product]:
     return found
 
 
-def recommend(data: bytes) -> dict:
-    """Foto -> {"found": {...was Mali sieht...}, "products": [...ähnliche Teile...]}"""
+def recommend(data: bytes, force: bool = False) -> dict:
+    """Foto -> {"found": {...was Mali sieht...}, "products": [...ähnliche Teile...]}
+    force: "Da ist doch ein Fit drauf" -> trotzdem suchen."""
     check_image(data)
     embedder = vision.get_embedder()       # wirft VisionUnavailable ohne KI-Pakete
     store = vision.EmbeddingStore(embedder.name)
@@ -86,7 +87,7 @@ def recommend(data: bytes) -> dict:
     if vector is None:
         raise PhotoError("Das Foto konnte ich nicht öffnen.")
 
-    pin = photo_pin(data, vector, embedder, store)
+    pin = photo_pin(data, vector, embedder, store, force=force)
     if not pin["image_relevant"]:
         # Bildschirm, Essen, Text … -> keine Suche; Mali sagt freundlich, was er stattdessen sieht
         return {"relevant": False, "seen": pin["image_seen"], "found": None, "products": []}

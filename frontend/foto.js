@@ -98,9 +98,16 @@ async function handle(file) {
   preview.src = URL.createObjectURL(blob);
   startLooking();
 
+  lastBlob = blob;
+  await send(blob, false);
+}
+
+// Foto an den Server schicken. force: "Da ist doch ein Fit drauf" -> Vorprüfung überspringen
+async function send(blob, force) {
   let response, data;
   try {
-    response = await fetch("/api/photo", { method: "POST", body: blob, headers: { "Content-Type": "image/jpeg" } });
+    response = await fetch(`/api/photo${force ? "?force=true" : ""}`,
+      { method: "POST", body: blob, headers: { "Content-Type": "image/jpeg" } });
     data = await response.json();
   } catch {
     stopLooking("idle");
@@ -127,17 +134,28 @@ const NOT_FASHION = {
   text: "Da steht vor allem Text – ich such aber nach Teilen zum Anziehen oder Hinstellen.",
   food: "Sieht lecker aus! Aber anziehen kann man das leider nicht.",
   landscape: "Schöne Aussicht! Nur ein Outfit find ich darauf nicht.",
-  animal: "Süß! Aber Mode für Tiere hab ich noch nicht im Angebot.",
+  animal: "Süß! Ich such aber nach Fits, nicht nach Fell.",
   vehicle: "Schickes Fahrzeug – ich such aber Kleidung und Deko.",
   meme: "Haha! Aber da ist kein Teil drauf, das ich suchen kann.",
+  game: "Gutes Game? Ich such aber nur Fits und Deko.",
+  sports: "Sportlich! Aber ein Outfit zum Nachshoppen seh ich da nicht.",
 };
+
+// Wenn Mali sich nicht sicher ist, WAS drauf ist: neutral bleiben statt falsch raten
+const NOT_FASHION_UNSURE = [
+  "Hmm, auf dem Bild find ich kein Outfit und nichts fürs Zuhause.",
+  "Da seh ich leider kein Teil, das ich suchen könnte.",
+  "Ich hab genau hingeschaut – aber kein Fit entdeckt.",
+];
 
 function showResult(data) {
   if (data.relevant === false) {
-    say(`${NOT_FASHION[data.seen] || "Darauf seh ich weder Kleidung noch etwas fürs Zuhause."} `
+    const unsure = NOT_FASHION_UNSURE[Math.floor(Math.random() * NOT_FASHION_UNSURE.length)];
+    say(`${NOT_FASHION[data.seen] || unsure} `
       + "Probier einen Screenshot von einem Fit oder ein Foto von einem Teil!");
     drawMali("idle");
     addAgainButton();
+    addForceButton();
     return;
   }
   const f = data.found;
@@ -163,6 +181,21 @@ function showError(text) {
   document.body.classList.add("photo-open");
   say(text);
   addAgainButton();
+}
+
+let lastBlob = null;
+
+// Mali hat sich geirrt? Dann trotzdem nach Mode suchen lassen
+function addForceButton() {
+  const force = Object.assign(document.createElement("button"),
+    { className: "button secondary", textContent: "Da ist doch ein Fit drauf" });
+  force.addEventListener("click", () => {
+    actions.replaceChildren();
+    say("Okay, ich schau nochmal ganz genau hin!");
+    startLooking();
+    send(lastBlob, true);
+  });
+  actions.appendChild(force);
 }
 
 function addAgainButton() {

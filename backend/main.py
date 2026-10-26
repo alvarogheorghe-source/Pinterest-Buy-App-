@@ -273,7 +273,7 @@ def admin_delete_shop(shop_id: str, request: Request):
 
 
 @app.post("/api/photo")
-async def upload_photo(request: Request):
+async def upload_photo(request: Request, force: bool = False):
     """Foto hochladen → ähnliche Teile. Das Bild kommt als Rohdaten (z.B. image/jpeg),
     wird nur im Arbeitsspeicher analysiert und NICHT gespeichert."""
     if not request.headers.get("content-type", "").startswith("image/"):
@@ -281,7 +281,7 @@ async def upload_photo(request: Request):
     data = await request.body()
     try:
         # Rechnen im Hintergrund-Thread, damit die App währenddessen erreichbar bleibt
-        return await run_in_threadpool(photo.recommend, data)
+        return await run_in_threadpool(photo.recommend, data, force)
     except photo.PhotoError as err:
         raise HTTPException(400, str(err))
     except vision.VisionUnavailable:

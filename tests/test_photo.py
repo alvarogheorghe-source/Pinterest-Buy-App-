@@ -106,3 +106,13 @@ def test_desktop_screenshot_finds_nothing(fake, client, monkeypatch):
     monkeypatch.setattr(vision, "get_embedder", DesktopEmbedder)
     result = upload(client, jpeg("#3a6ea5")).json()
     assert result == {"relevant": False, "seen": "desktop", "found": None, "products": []}
+
+
+def test_force_searches_anyway(fake, client, monkeypatch):
+    class DesktopEmbedder(PhotoEmbedder):
+        def embed_image_bytes(self, images):
+            return [axis(("gate:desktop", 1.0)) for _ in images]
+    monkeypatch.setattr(vision, "get_embedder", DesktopEmbedder)
+    response = client.post("/api/photo?force=true", content=jpeg("#3a6ea5"),
+                           headers={"Content-Type": "image/jpeg"})
+    assert response.json()["relevant"] is True
