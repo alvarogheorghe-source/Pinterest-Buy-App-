@@ -410,6 +410,8 @@
 
   // --- 5. Vibe-Check beim Klick ---------------------------------------------------------------
 
+  let lastVibeText = "";
+
   async function showVibe() {
     stop();
     busy = true;
@@ -424,7 +426,10 @@
     say(["Moment, ich schnupper an deinen Pins … 👃"]);
     let vibe;
     try {
-      vibe = await fetch("/api/vibe").then((r) => r.json());
+      // Letzten Spruch mitschicken, damit nicht zweimal derselbe kommt
+      const avoid = lastVibeText ? `?avoid=${encodeURIComponent(lastVibeText)}` : "";
+      vibe = await fetch(`/api/vibe${avoid}`).then((r) => r.json());
+      lastVibeText = vibe.text;
     } catch {
       say(["Hoppla, meine Ohren empfangen gerade nichts. Probier's gleich nochmal! 📡"],
         { autoClose: 3000 });
@@ -447,7 +452,7 @@
     const buttons = vibe.pin_count === 0
       ? [{ text: "Pinterest verbinden", primary: true, onClick: () => { location.href = "/konto.html"; } }]
       : [{ text: "📸 Vibe teilen", primary: true, onClick: () => shareVibe(vibe) },
-        { text: "Nochmal! 🎲", onClick: showVibe }];
+        { text: "Anderer Spruch 🎲", onClick: showVibe }];
     buttons.push({ text: `${NAME} verstecken`, onClick: hideMali });
 
     say(parts, { buttons });

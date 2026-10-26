@@ -152,7 +152,9 @@
     const titleSize = fitFont(ctx, vibe.title, 700, 96, 52, inner, SERIF);
     const titleLines = wrap(ctx, vibe.title, inner);
     ctx.font = `38px ${SANS}`;
-    const quoteAll = wrap(ctx, `„${vibe.text}“`, inner);
+    // Karte ohne Emojis: die aus Malis Spruch entfernen
+    const plain = vibe.text.replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, "").replace(/\s+/g, " ").trim();
+    const quoteAll = wrap(ctx, `„${plain}“`, inner);
     const quote = quoteAll.slice(0, 3);
     if (quote.length < quoteAll.length) {
       quote[2] = `${quote[2].replace(/[\s,.–-]+$/, "")} …“`;

@@ -248,9 +248,9 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
 # --- Malis Vibe-Check -------------------------------------------------------------------
 
 @app.get("/api/vibe")
-def get_vibe():
-    """Welchen Vibe gibt dein Pinterest ab? Immer positiv, jedes Mal ein anderer Spruch."""
-    return vibe.vibe_check(storage.load_pins()["pins"])
+def get_vibe(avoid: str | None = Query(None, max_length=300)):
+    """Welchen Vibe gibt dein Pinterest ab? Immer positiv. avoid = letzter Spruch (kommt nicht nochmal)."""
+    return vibe.vibe_check(storage.load_pins()["pins"], avoid=avoid)
 
 
 # --- 👍 / 👎 Feedback -------------------------------------------------------------------

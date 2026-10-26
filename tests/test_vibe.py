@@ -86,3 +86,17 @@ def test_every_vibe_has_a_known_look():
 def test_gorpcore_for_outdoor_pins():
     result = vibe.vibe_check(pins("hiking outfit", "gorpcore jacket", "outdoor cargo"), random.Random(1))
     assert result["title"] == "Gorpcore" and result["look"] == "erde"
+
+
+def test_other_line_never_repeats_the_last_one(fake, client):
+    storage.save_pins({"fetched_at": 1, "board_ids": ["111"], "pins": pins("gothic", "goth")})
+    last = client.get("/api/vibe").json()["text"]
+    for _ in range(15):
+        text = client.get("/api/vibe", params={"avoid": last}).json()["text"]
+        assert text != last
+        last = text
+
+
+def test_every_vibe_has_five_lines():
+    for v in vibe.VIBES + [vibe.UNIQUE]:
+        assert len(v.lines) == 5, v.title
