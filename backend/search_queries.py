@@ -11,7 +11,8 @@ from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, audience,
                               build_style_profile, classify_pin, find_terms, pin_text)
 
 QUERIES_PER_DEPARTMENT = 4       # 2 Welten × 4 Suchen = 8 Anfragen pro Quelle und Stunde
-BRAND_MIN_PINS = 2               # Marke bekommt eine eigene Suche ab so vielen Pins
+BRAND_MIN_PINS = 1               # erkannte Marke/Modell -> gezielte Suche (schon ab 1 Pin)
+MAX_BRAND_QUERIES = 2            # höchstens so viele der 4 Suchen pro Welt für Marken
 
 # Ohne Pins: diese Kategorien zuerst
 DEFAULT_CATEGORIES = {
@@ -30,6 +31,12 @@ class SearchWords:
 
     def style(self, style: str) -> str | None:
         return self.styles.get(style, style)
+
+    def brand_query(self, name: str) -> str:
+        """"Carhartt" -> "Carhartt Jacke"; Schuh-Modelle bleiben, wie sie sind."""
+        brand = BRANDS[name]
+        item = brand.item or ("" if brand.category == "Schuhe" else self.categories[brand.category])
+        return f"{name} {item}".strip()
 
     def query(self, color: str | None, style: str | None, category: str) -> str:
         words = (self.colors.get(color, color) if color else None,
@@ -119,11 +126,13 @@ def build_queries(pins: list[dict], department: str,
     for fallback in DEFAULT_CATEGORIES[department]:
         add(words.query(color, style, fallback), fallback)
 
-    # Marke in mind. 2 Pins (Bild oder Text)? -> eigene Suche ganz vorne, z.B. "Adidas Samba".
-    # Gerade Second Hand findet man so genau das Modell aus den Pins.
-    for brand, count in profile.brands.most_common(2):
-        if count >= BRAND_MIN_PINS and brand not in (q for q, _ in queries):
-            queries.insert(0, (brand, BRANDS[brand].category))
+    # Marke/Modell erkannt (Bild oder Text)? -> gezielte Suche ganz vorne, z.B.
+    # "Onitsuka Tiger Mexico 66" oder "Carhartt Jacke". Gerade Second Hand findet man so
+    # genau das Teil aus den Pins. Häufigste Marke zuerst.
+    brand_queries = [(words.brand_query(brand), BRANDS[brand].category)
+                     for brand, count in profile.brands.most_common(MAX_BRAND_QUERIES)
+                     if count >= BRAND_MIN_PINS]
+    queries = brand_queries + [q for q in queries if q not in brand_queries]
     queries = queries[:QUERIES_PER_DEPARTMENT]
 
     # Mode: zeigt das Board klar Herren- oder Damenmode? -> "Herren Baggy Jeans"

@@ -279,9 +279,10 @@ gespeicherten Zahlen (das Modell muss nicht laufen).
   (stattdessen z.B. „Laid-back Casual“ oder „Clean Basics“).
 - **Marken** (`backend/brands.py`): 22 Sneaker-Modelle und Streetwear-Marken (Air Force 1,
   Samba, New Balance 550, Carhartt, North Face …). Erkannt im Bild (nur sehr sichere Treffer,
-  `image_tags.BRAND_MIN`) und im Text („sambas“, „af1“). Kommt eine Marke in mind. 2 Pins
-  vor, sucht die App gezielt danach, z.B. „Herren Adidas Samba“. Neue Marke = eine Zeile in
-  `brands.py`.
+  `image_tags.BRAND_MIN`) und im Text („sambas“, „af1“). Jede erkannte Marke bekommt eine
+  gezielte Suche (max. 2 pro Welt, häufigste zuerst): Schuh-Modelle direkt („Herren Onitsuka
+  Tiger Mexico 66“), Kleidungsmarken mit dem Teil („Herren Carhartt Jacke“, „Ralph Lauren
+  Polo“). Neue Marke = eine Zeile in `brands.py`.
 
 **Einstellungen:** Modell per `.env` wählbar (`CLIP_MODEL=…`, Standard
 `patrickjohncyh/fashion-clip`; für Wohnen & Deko evtl. `openai/clip-vit-base-patch32`).

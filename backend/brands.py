@@ -4,6 +4,8 @@ Jede Marke hat:
 - category: wohin sie gehört ("Schuhe", "Jacken", …) – für die Suche bei eBay/Etsy
 - prompt:   Beschreibung fürs Bild (FashionCLIP, Englisch), siehe image_tags.py
 - words:    Wörter im Pin-Text, z.B. "samba" oder "af1"
+- item:     (optional) welches Teil gesucht wird, z.B. "Polo" – sonst das Wort der Kategorie
+            ("Carhartt" + "Jacke"); bei Schuh-Modellen steckt das Teil schon im Namen
 
 Bilderkennung von Marken klappt am besten bei Teilen mit typischer Form oder großem Logo
 (Sneaker!). Bei schlichten Basics ohne Logo kann kein Modell die Marke sicher sehen – darum
@@ -20,6 +22,7 @@ class Brand:
     category: str
     prompt: str
     words: tuple[str, ...]
+    item: str = ""
 
 
 BRANDS = {
@@ -57,7 +60,7 @@ BRANDS = {
     "Patagonia": Brand("Jacken", "a Patagonia fleece jacket", ("patagonia",)),
     "Stüssy": Brand("Oberteile", "a Stussy logo t-shirt or hoodie", ("stussy", "stüssy")),
     "Ralph Lauren": Brand("Oberteile", "a Ralph Lauren polo shirt with pony logo",
-                          ("ralph lauren", "polo ralph")),
+                          ("ralph lauren", "polo ralph"), item="Polo"),
 }
 
 # Gegenstücke "keine Marke erkennbar" – gewinnt eines davon, zählt keine Marke
