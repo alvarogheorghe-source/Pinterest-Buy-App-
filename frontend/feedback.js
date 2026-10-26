@@ -103,3 +103,10 @@ function showEtsyAttribution(products) {
   const note = document.getElementById("etsy-attribution");
   if (note) note.hidden = !products.some((p) => p.shop.startsWith("Etsy"));
 }
+
+// Name des Shops für "Link zu …": bei Malipin Picks der Verkäufer, sonst der Shop vor dem "·"
+// ("eBay · Second Hand" -> eBay, "Malipin Pick · LinenStudio" -> LinenStudio)
+function shopName(product) {
+  const parts = product.shop.split(" · ");
+  return product.pick && parts[1] ? parts[1] : parts[0];
+}

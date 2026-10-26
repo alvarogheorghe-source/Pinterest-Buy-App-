@@ -147,6 +147,17 @@ AliExpress-Angebote dazu (`backend/aliexpress.py`) – **nur markenlose Teile**:
 oder Fake-Wörtern („replica“, „1:1“ …) raus, und es wird nie nach Marken gesucht. Partnerlinks
 → immer „Werbung“. Gegen die echte API noch nicht getestet (Zugang fehlt).
 
+### Malipin Picks – von uns geprüft
+
+Handverlesene Teile (`backend/picks.py`, gespeichert in `data/picks.json`, für alle gleich).
+**Admin-Seite** `/admin.html` (nirgends verlinkt): nur mit `ADMIN_PASSWORD` in `.env`, sonst
+abgeschaltet. Eintragen: Name, Verkäufer, Preis, Welt/Kategorie, Link, Foto-Link, Notiz;
+Farben/Stile erkennt die App aus Name + Notiz. Vor dem Speichern muss die Prüf-Checkliste
+abgehakt sein (keine Logos, gute Bewertungen, EU-Versand, echte Fotos, Rückgabe); der
+Fälschungs-Filter gilt auch hier. Im Shop: Abzeichen „Malipin Pick“, „Von uns geprüft“,
+kleiner Vorrang bei passendem Stil (`PICK_BONUS`), Filter „Nur Malipin Picks“, Notiz auf der
+Detailseite.
+
 ### Mehrere Quellen
 
 Sind eBay **und** Etsy eingerichtet, mischt der Shop beide (`products.CombinedSource`) –

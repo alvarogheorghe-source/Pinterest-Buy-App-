@@ -211,7 +211,7 @@ function card(product) {
   });
   actionsRow.append(shop, product.sponsored
     ? el("span", "ad-label", "Werbung")
-    : el("span", "source-label", `Link zu ${product.shop.split(" · ")[0]}`));
+    : el("span", "source-label", `Link zu ${shopName(product)}`));
   body.append(
     el("p", "card-shop", `${product.shop} · ${product.category}`),
     titleLink,

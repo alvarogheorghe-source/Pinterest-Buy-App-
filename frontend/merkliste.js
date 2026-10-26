@@ -71,7 +71,7 @@ function card(item) {
   // Nur Affiliate-Links sind Werbung
   actions.append(shopLink, item.sponsored
     ? el("span", "ad-label", "Werbung")
-    : el("span", "source-label", `Link zu ${item.shop.split(" · ")[0]}`));
+    : el("span", "source-label", `Link zu ${shopName(item)}`));
   body.append(
     el("p", "card-shop", `${item.shop} · ${item.category}`),
     titleLink,

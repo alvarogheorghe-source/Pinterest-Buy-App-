@@ -41,7 +41,7 @@ function shopButton(product) {
   link.rel = product.sponsored ? "sponsored noopener" : "noopener";
   actions.append(link, product.sponsored
     ? el("span", "ad-label", "Werbung")
-    : el("span", "source-label", `Link zu ${product.shop.split(" · ")[0]}`));
+    : el("span", "source-label", `Link zu ${shopName(product)}`));
   return actions;
 }
 
@@ -63,6 +63,12 @@ function renderDetail(product, hasProfile) {
     el("p", "detail-price", formatPrice(product.price, product.currency)),
   );
   if (hasProfile) info.appendChild(el("p", "detail-reason", product.reason));
+  if (product.pick) {
+    const box = el("div", "pick-note");
+    box.append(el("strong", "", "Malipin Pick – von uns geprüft"));
+    if (product.pick_note) box.append(el("p", "", product.pick_note));
+    info.appendChild(box);
+  }
 
   const tags = el("div", "tag-list");
   for (const term of [...product.colors, ...product.style_tags]) {

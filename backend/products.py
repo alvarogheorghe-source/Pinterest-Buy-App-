@@ -40,6 +40,10 @@ class Product(BaseModel):
     affiliate_url: str
     # True = wir verdienen am Link (Affiliate) -> Kennzeichnung "Werbung"
     sponsored: bool = True
+    # Malipin Pick: von uns geprüft (backend/picks.py)
+    pick: bool = False
+    pick_note: str = ""
+    pick_added: float | None = None
 
     @field_validator("affiliate_url")
     @classmethod
@@ -174,11 +178,14 @@ def get_product_source() -> ProductSource:
     Später kommen weitere Quellen dazu (z.B. ein Awin-Feed).
     """
     from backend import storage
+    from backend import picks
     sources: list[ProductSource] = list(online_sources())
-    if not sources:
-        return JsonProductSource()
-    if storage.exists(PHOTO_RESULTS_FILE):
+    if sources and storage.exists(PHOTO_RESULTS_FILE):
         sources.append(PhotoResultsSource())
+    if not sources:
+        sources = [JsonProductSource()]
+    if storage.exists(picks.PICKS_FILE):          # Malipin Picks: immer dabei, für alle gleich
+        sources.append(picks.PicksSource())
     return sources[0] if len(sources) == 1 else CombinedSource(sources)
 
 

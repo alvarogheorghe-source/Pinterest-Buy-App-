@@ -16,7 +16,8 @@ const DEPARTMENT_NAMES = { mode: "Mode", wohnen: "Wohnen & Deko" };
 
 // Aktueller Zustand. Welt und Tab stehen auch in der Adresse, z.B. "#wohnen/pins",
 // damit Links und der Zurück-Button funktionieren.
-const filters = { department: "mode", tab: "products", maxPrice: "", category: "", sort: "match" };
+const filters = { department: "mode", tab: "products", maxPrice: "", category: "", sort: "match",
+  picksOnly: false };
 
 // "#wohnen/pins" -> { department: "wohnen", tab: "pins" }
 function readHash() {
@@ -51,6 +52,7 @@ async function load() {
   if (filters.maxPrice) common.set("max_price", filters.maxPrice);
   const productParams = new URLSearchParams(common);
   if (filters.category) productParams.set("category", filters.category);
+  if (filters.picksOnly) productParams.set("picks_only", "true");
 
   // Beide Abfragen gleichzeitig starten und auf beide warten
   const [recResponse, pinResponse] = await Promise.all([
@@ -202,13 +204,15 @@ function productToCard(product, hasProfile) {
     vote: product.vote,
     // Hinweis: Bilderkennung ("sieht aus wie deine Pins") oder 👍 ("ähnlich wie ein Like")
     hint: product.looks_like_pins ? "Sieht aus wie deine Pins"
-      : product.feedback_hint ? "Ähnlich wie etwas, das dir gefallen hat" : "",
+      : product.feedback_hint ? "Ähnlich wie etwas, das dir gefallen hat"
+      : product.pick ? "Von uns geprüft" : "",
+    badge: product.pick ? "Malipin Pick" : "",
     buttonText: "Zum Shop",
     href: product.affiliate_url,
     // Nur wenn wir am Link verdienen (Affiliate), ist es Werbung – sonst "Link zu eBay"
     // sponsored = bezahlter Link (für Suchmaschinen), noopener = Shop kann unsere Seite nicht steuern
     rel: product.sponsored ? "sponsored noopener" : "noopener",
-    label: product.sponsored ? "Werbung" : `Link zu ${product.shop.split(" · ")[0]}`,
+    label: product.sponsored ? "Werbung" : `Link zu ${shopName(product)}`,
     labelClass: product.sponsored ? "ad-label" : "source-label",
   };
 }
@@ -307,6 +311,12 @@ function createCard(data) {
   } else {
     card.append(imageBox, body);
   }
+  // Abzeichen oben links auf dem Bild (z.B. "Malipin Pick")
+  if (data.badge) {
+    card.classList.add("is-pick");
+    card.appendChild(Object.assign(document.createElement("span"),
+      { className: "pick-badge", textContent: data.badge, title: "Von uns geprüft" }));
+  }
   // 👍/👎 oben rechts auf dem Bild (feedback.js)
   if (data.productId) card.appendChild(createVoteButtons(data.productId, data.vote, card));
   return card;
@@ -383,6 +393,15 @@ async function loadCategories() {
 
 // Start: Kategorien für "Mode" laden, dann anzeigen, was in der Adresse steht
 loadCategories().then(applyHash);
+
+// Filter "Nur Malipin Picks"
+const picksToggle = document.getElementById("picks-toggle");
+picksToggle.addEventListener("click", () => {
+  filters.picksOnly = !filters.picksOnly;
+  picksToggle.classList.toggle("active", filters.picksOnly);
+  picksToggle.setAttribute("aria-pressed", String(filters.picksOnly));
+  load();
+});
 
 // Mali hat die Pins fertig analysiert (analysis.js) -> Empfehlungen neu laden
 window.addEventListener("analysis:done", (event) => {

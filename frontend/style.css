@@ -1195,3 +1195,128 @@ section + section {
   padding-top: 24px;
   border-top: 1px solid var(--border);
 }
+
+/* --- Malipin Picks --- */
+.card {
+  position: relative;
+}
+
+.pick-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 12px rgba(201, 58, 105, 0.3);
+}
+
+.card.is-pick {
+  border-color: #f0b8ca;
+}
+
+.pick-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.pick-note {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff4f7;
+  border: 1px solid #f3dbe3;
+}
+
+.pick-note p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+/* --- Admin-Seite (admin.html) --- */
+.admin-card {
+  display: grid;
+  gap: 12px;
+  max-width: 820px;
+  margin-bottom: 32px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.admin-card h2 {
+  margin: 0;
+  font-family: var(--serif);
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 16px;
+}
+
+.admin-grid label,
+.admin-card > label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.admin-grid .wide {
+  grid-column: 1 / -1;
+}
+
+.admin-grid .check,
+.admin-checklist label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+}
+
+.admin input:not([type="checkbox"]),
+.admin select,
+.admin textarea {
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font: inherit;
+  background: #fff;
+}
+
+.admin-checklist {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px dashed #f0b8ca;
+  border-radius: 14px;
+}
+
+.admin-checklist legend {
+  font-weight: 700;
+  padding: 0 6px;
+}
+
+.admin-preview {
+  width: 140px;
+  border-radius: 14px;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-message {
+  min-height: 1.2em;
+  margin: 0;
+  color: var(--muted);
+}

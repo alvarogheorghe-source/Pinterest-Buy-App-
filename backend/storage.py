@@ -28,7 +28,7 @@ DB_FILE = "malipin.db"
 LOCAL_USER = "local"
 
 # Für alle gemeinsam (keine persönlichen Daten)
-GLOBAL_FILES = {"embeddings.json"}
+GLOBAL_FILES = {"embeddings.json", "picks.json"}   # picks.json: Malipin Picks (für alle)
 
 # Frühere Einzel-Dateien, die beim ersten Start in die Datenbank (Person "local") wandern
 LEGACY_FILES = ["tokens.json", "selected_boards.json", "pins.json", "feedback.json",

@@ -5,16 +5,17 @@ Starten mit:  uvicorn backend.main:app --reload
 
 import os
 import secrets
+import time
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import (analysis, feedback, matching, photo, pins, pinterest, products,
+from backend import (analysis, feedback, matching, photo, picks, pins, pinterest, products,
                      shop_links, similar, storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
@@ -214,6 +215,85 @@ def refresh_pins():
     return {"count": len(data["pins"]), "board_count": len(data["board_ids"])}
 
 
+# --- Admin: Malipin Picks (nur mit ADMIN_PASSWORD in .env) --------------------------------
+
+def admin_password() -> str:
+    return os.getenv("ADMIN_PASSWORD", "").strip()
+
+
+def require_admin(request: Request) -> None:
+    if not admin_password():
+        raise HTTPException(404, "Nicht gefunden.")          # Admin ganz abgeschaltet
+    if not request.session.get("admin"):
+        raise HTTPException(401, "Bitte als Admin anmelden.")
+
+
+class AdminLogin(BaseModel):
+    password: str = Field(max_length=200)
+
+
+@app.post("/api/admin/login")
+def admin_login(data: AdminLogin, request: Request):
+    if not admin_password():
+        raise HTTPException(404, "Nicht gefunden.")
+    if not secrets.compare_digest(data.password.encode(), admin_password().encode()):
+        time.sleep(1)                                         # Raten bremsen
+        raise HTTPException(401, "Falsches Passwort.")
+    request.session["admin"] = True
+    return {"ok": True}
+
+
+@app.post("/api/admin/logout")
+def admin_logout(request: Request):
+    request.session.pop("admin", None)
+    return {"ok": True}
+
+
+@app.get("/api/admin/categories")
+def admin_categories(request: Request):
+    """Alle Kategorien je Welt – für die Auswahl beim Eintragen eines Picks."""
+    require_admin(request)
+    result = {"mode": [], "wohnen": []}
+    for name, (department, _) in matching.CATEGORY_SYNONYMS.items():
+        result[department].append(name)
+    return result
+
+
+@app.get("/api/admin/picks")
+def admin_list_picks(request: Request):
+    require_admin(request)
+    return [p.model_dump() for p in picks.load()]
+
+
+@app.post("/api/admin/picks")
+def admin_add_pick(data: picks.PickInput, request: Request):
+    require_admin(request)
+    try:
+        return picks.add(data).model_dump()
+    except ValueError as err:
+        raise HTTPException(400, str(err))
+
+
+@app.put("/api/admin/picks/{pick_id}")
+def admin_update_pick(pick_id: str, data: picks.PickInput, request: Request):
+    require_admin(request)
+    try:
+        updated = picks.update(pick_id, data)
+    except ValueError as err:
+        raise HTTPException(400, str(err))
+    if not updated:
+        raise HTTPException(404, "Pick nicht gefunden.")
+    return updated.model_dump()
+
+
+@app.delete("/api/admin/picks/{pick_id}")
+def admin_delete_pick(pick_id: str, request: Request):
+    require_admin(request)
+    if not picks.remove(pick_id):
+        raise HTTPException(404, "Pick nicht gefunden.")
+    return {"ok": True}
+
+
 @app.post("/api/photo")
 async def upload_photo(request: Request):
     """Foto hochladen → ähnliche Teile. Das Bild kommt als Rohdaten (z.B. image/jpeg),
@@ -326,14 +406,16 @@ def get_profile():
 @app.get("/api/recommendations")
 def get_recommendations(min_price: float | None = None, max_price: float | None = None,
                         category: str | None = None,
-                        department: products.Department = "mode"):
+                        department: products.Department = "mode", picks_only: bool = False):
     """Produkte einer Welt im Budget, sortiert nach Passung zum Stilprofil dieser Welt."""
     pins_list = storage.load_pins()["pins"]
     profile = matching.build_style_profile(pins_list, department)
     all_products = products.get_product_source().load()
     selection = products.filter_products(all_products, min_price, max_price, category,
                                          department)
-    ranked = matching.rank_products(selection, profile)
+    if picks_only:
+        selection = [p for p in selection if p.pick]
+    ranked = picks.apply_bonus(matching.rank_products(selection, profile))
     # Bilder: "sieht aus wie deine Pins" (nur wenn Vektoren berechnet wurden)
     ranked = vision.apply_visual(ranked, pins_list, department,
                                  vision.EmbeddingStore.load_existing())
