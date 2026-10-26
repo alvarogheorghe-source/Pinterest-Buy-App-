@@ -16,8 +16,7 @@ const DEPARTMENT_NAMES = { mode: "Mode", wohnen: "Wohnen & Deko" };
 
 // Aktueller Zustand. Welt und Tab stehen auch in der Adresse, z.B. "#wohnen/pins",
 // damit Links und der Zurück-Button funktionieren.
-const filters = { department: "mode", tab: "products", maxPrice: "", category: "", sort: "match",
-  trustedOnly: false };
+const filters = { department: "mode", tab: "products", maxPrice: "", category: "", sort: "match" };
 
 // "#wohnen/pins" -> { department: "wohnen", tab: "pins" }
 function readHash() {
@@ -47,7 +46,6 @@ async function load() {
   if (filters.maxPrice) common.set("max_price", filters.maxPrice);
   const productParams = new URLSearchParams(common);
   if (filters.category) productParams.set("category", filters.category);
-  if (filters.trustedOnly) productParams.set("trusted_only", "true");
 
   // Beide Abfragen gleichzeitig starten und auf beide warten
   const [recResponse, pinResponse] = await Promise.all([
@@ -411,14 +409,6 @@ async function loadCategories() {
 // Start: Kategorien für "Mode" laden, dann anzeigen, was in der Adresse steht
 loadCategories().then(applyHash);
 
-// Filter "Nur geprüfte Shops"
-const trustedToggle = document.getElementById("trusted-toggle");
-trustedToggle.addEventListener("click", () => {
-  filters.trustedOnly = !filters.trustedOnly;
-  trustedToggle.classList.toggle("active", filters.trustedOnly);
-  trustedToggle.setAttribute("aria-pressed", String(filters.trustedOnly));
-  load();
-});
 
 // Mali hat die Pins fertig analysiert (analysis.js) -> Empfehlungen neu laden
 window.addEventListener("analysis:done", (event) => {

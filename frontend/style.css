@@ -1223,11 +1223,6 @@ section + section {
   border-color: #f0b8ca;
 }
 
-.trusted-chip.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
 
 .trusted-note {
   margin: 14px 0;
