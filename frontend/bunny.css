@@ -207,16 +207,40 @@ body {
 
 /* --- Handy -------------------------------------------------------------------------------- */
 
+/* Am Handy sitzt Mali fest rechts unten auf einem runden Kissen (bunny.js hoppelt dort nicht
+   herum) – so verdeckt er keine Buttons und schwebt nicht mitten über der Seite. */
 @media (max-width: 640px) {
   .mali {
-    width: 52px;
-    height: 52px;
+    width: 46px;
+    height: 46px;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    transition: bottom 0.3s;
   }
 
-  /* Startseite: über der "Mit Pinterest verbinden"-Leiste bleiben */
-  body.landing .mali,
-  body.landing .mali-return {
-    bottom: 90px;
+  /* Kissen hinter Mali statt Schatten in der Luft */
+  .mali::before {
+    content: "";
+    position: absolute;
+    inset: -7px -7px -5px;
+    z-index: -1;
+    border-radius: 50%;
+    background: rgba(255, 250, 252, 0.94);
+    border: 1px solid #f3dbe3;
+    box-shadow: 0 6px 18px rgba(45, 35, 38, 0.14);
+  }
+
+  .mali::after {
+    display: none;
+  }
+
+  .mali-return {
+    bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+
+  /* Startseite: nur über die "Mit Pinterest verbinden"-Leiste, wenn sie gerade zu sehen ist */
+  body.landing:has(.mobile-connect:not(.hidden)) .mali,
+  body.landing:has(.mobile-connect:not(.hidden)) .mali-return {
+    bottom: calc(86px + env(safe-area-inset-bottom));
   }
 
   body.landing {

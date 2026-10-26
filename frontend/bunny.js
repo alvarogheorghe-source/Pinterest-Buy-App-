@@ -136,21 +136,23 @@
   }
   show("idle");
 
-  // Position (x = Abstand vom linken Rand) – über Seiten hinweg gemerkt
+  // Position (x = Abstand vom linken Rand) – über Seiten hinweg gemerkt.
+  // Am Handy sitzt Mali fest rechts unten (bunny.css) – dort hoppelt er nicht über den Inhalt.
+  const phone = window.matchMedia("(max-width: 640px)");
   const width = () => el.offsetWidth || 64;
-  const maxX = () => Math.max(8, window.innerWidth - width() - 8);
+  const maxX = () => Math.max(8, window.innerWidth - width() - (phone.matches ? 16 : 8));
   let x = Number(recall(sessionStorage, "mali-x"));
   if (!Number.isFinite(x) || x <= 0) x = random(8, maxX());
-  x = Math.min(x, maxX());
+  x = phone.matches ? maxX() : Math.min(x, maxX());
   el.style.left = `${x}px`;
 
   function setX(newX) {
     x = Math.max(8, Math.min(newX, maxX()));
     el.style.left = `${x}px`;
-    remember(sessionStorage, "mali-x", String(Math.round(x)));
+    if (!phone.matches) remember(sessionStorage, "mali-x", String(Math.round(x)));
   }
 
-  window.addEventListener("resize", () => setX(x));
+  window.addEventListener("resize", () => setX(phone.matches ? maxX() : x));
 
   // --- Bewegungen -------------------------------------------------------------------------------
 
@@ -173,6 +175,7 @@
   }
 
   async function hopTo(targetX) {
+    if (phone.matches) targetX = maxX();      // Handy: bleibt in seiner Ecke
     targetX = Math.max(8, Math.min(targetX, maxX()));
     const distance = Math.abs(targetX - x);
     if (distance < 10) return;
