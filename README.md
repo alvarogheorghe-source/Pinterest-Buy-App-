@@ -211,6 +211,10 @@ Ansehen pro Pin: `python -m backend.image_tags`.
 - **Sale:** liefert ein Shop den Preis vor der Reduzierung (eBay `marketingPrice`, Awin UVP,
   Google `price` neben `sale_price`, AliExpress), zeigt die Karte „−30 %“ und den alten Preis
   durchgestrichen (ab 5 % Rabatt).
+- **Shop the Look** (`backend/looks.py`, `/api/looks`): Outfit-Pins mit mindestens zwei
+  Mode-Teilen (Text oder Bilderkennung) – pro Teil das Angebot, das am besten zu genau diesem
+  Pin passt, plus Preis für den ganzen Look. Jedes Teil nur in einem Look.
+- **Endlos-Scrollen** (24 Karten, dann automatisch mehr) und **Lade-Platzhalter**.
 - **Themen-Reihen** oben im Shop zum Durchwischen: „Weil du … pinnst“, „Gerade reduziert“,
   „Unter 20 €“, „Second-Hand-Funde“ – darunter alle Vorschläge.
 

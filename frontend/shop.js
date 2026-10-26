@@ -3,6 +3,7 @@
 
 const grid = document.getElementById("product-grid");
 const rows = document.getElementById("shop-rows");
+const looksBox = document.getElementById("looks");
 const resultCount = document.getElementById("result-count");
 const banner = document.getElementById("profile-banner");
 const categorySelect = document.getElementById("category-select");
@@ -42,7 +43,11 @@ function sortByPrice(items) {
 
 // --- Daten laden ---------------------------------------------------------------------------
 
+let loadCounter = 0;   // nur die neueste Anfrage darf anzeigen (schnelles Filter-Klicken)
+
 async function load() {
+  const current = ++loadCounter;
+  showSkeletons();
   const common = new URLSearchParams({ department: filters.department });
   if (filters.maxPrice) common.set("max_price", filters.maxPrice);
   const productParams = new URLSearchParams(common);
@@ -53,6 +58,7 @@ async function load() {
     fetch(`/api/recommendations?${productParams}`),
     fetch(`/api/pin-items?${common}`),
   ]);
+  if (current !== loadCounter) return;   // inzwischen wurde etwas anderes gewählt
   if (!recResponse.ok || !pinResponse.ok) {
     // Genaue Meldung vom Server zeigen (z.B. "eBay-Anmeldung fehlgeschlagen ...")
     const failed = recResponse.ok ? pinResponse : recResponse;
@@ -71,6 +77,7 @@ async function load() {
 
   if (filters.tab === "pins") {
     rows.replaceChildren();
+    looksBox.hidden = true;
     const items = filters.sort === "price" ? sortByPrice(pinItems) : pinItems;
     renderGrid(items.map(pinItemToCard), "Teil", "Teile",
       profile.pin_count > 0
@@ -81,6 +88,7 @@ async function load() {
     const items = filters.sort === "price"
       ? sortByPrice(recommendations.products)
       : recommendations.products;
+    loadLooks(current);
     // Themen-Reihen nur in der Standard-Ansicht (ohne Kategorie-Filter, nach Passung sortiert)
     renderRows(!filters.category && filters.sort === "match"
       ? themedRows(recommendations.products, profile, recommendations.currency) : [], hasProfile);
@@ -89,6 +97,63 @@ async function load() {
     showSources(recommendations.sources || ["demo"]);
   }
   showWarnings(filters.tab === "pins" ? [] : recommendations.warnings || []);
+}
+
+// --- Shop the Look: zu einem Outfit-Pin die passenden Teile ---------------------------------
+
+async function loadLooks(current) {
+  looksBox.hidden = true;
+  if (filters.department !== "mode" || filters.category || filters.sort !== "match") return;
+  const found = await fetch("/api/looks").then((r) => (r.ok ? r.json() : [])).catch(() => []);
+  if (current !== loadCounter || !found.length) return;   // inzwischen anderes gewählt
+  renderLooks(found);
+}
+
+function renderLooks(found) {
+  const title = Object.assign(document.createElement("h2"),
+    { className: "shop-row-title", textContent: t("Shop the Look") });
+  const hint = Object.assign(document.createElement("p"),
+    { className: "muted looks-hint", textContent: t("Outfits aus deinen Pins – Teil für Teil zum Nachshoppen.") });
+  const track = Object.assign(document.createElement("div"), { className: "looks-track" });
+  for (const look of found) track.appendChild(lookCard(look));
+  looksBox.replaceChildren(title, hint, track);
+  looksBox.hidden = false;
+}
+
+function lookCard(look) {
+  const card = Object.assign(document.createElement("article"), { className: "look-card" });
+  const photo = Object.assign(document.createElement("img"),
+    { className: "look-pin", src: look.pin.image_url, alt: look.pin.title || t("Dein Pin"), loading: "lazy" });
+  photo.addEventListener("error", () => photo.remove());
+  const list = Object.assign(document.createElement("div"), { className: "look-items" });
+  for (const item of look.items) {
+    const row = Object.assign(document.createElement("a"),
+      { className: "look-item", href: `/produkt.html?id=${encodeURIComponent(item.id)}` });
+    const thumb = Object.assign(document.createElement("img"),
+      { src: item.image_url, alt: "", loading: "lazy" });
+    thumb.addEventListener("error", () => thumb.replaceWith(document.createElement("span")));
+    const text = document.createElement("span");
+    text.append(
+      Object.assign(document.createElement("span"), { className: "look-part", textContent: t(item.category) }),
+      Object.assign(document.createElement("span"), { className: "look-name", textContent: item.name }),
+      Object.assign(document.createElement("span"), { className: "look-price", textContent: money(item) }),
+    );
+    row.append(thumb, text);
+    list.appendChild(row);
+  }
+  // Ganzer Look: Summe in der eigenen Währung (+ Kennzeichnung, falls Partnerlinks dabei)
+  const total = look.items.reduce((sum, item) => sum + (item.local_price ?? item.price), 0);
+  const first = look.items[0];
+  const footer = Object.assign(document.createElement("p"), { className: "look-total" });
+  footer.textContent = t("Ganzer Look: {price}", { price: money({
+    price: total, currency: first.local_currency ?? first.currency,
+    converted: look.items.some((item) => item.converted) }) });
+  if (look.items.some((item) => item.sponsored)) {
+    footer.append(" ", Object.assign(document.createElement("span"), { className: "ad-label", textContent: "Werbung" }));
+  }
+  list.appendChild(footer);
+  card.append(photo, list);
+  return card;
 }
 
 // --- Themen-Reihen: "Weil du Baggy pinnst", "Gerade reduziert", "Unter 20 €", "Second Hand" --
@@ -246,17 +311,48 @@ function tagList(terms, className = "tag") {
 
 // --- Raster und Kacheln -------------------------------------------------------------------
 
+// Endlos-Scrollen: erst BATCH Karten, beim Herunterscrollen automatisch die nächsten.
+// So bleibt der Shop auch mit 1.000 Angeboten flott (Bilder laden ohnehin erst bei Sicht).
+const BATCH = 24;
+let pending = [];
+const sentinel = Object.assign(document.createElement("div"), { className: "grid-sentinel" });
+const moreObserver = new IntersectionObserver((entries) => {
+  if (entries.some((entry) => entry.isIntersecting)) showMore();
+}, { rootMargin: "800px" });   // rechtzeitig nachladen, bevor man unten ankommt
+
+function showMore() {
+  for (const card of pending.splice(0, BATCH)) grid.appendChild(createCard(card));
+  if (pending.length) grid.after(sentinel); else sentinel.remove();
+}
+
 function renderGrid(cards, singular, plural, emptyText) {
   grid.innerHTML = "";
   resultCount.textContent = `${cards.length} ${t(cards.length === 1 ? singular : plural)}`;
   if (cards.length === 0) {
+    pending = [];
+    sentinel.remove();
     const empty = document.createElement("p");
     empty.className = "empty muted";
     empty.textContent = emptyText;
     grid.appendChild(empty);
     return;
   }
-  for (const card of cards) grid.appendChild(createCard(card));
+  pending = [...cards];
+  showMore();
+  moreObserver.observe(sentinel);
+}
+
+// Platzhalter, solange geladen wird – schimmernde Karten statt einer leeren Seite
+function showSkeletons(count = 8) {
+  pending = [];
+  sentinel.remove();
+  grid.replaceChildren(...Array.from({ length: count }, () => {
+    const card = Object.assign(document.createElement("div"), { className: "card skeleton" });
+    card.setAttribute("aria-hidden", "true");
+    card.innerHTML = '<div class="card-image"></div><div class="card-body">'
+      + '<span class="bone short"></span><span class="bone"></span><span class="bone price"></span></div>';
+    return card;
+  }));
 }
 
 // Produkt aus dem Katalog -> Daten für eine Kachel (mit "Werbung", da Affiliate-Link)

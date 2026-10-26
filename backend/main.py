@@ -16,7 +16,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import (analysis, currency, feedback, i18n, matching, photo, pins, pinterest,
+from backend import (analysis, currency, feedback, i18n, looks, matching, photo, pins, pinterest,
                      products, region,
                      shop_links, shops, similar, storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
@@ -471,6 +471,22 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
         "products": local(feedback.apply_feedback(ranked, all_products, feedback.load_feedback())),
         "currency": here.currency,
     }
+
+
+@app.get("/api/looks")
+def get_looks():
+    """Shop the Look: Outfit-Pins mit den passenden Teilen (looks.py) – im Budget egal,
+    Lieferland zählt."""
+    here = region.current()
+    available = products.filter_products(products.get_product_source().load(),
+                                         department="mode", country=here.code)
+    disliked = feedback.ids_with_vote(feedback.load_feedback(), "dislike")
+    found = looks.shop_the_look(storage.load_pins()["pins"],
+                                [p for p in available if p.id not in disliked],
+                                vision.EmbeddingStore.load_existing())
+    for look in found:
+        local(look["items"])
+    return found
 
 
 # --- Malis Vibe-Check -------------------------------------------------------------------
