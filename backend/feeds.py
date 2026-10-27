@@ -133,12 +133,23 @@ _AWIN_COLUMNS = {   # mögliche Spaltennamen der Liste (Groß/klein egal)
     "name": ["advertiser name", "advertiser", "merchant name"],
     "status": ["membership status", "status", "relationship"],
     "region": ["primary region", "region", "country"],
+    "sector": ["vertical", "sector", "category"],
+    "products": ["no of products", "number of products", "products"],
 }
 
 
 def _column(row: dict, key: str) -> str:
     lower = {k.strip().lower(): v for k, v in row.items() if k}
     return next((str(lower[c]).strip() for c in _AWIN_COLUMNS[key] if lower.get(c)), "")
+
+
+def _joined(status: str) -> bool:
+    """Nur angenommene Shops: "notjoined", "pending", "suspended" … zählen nicht (leer = ja)."""
+    status = status.lower()
+    return not status or (
+        not any(word in status for word in ("not", "pending", "reject", "suspend", "pause",
+                                            "inactive", "declin"))
+        and any(word in status for word in ("active", "joined", "approved", "member")))
 
 
 def discover_awin() -> list[dict]:
@@ -149,13 +160,7 @@ def discover_awin() -> list[dict]:
     found = []
     for row in read_rows(download(AWIN_LIST_URL.format(key=key))):
         url, feed_id = _column(row, "url"), re.sub(r"\D", "", _column(row, "feed_id"))
-        status = _column(row, "status").lower()
-        if not url.startswith("http") or not feed_id:
-            continue
-        # Nur angenommene Shops: "notjoined", "pending", "suspended" … zählen nicht
-        if status and (any(word in status for word in ("not", "pending", "reject", "suspend",
-                                                       "pause", "inactive", "declin"))
-                       or not any(word in status for word in ("active", "joined", "approved", "member"))):
+        if not url.startswith("http") or not feed_id or not _joined(_column(row, "status")):
             continue
         region = _column(row, "region").upper()
         found.append({
@@ -166,6 +171,79 @@ def discover_awin() -> list[dict]:
             "currencies": [],                         # jede Währung – wird umgerechnet
         })
     return found
+
+
+# --- Kandidaten: bei welchen Awin-Shops lohnt sich eine Bewerbung? -----------------------------
+# Dieselbe Liste enthält auch Shops, die dich (noch) nicht angenommen haben. Bekannte Marken
+# zuerst, dann nach Anzahl Produkte. Nur Shops MIT Feed – ohne Feed zeigt Malipin nichts.
+FAMOUS = [
+    # Mode
+    "zalando", "about you", "otto", "bonprix", "asos", "h&m", "mango", "zara", "breuninger",
+    "peek & cloppenburg", "p&c", "na-kd", "snipes", "adidas", "nike", "puma", "reebok",
+    "new balance", "converse", "vans", "levi", "tommy hilfiger", "calvin klein", "hugo boss",
+    "s.oliver", "esprit", "tom tailor", "marc o'polo", "jack wolfskin", "the north face",
+    "timberland", "ugg", "dr. martens", "deichmann", "mytheresa", "farfetch", "net-a-porter",
+    "ssense", "shein", "uniqlo", "arket", "& other stories", "weekday", "monki",
+    "urban outfitters", "river island", "marks & spencer", "john lewis", "selfridges",
+    "harrods", "boohoo", "prettylittlething", "superdry", "jd sports", "foot locker",
+    "schuh", "kurt geiger", "pandora", "swarovski", "thomas sabo", "fossil",
+    "daniel wellington", "ray-ban", "armedangels", "hessnatur", "lascana", "about you",
+    "vestiaire", "momox", "vinted", "lounge by zalando", "nordstrom", "macy's", "revolve",
+    "abercrombie", "hollister", "gap", "guess", "lacoste", "ralph lauren", "michael kors",
+    "birkenstock", "skechers", "crocs", "the outnet", "matchesfashion", "zalando lounge",
+    # Wohnen & Deko
+    "westwing", "home24", "maisons du monde", "connox", "lampenwelt", "butlers", "desenio",
+    "wayfair", "depot", "ikea", "xxxlutz", "mömax", "poco", "segmüller", "höffner",
+    "urbanara", "bloomingville", "ferm living", "nordic nest", "ambientedirect",
+    "finnish design shop", "la redoute", "west elm", "pottery barn", "crate & barrel",
+    "anthropologie", "dunelm", "habitat", "oliver bonas", "loaf", "cox & cox",
+    "the white company", "zara home", "kave home", "sklum", "vidaxl", "beliani", "emma",
+    "made.com", "h&m home", "bettenrid", "lumizil", "pib", "junique", "posterlounge",
+]
+_FAMOUS = re.compile(r"(?<![\w])(" + "|".join(re.escape(b) for b in FAMOUS) + r")(?![\w])")
+# Passt zu Malipin (Mode oder Wohnen) – Awins Branche oder der Feed-Name
+_RELEVANT = re.compile(
+    r"fashion|cloth|apparel|shoe|footwear|accessor|jewel|bag|lingerie|underwear|sport|"
+    r"home|garden|furnitur|furnish|decor|interior|living|textile|kitchen|light|mode|"
+    r"bekleidung|schuh|möbel|wohnen", re.I)
+
+
+def awin_candidates(everything: bool = False) -> list[dict]:
+    """Noch nicht beigetretene Awin-Shops mit Produkt-Feed, bekannte Marken zuerst."""
+    key = os.getenv("AWIN_FEED_KEY", "").strip()
+    if not key:
+        return []
+    shops: dict[str, dict] = {}
+    for row in read_rows(download(AWIN_LIST_URL.format(key=key))):
+        status = _column(row, "status").lower()
+        name = _column(row, "name")
+        if not name or _joined(status):
+            continue
+        sector = _column(row, "sector")
+        if not everything and sector and not _RELEVANT.search(f"{sector} {name}"):
+            continue
+        shop = shops.setdefault(name.lower(), {
+            "name": name, "regions": set(), "sector": sector, "products": 0,
+            "pending": "pending" in status, "famous": bool(_FAMOUS.search(name.lower()))})
+        shop["regions"].add(_column(row, "region").upper() or "?")
+        shop["products"] += int(re.sub(r"\D", "", _column(row, "products")) or 0)
+    found = sorted(shops.values(), key=lambda s: (not s["famous"], -s["products"], s["name"].lower()))
+    return [{**s, "regions": sorted(s["regions"])} for s in found]
+
+
+def print_candidates(everything: bool = False, limit: int = 150) -> None:
+    found = awin_candidates(everything)
+    todo = [s for s in found if not s["pending"]]
+    print(f"{len(todo)} Awin-Shops mit Feed, bei denen du dich noch bewerben kannst "
+          f"({len(found) - len(todo)} schon beworben). ★ = bekannte Marke\n")
+    for shop in todo[:limit]:
+        star = "★" if shop["famous"] else " "
+        count = f"{shop['products']:,}".replace(",", ".")
+        print(f" {star} {shop['name'][:32]:<32} {' '.join(shop['regions'])[:12]:<12} "
+              f"{shop['sector'][:22]:<22} {count:>8} Produkte")
+    if len(todo) > limit:
+        print(f"\n… und {len(todo) - limit} weitere (alle: --anzahl 0)")
+    print("\nBewerben: Awin -> Advertisers -> Join Programmes -> Namen suchen -> Join")
 
 
 def all_feeds() -> list[dict]:
@@ -433,7 +511,23 @@ class FeedProductSource(ProductSource):
 
 
 def main() -> None:
+    import argparse
     from backend import config  # noqa: F401  (lädt .env)
+    parser = argparse.ArgumentParser(description="Produkt-Feeds laden")
+    parser.add_argument("--kandidaten", action="store_true",
+                        help="Awin-Shops mit Feed zeigen, bei denen du dich bewerben kannst")
+    parser.add_argument("--alle", action="store_true", help="mit --kandidaten: alle Branchen")
+    parser.add_argument("--anzahl", type=int, default=150, help="mit --kandidaten: wie viele (0 = alle)")
+    args = parser.parse_args()
+    if args.kandidaten:
+        if not os.getenv("AWIN_FEED_KEY", "").strip():
+            print("AWIN_FEED_KEY fehlt in .env (Awin -> Toolbox -> Create-a-Feed).")
+            return
+        try:
+            print_candidates(args.alle, args.anzahl or 10**9)
+        except Exception as error:  # noqa: BLE001
+            print(f"Awin-Liste nicht ladbar: {_without_keys(str(error))}")
+        return
     if not configured():
         print("Keine Feeds: AWIN_FEED_KEY in .env eintragen (alle angenommenen Awin-Shops kommen dann "
               "automatisch) oder feeds.example.json -> feeds.json kopieren.")

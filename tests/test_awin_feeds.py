@@ -70,3 +70,27 @@ def test_can_be_switched_off(awin_list, monkeypatch):
     monkeypatch.setenv("AWIN_AUTO_FEEDS", "0")
     assert feeds.discover_awin() == []
     json.dumps(feeds.known_feeds())
+
+
+CANDIDATES_CSV = LIST_CSV + (
+    "14,Westwing,DE,notjoined,504,Westwing DE,de,Home & Garden,,,12000,https://x/fid/504/\n"
+    "14,Westwing,AT,notjoined,505,Westwing AT,de,Home & Garden,,,3000,https://x/fid/505/\n"
+    "15,Kleiner Laden,DE,notjoined,506,Feed,de,Fashion,,,90000,https://x/fid/506/\n"
+    "16,Bank Kredit,DE,notjoined,507,Feed,de,Finance,,,500,https://x/fid/507/\n"
+    "17,ASOS,GB,pending,508,Feed,en,Fashion,,,40000,https://x/fid/508/\n"
+)
+
+
+def test_candidates_famous_first_without_joined_or_irrelevant(awin_list, monkeypatch, capsys):
+    monkeypatch.setattr(feeds, "download", lambda url: CANDIDATES_CSV.encode())
+    found = feeds.awin_candidates()
+    assert [s["name"] for s in found] == ["ASOS", "Westwing", "Kleiner Laden", "Noch Nicht Store"]
+    assert found[1]["products"] == 15000 and found[1]["regions"] == ["AT", "DE"]
+    assert found[0]["pending"] and not found[2]["famous"]
+    assert "Bank Kredit" in [s["name"] for s in feeds.awin_candidates(everything=True)]
+
+    feeds.print_candidates()
+    out = capsys.readouterr().out
+    assert "★ Westwing" in out and "15.000 Produkte" in out
+    assert "ASOS" not in out.split("★ = bekannte Marke")[1]      # schon beworben
+    assert "geheim-123" not in out
