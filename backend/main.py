@@ -470,6 +470,9 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     # Bilder: "sieht aus wie deine Pins" (nur wenn Vektoren berechnet wurden)
     ranked = vision.apply_visual(ranked, pins_list, department,
                                  vision.EmbeddingStore.load_existing())
+    # Nur, was wirklich zu den Pins passt – Rest gar nicht zeigen
+    fitting = [r for r in ranked if fits_pins(r)] if has_taste(profile) else ranked
+    unfitting, ranked = len(ranked) - len(fitting), fitting
     return {
         "profile": profile.to_dict(),
         "sources": products.source_names(),  # z.B. ["ebay", "etsy"] oder ["demo"]
@@ -481,7 +484,20 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
                                                              feedback.load_feedback()))),
         "currency": here.currency,
         "gender": wanted,
+        "unfitting": unfitting,        # so viele ausgeblendet, weil sie nicht passen
     }
+
+
+def has_taste(profile: matching.StyleProfile) -> bool:
+    """Wissen wir genug über den Stil? (Pins mit erkennbaren Teilen, Farben oder Stilen)"""
+    return bool(profile.categories or profile.colors or profile.styles)
+
+
+def fits_pins(item: dict) -> bool:
+    """Passt: sieht aus wie die Pins, ODER die Art von Teil kommt in den Pins vor, ODER
+    mindestens zwei Merkmale (z.B. Farbe + Stil) – eine einzelne Farbe reicht nicht."""
+    matched = item.get("matched") or []
+    return bool(item.get("looks_like_pins") or item["category"] in matched or len(matched) >= 2)
 
 
 GENDER_BONUS = 0.3   # wie ein Begriff in knapp jedem dritten Pin

@@ -39,6 +39,8 @@ from pathlib import Path
 import httpx
 
 from backend import storage
+from backend import currency
+from backend.currency import convert as currency_convert
 from backend.config import BASE_DIR
 from backend.counterfeit import looks_like_fake
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
@@ -51,7 +53,7 @@ CONFIG_FILE = BASE_DIR / "feeds.json"
 STORE_FILE = "feed_products.json"           # für alle gleich (storage.GLOBAL_FILES)
 # Erhöhen, wenn sich die Erkennung ändert (Kategorien, Damen/Herren, Filter …) – dann lädt die
 # App die Feeds von selbst neu, statt alte Ergebnisse zu zeigen
-RECOGNITION_VERSION = 3
+RECOGNITION_VERSION = 4
 FEED_MAX_AGE = 24 * 60 * 60                 # Feeds einmal am Tag neu laden
 MAX_PER_FEED = 5000                         # mehr braucht kein Shop-Fenster
 MAX_DOWNLOAD = 300 * 1024 * 1024            # 300 MB – große Feeds sind oft gepackt (.gz)
@@ -394,6 +396,45 @@ KIDS = re.compile(r"\b(kinder\w*|kids?|baby|babys|children'?s?|girls?|boys?|mäd
                   r"junior|toddler|dziec\w*|niemowl\w*)\b", re.I)
 
 
+# --- Qualität: Billigware und Ramsch kommen gar nicht erst in den Shop ---------------------------
+# Mindestpreis pro Kategorie (in Euro umgerechnet) – darunter ist es fast immer Wegwerfware
+MIN_PRICE_EUR = {
+    "Oberteile": 8, "Hosen": 12, "Jacken": 20, "Kleider & Röcke": 12, "Schuhe": 20,
+    "Accessoires": 6, "Deko": 5, "Leuchten": 12, "Textilien": 8, "Küche & Tisch": 5,
+    "Möbel": 30, "Pflanzen & Töpfe": 5, "Wandgestaltung": 6,
+}
+# Typische Ramsch-Titel: Großhandel, Stückzahlen, "Hot Sale", Kopien
+SPAM = re.compile(
+    r"\b(hot sale|free shipping|dropship\w*|wholesale|\d+\s?pcs?|\d+\s?pieces|lot of|"
+    r"new arrivals?|high quality|best sellers?|1:1|replicas?|aaa+|cheap|clearance|"
+    r"myster(y|ious) box|random|20[12]\d\s+new|new\s+20[12]\d)\b", re.I)
+MAX_TITLE = 110          # längere Titel sind Stichwort-Listen ("… Women Men Summer Casual …")
+# Titel in Sprachen, die unsere Besucher (Deutsch/Englisch) nicht lesen: Polnisch, Niederländisch,
+# Französisch, Italienisch, Spanisch – typische Buchstaben und kleine Wörter
+FOREIGN = re.compile(
+    r"[ąęłńśźżć]|\b(dla|oraz|damsk\w*|męsk\w*|meski\w*|rozmiar|kolor|voor|dames|heren|maat|"
+    r"kleur|pour|femme|homme|avec|taille|couleur|donna|uomo|taglia|colore|para|mujer|hombre|"
+    r"talla)\b", re.I)
+
+
+_rates_cache: dict = {"at": 0.0, "table": None}
+
+
+def _rates() -> dict:
+    """Wechselkurse für den Import – einmal pro Minute statt für jede der 150.000 Zeilen lesen."""
+    if time.time() - _rates_cache["at"] > 60:
+        _rates_cache.update(at=time.time(), table=currency.rates())
+    return _rates_cache["table"]
+
+
+def low_quality(name: str, price: float, currency: str, category: str) -> bool:
+    """Billigware, Ramsch-Titel oder eine Sprache, die unsere Besucher nicht lesen."""
+    if len(name) > MAX_TITLE or SPAM.search(name) or FOREIGN.search(name):
+        return True
+    euro = currency_convert(price, currency, "EUR", _rates())
+    return euro is not None and euro < MIN_PRICE_EUR.get(category, 0)
+
+
 def to_product(row: dict, feed: dict) -> Product | None:
     """Eine Feed-Zeile -> Product. None, wenn etwas Wichtiges fehlt oder es nicht passt."""
     fields = {**PRESETS[feed.get("preset", "generic")],
@@ -422,7 +463,7 @@ def to_product(row: dict, feed: dict) -> Product | None:
     if not category:
         return None                          # weder Mode noch Wohnen erkennbar -> weglassen
     department = CATEGORY_SYNONYMS[category][0]
-    if JUNK.search(f"{category_text} {name}"):
+    if JUNK.search(f"{category_text} {name}") or low_quality(name, price, currency, category):
         return None
     if department == "mode" and (NOT_SHOWN.search(f"{category_text} {name}")
                                  or KIDS.search(f"{category_text} {name}")):

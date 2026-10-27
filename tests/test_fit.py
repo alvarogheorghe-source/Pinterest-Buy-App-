@@ -87,3 +87,43 @@ def test_old_imports_are_redone_automatically(fake, monkeypatch):
     monkeypatch.setattr(feeds, "refresh_in_background", lambda: calls.append(1))
     feeds.FeedProductSource().load()
     assert calls
+
+
+def test_cheap_spam_and_unreadable_titles_never_enter_the_shop():
+    cheap = row(10, "Damen Bluse Basic", "Damen > Oberteile")
+    cheap["search_price"] = "4.50"
+    assert feeds.to_product(cheap, FEED) is None                                  # unter 8 € Top
+    assert feeds.to_product(row(11, "Hot Sale 2025 New Women Jeans"), FEED) is None
+    assert feeds.to_product(row(12, "Spodnie damskie szerokie dżinsy"), FEED) is None   # Polnisch
+    assert feeds.to_product(row(13, "Women Jeans " + "Casual Summer Loose " * 6), FEED) is None
+    pln = row(14, "Women Wide Leg Jeans", "Jeans")
+    pln.update(search_price="30", currency="PLN")                                 # ≈ 7 € Jeans
+    assert feeds.to_product(pln, FEED) is None
+    assert feeds.to_product(row(15, "Women Wide Leg Jeans", "Jeans"), FEED)       # 30 € ok
+
+
+def test_only_items_that_fit_the_pins_are_shown(client, monkeypatch):
+    from backend import products, storage
+    from backend.products import Product
+
+    def item(n, category, colors=(), styles=()):
+        return Product(id=f"f-{n}", name=f"Teil {n}", shop="S", price=40, category=category,
+                       colors=list(colors), style_tags=list(styles),
+                       image_url="https://i/x.jpg", affiliate_url="https://a/x")
+
+    class Source:
+        def load(self):
+            return [item(1, "Oberteile", ["beige"]),                 # Hoodie wie in den Pins
+                    item(2, "Hosen", ["schwarz"]),                   # passt gar nicht
+                    item(3, "Hosen", ["beige"]),                     # nur die Farbe -> zu wenig
+                    item(4, "Jacken", ["beige"], ["oversized"])]     # Farbe + Stil
+
+        def warnings(self):
+            return []
+
+    monkeypatch.setattr(products, "get_product_source", lambda: Source())
+    storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [
+        {"id": "1", "title": "beige oversized hoodie outfit"}]})
+    data = client.get("/api/recommendations?gender=alle").json()
+    assert sorted(p["id"] for p in data["products"]) == ["f-1", "f-4"]
+    assert data["unfitting"] == 2

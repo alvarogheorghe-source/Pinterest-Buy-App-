@@ -108,7 +108,7 @@ async function load() {
         : "");
     // Gar nichts in dieser Welt (noch kein passender Partner-Shop) – ehrlich sagen statt "Budget"
     if (!items.length && !filters.maxPrice && !filters.category) {
-      renderNoShopsYet(pinItems.length);
+      renderNoShopsYet(pinItems.length, recommendations.unfitting > 0);
     } else {
       showSources(recommendations.sources || ["demo"]);
     }
@@ -224,13 +224,16 @@ function renderRows(list, hasProfile) {
   }
 }
 
-function renderNoShopsYet(pinCount) {
+function renderNoShopsYet(pinCount, onlyUnfitting = false) {
   const box = Object.assign(document.createElement("div"), { className: "empty no-shops" });
+  // onlyUnfitting: Es gibt Produkte, aber keins passt zu deinen Pins -> lieber nichts zeigen
   box.append(
     Object.assign(document.createElement("p"), { className: "no-shops-title",
-      textContent: filters.department === "wohnen"
-        ? "Für Wohnen & Deko sind gerade noch keine Shops verbunden."
-        : "Für Mode sind gerade noch keine Shops verbunden." }),
+      textContent: onlyUnfitting
+        ? "Noch nichts, was wirklich zu deinen Pins passt."
+        : filters.department === "wohnen"
+          ? "Für Wohnen & Deko sind gerade noch keine Shops verbunden."
+          : "Für Mode sind gerade noch keine Shops verbunden." }),
     Object.assign(document.createElement("p"), { className: "muted",
       textContent: "Wir holen laufend neue Partner-Shops dazu – schau bald wieder vorbei!" }),
   );
