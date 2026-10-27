@@ -484,10 +484,12 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     wanted = for_whom(gender, pins_list) if department == "mode" else None
     selection = [p for p in selection if not (wanted and p.gender and p.gender != wanted)]
     ranked = shops.apply_bonus(matching.rank_products(selection, profile))
+    for r in ranked:   # eBay ist unsere Hauptquelle -> bei ähnlicher Passung zuerst
+        r["score"] = round(r["score"] + SOURCE_BONUS.get(r["id"].split("-", 1)[0], 0), 3)
     if wanted:   # sicher Damen- bzw. Herrenteile vor denen ohne Angabe
         for r in ranked:
             r["score"] = round(r["score"] + GENDER_BONUS * (r.get("gender") == wanted), 3)
-        ranked.sort(key=lambda r: (-r["score"], r["price"]))
+    ranked.sort(key=lambda r: (-r["score"], r["price"]))
     # Bilder: "sieht aus wie deine Pins" (nur wenn Vektoren berechnet wurden)
     ranked = vision.apply_visual(ranked, pins_list, department,
                                  vision.EmbeddingStore.load_existing())
@@ -549,6 +551,7 @@ def close_to_pins(item: dict) -> bool:
 
 
 GENDER_BONUS = 0.3   # wie ein Begriff in knapp jedem dritten Pin
+SOURCE_BONUS = {"ebay": 0.2, "etsy": -0.1}   # Vorrang für eBay, Etsy etwas zurück
 
 
 def for_whom(choice: str, pins_list: list[dict]) -> str | None:

@@ -198,8 +198,8 @@ def pick_details(profile, category: str) -> tuple[str | None, list[str]]:
     return noun, adjectives
 
 
-def build_queries(pins: list[dict], department: str,
-                  words: SearchWords = GERMAN) -> list[tuple[str, str]]:
+def build_queries(pins: list[dict], department: str, words: SearchWords = GERMAN,
+                  limit: int = QUERIES_PER_DEPARTMENT) -> list[tuple[str, str]]:
     """[(Suchtext, Kategorie), ...] – z.B. ("beige oversized Pullover", "Oberteile").
 
     Farbe und Stil kommen aus den Pins, in denen GENAU diese Kategorie vorkommt:
@@ -268,7 +268,7 @@ def build_queries(pins: list[dict], department: str,
                      for brand, count in profile.brands.most_common(MAX_BRAND_QUERIES)
                      if count >= BRAND_MIN_PINS]
     queries = brand_queries + [q for q in queries if q not in brand_queries]
-    queries = queries[:QUERIES_PER_DEPARTMENT]
+    queries = queries[:limit]
 
     # Mode: zeigt das Board klar Herren- oder Damenmode? -> "Herren Baggy Jeans"
     who = None

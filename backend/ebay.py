@@ -37,7 +37,8 @@ SEARCH_URL = "https://api.ebay.com/buy/browse/v1/item_summary/search"
 SANDBOX_HOST = "https://api.sandbox.ebay.com"   # Sandbox-Keys (…-SBX-…): eBays Testdaten
 SCOPE = "https://api.ebay.com/oauth/api_scope"
 
-RESULTS_PER_QUERY = 50      # eBay erlaubt bis 200; 50 = viel Auswahl, schnelle Antwort
+RESULTS_PER_QUERY = 100     # eBay erlaubt bis 200 – eBay ist unsere Hauptquelle
+QUERIES = 16                # Suchen pro Welt (Etsy/AliExpress: 10) – geteilt über search_cache
 # Nur diese Felder werden zwischengespeichert (search_cache.py) – der Rest wird nicht gebraucht
 KEEP_FIELDS = ("itemId", "title", "price", "condition", "image", "thumbnailImages", "itemWebUrl",
                "itemAffiliateWebUrl", "seller", "marketingPrice")
@@ -206,7 +207,7 @@ class EbayProductSource(CachedSource):
         keep(query, category) -> False überspringt eine Suche."""
         products, seen = [], set()
         for department in departments:
-            for planned in build_queries(pins, department, search_words()):
+            for planned in build_queries(pins, department, search_words(), QUERIES):
                 query, category = planned
                 if keep and not keep(query, category):
                     continue
@@ -234,7 +235,7 @@ def main() -> None:
         return
     print("Anmeldung: ok")
     pins = storage.load_pins()["pins"]
-    queries = [(q, d) for d in DEPARTMENTS for q in build_queries(pins, d, search_words())]
+    queries = [(q, d) for d in DEPARTMENTS for q in build_queries(pins, d, search_words(), QUERIES)]
     if not queries:
         print("Keine Pins gefunden – teste mit einem Beispiel.")
         queries = [(("schwarze Hose", "Hosen"), "mode")]

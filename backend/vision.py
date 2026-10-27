@@ -299,8 +299,8 @@ class Progress:
         elapsed = time.time() - self.started
         left = elapsed / done * (total - done) if done else 0
         rest = f"noch ca. {max(1, round(left / 60))} Min." if done < total else "fertig"
-        print(f"\r  {self.label}: {done:,} / {total:,} Bilder ({done / total:.0%}) – {rest}   "
-              .replace(",", "."),
+        line = f"  {self.label}: {done:,} / {total:,} Bilder ({done / total:.0%}) – {rest}"
+        print("\r" + line.replace(",", ".").ljust(70),
               end="" if done < total else "\n", flush=True)
         if done - self.saved >= self.every:      # Zwischenstand sichern
             self.store.save()

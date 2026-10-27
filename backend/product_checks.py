@@ -81,8 +81,16 @@ def load() -> dict:
     return _memory["checks"]
 
 
+# Etsy hat besonders viele KI-Bilder und Mockups -> dort schon ab 60 % aussortieren
+AI_MIN_BY_SOURCE = {"etsy": 0.60}
+
+
+def ai_limit(product_id: str) -> float:
+    return AI_MIN_BY_SOURCE.get(product_id.split("-", 1)[0], AI_MIN)
+
+
 def is_ai(product_id: str) -> bool:
-    return load().get(product_id, {}).get("ai", 0) >= AI_MIN
+    return load().get(product_id, {}).get("ai", 0) >= ai_limit(product_id)
 
 
 def image_gender(product_id: str) -> str | None:
@@ -101,7 +109,8 @@ def main() -> None:
         print(f"  {checks[product.id]['ai']:.0%}  {product.shop[:18]:<18} {product.name[:50]:<50} "
               f"{product.image_url}")
     print(f"\n{len(flagged)} von {len(checks)} Produkten sehen nach KI aus und werden nicht gezeigt.")
-    print(f"Zu streng oder zu locker? AI_MIN in backend/product_checks.py (jetzt {AI_MIN:.0%}).")
+    print(f"Zu streng oder zu locker? AI_MIN in backend/product_checks.py (jetzt {AI_MIN:.0%}, "
+          f"Etsy {AI_MIN_BY_SOURCE['etsy']:.0%}).")
 
 
 if __name__ == "__main__":

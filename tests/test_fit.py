@@ -174,3 +174,31 @@ def test_check_math():
     assert result["ai"] > 0.99 and result["gender"] == "damen"
     unclear = product_checks.check([0.7071, 0.7071], photo, gender)
     assert unclear["gender"] is None and abs(unclear["ai"] - 0.5) < 0.01
+
+
+def test_etsy_ai_check_is_stricter(fake):
+    from backend import product_checks, storage
+    storage.write_json(product_checks.CHECKS_FILE, {"etsy-1": {"ai": 0.7}, "ebay-1": {"ai": 0.7}})
+    assert product_checks.is_ai("etsy-1") and not product_checks.is_ai("ebay-1")
+
+
+def test_ebay_first_when_equally_good(client, monkeypatch):
+    from backend import products, storage
+    from backend.products import Product
+
+    def item(pid):
+        return Product(id=pid, name="Blaue Jeans", shop=pid.split("-")[0], price=40,
+                       category="Hosen", colors=["blau"], image_url="https://i/x.jpg",
+                       affiliate_url="https://a/x")
+
+    class Source:
+        def load(self):
+            return [item("etsy-1"), item("feed-1"), item("ebay-1")]
+
+        def warnings(self):
+            return []
+
+    monkeypatch.setattr(products, "get_product_source", lambda: Source())
+    storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [{"id": "1", "title": "blaue Jeans"}]})
+    ids = [p["id"] for p in client.get("/api/recommendations?gender=alle").json()["products"]]
+    assert ids == ["ebay-1", "feed-1", "etsy-1"]
