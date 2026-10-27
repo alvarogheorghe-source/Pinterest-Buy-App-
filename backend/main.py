@@ -468,7 +468,9 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
         # Ausgefallene Quellen (z.B. eBay-Keys noch gesperrt) -> Hinweis im Shop statt still leer
         "warnings": source.warnings(),
         # 👍/👎 einrechnen: Dislikes raus, Ähnliches zu Likes nach oben
-        "products": local(feedback.apply_feedback(ranked, all_products, feedback.load_feedback())),
+        # Danach Shops mischen, damit nicht ein großer Shop alles füllt
+        "products": local(shops.mix(feedback.apply_feedback(ranked, all_products,
+                                                             feedback.load_feedback()))),
         "currency": here.currency,
     }
 

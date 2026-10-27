@@ -94,3 +94,11 @@ def test_candidates_famous_first_without_joined_or_irrelevant(awin_list, monkeyp
     assert "★ Westwing" in out and "15.000 Produkte" in out
     assert "ASOS" not in out.split("★ = bekannte Marke")[1]      # schon beworben
     assert "geheim-123" not in out
+
+
+def test_shops_from_other_countries_are_shown_where_they_deliver():
+    assert feeds.awin_countries("PL", "AliExpress PL") == []            # weltweit
+    assert "AT" in feeds.awin_countries("NL", "Direct-Running NL")      # EU-Binnenmarkt
+    assert feeds.awin_countries("DE", "Unipolar DE") == ["DE", "AT", "CH"]
+    assert feeds.awin_countries("US", "Shop") == ["US", "CA"]
+    assert feeds.awin_countries("BR", "Loja") == ["BR"]

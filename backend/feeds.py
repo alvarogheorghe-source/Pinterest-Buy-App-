@@ -127,6 +127,22 @@ AWIN_LIST_URL = "https://productdata.awin.com/datafeed/list/apikey/{key}"
 NEIGHBOURS = {"DE": ["DE", "AT", "CH"], "AT": ["AT", "DE", "CH"], "CH": ["CH", "DE", "AT"],
               "GB": ["GB", "IE"], "IE": ["IE", "GB"], "US": ["US", "CA"], "CA": ["CA", "US"],
               "AU": ["AU"]}
+# EU-Binnenmarkt: Shops aus anderen EU-Ländern (PL, NL, FR …) liefern meist in die ganze EU
+EU = ["AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR", "HR", "HU", "IE",
+      "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK"]
+# Weltweite Shops: egal welches Awin-Land, sie liefern überallhin
+WORLDWIDE = re.compile(r"aliexpress|temu|shein", re.I)
+
+
+def awin_countries(region: str, name: str) -> list[str]:
+    """Wo ein Awin-Shop gezeigt wird ([] = überall)."""
+    if WORLDWIDE.search(name):
+        return []
+    if region in NEIGHBOURS:
+        return NEIGHBOURS[region]
+    if region in EU:
+        return EU
+    return [region] if re.fullmatch(r"[A-Z]{2}", region) else []
 _AWIN_COLUMNS = {   # mögliche Spaltennamen der Liste (Groß/klein egal)
     "url": ["url", "feed url", "download url"],
     "feed_id": ["feed id", "feed_id", "fid"],
@@ -167,7 +183,7 @@ def discover_awin() -> list[dict]:
             "name": f"awin-{feed_id}", "label": _column(row, "name") or "Awin", "preset": "awin",
             # Awins "Hauptland" ist keine Lieferbeschränkung: deutsche Shops liefern meist auch
             # nach Österreich/Schweiz, britische nach Irland. Deshalb die ganze Nachbarschaft.
-            "url": url, "countries": NEIGHBOURS.get(region, [region] if re.fullmatch(r"[A-Z]{2}", region) else []),
+            "url": url, "countries": awin_countries(region, _column(row, "name")),
             "currencies": [],                         # jede Währung – wird umgerechnet
         })
     return found

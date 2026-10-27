@@ -108,3 +108,27 @@ def apply_bonus(ranked: list[dict]) -> list[dict]:
             item["score"] = round(item["score"] + SHOP_BONUS, 3)
     ranked.sort(key=lambda r: (-r["score"], r["price"]))
     return ranked
+
+
+# --- Vielfalt: nicht ein riesiger Shop vor allen anderen --------------------------------------
+MIX_DECAY = 0.9   # jedes weitere Produkt desselben Shops zählt 10 % weniger
+
+
+def mix(ranked: list[dict]) -> list[dict]:
+    """Shops mischen: Bei gleicher Passung wechseln sich die Shops ab; ein Shop mit tausenden
+    Produkten füllt nicht mehr die ganze Seite. Die beste Passung bleibt vorne."""
+    queues: dict[str, list[dict]] = {}
+    for item in ranked:                                  # ranked ist schon sortiert
+        queues.setdefault(str(item.get("shop", "")).strip().lower(), []).append(item)
+    if len(queues) < 2:
+        return ranked
+    heads = {shop: 0 for shop in queues}
+    mixed = []
+    while heads:
+        shop = max(heads, key=lambda s: (queues[s][heads[s]].get("score", 0) * MIX_DECAY ** heads[s],
+                                         -heads[s]))
+        mixed.append(queues[shop][heads[shop]])
+        heads[shop] += 1
+        if heads[shop] == len(queues[shop]):
+            del heads[shop]
+    return mixed
