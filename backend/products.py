@@ -151,15 +151,24 @@ class CombinedSource(ProductSource):
         return self.failed
 
     def load(self) -> list[Product]:
+        from backend.search_queries import run_parallel
         products, errors, seen = [], [], set()
         self.failed = []
-        for source in self.sources:
+
+        def load_one(source):          # Quellen gleichzeitig laden (eBay, Etsy, Feeds …)
             try:
-                for product in source.load():
+                return source.load()
+            except ProductSourceError as error:
+                return error
+
+        for source, loaded in zip(self.sources, run_parallel(load_one, self.sources)):
+            if not isinstance(loaded, ProductSourceError):
+                for product in loaded:
                     if product.id not in seen:      # gleiches Angebot aus zwei Quellen nur einmal
                         seen.add(product.id)
                         products.append(product)
-            except ProductSourceError as error:
+            else:
+                error = loaded
                 errors.append(error)
                 self.failed.append({"source": getattr(source, "name", "") or type(source).__name__,
                                     "message": str(error)})

@@ -30,7 +30,7 @@ from backend.i18n import tr
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms, gender_of)
 from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError, sale_price
-from backend.search_queries import ENGLISH, GERMAN, build_queries, search_with_fallback
+from backend.search_queries import ENGLISH, GERMAN, build_queries, run_parallel, search_with_fallback
 
 TOKEN_URL = "https://api.ebay.com/identity/v1/oauth2/token"
 SEARCH_URL = "https://api.ebay.com/buy/browse/v1/item_summary/search"
@@ -206,17 +206,18 @@ class EbayProductSource(CachedSource):
     def fetch_for(self, pins: list[dict], departments, keep=None) -> list[Product]:
         """Suche passend zu beliebigen Pins (auch zu einem hochgeladenen Foto).
         keep(query, category) -> False überspringt eine Suche."""
+        planned = [(department, query) for department in departments
+                   for query in build_queries(pins, department, search_words(), QUERIES)
+                   if not keep or keep(query[0], query[1])]
+        # Alle Suchen gleichzeitig – sonst wartet der Shop über eine Minute
+        results = run_parallel(lambda job: search_with_fallback(search, job[1]), planned)
         products, seen = [], set()
-        for department in departments:
-            for planned in build_queries(pins, department, search_words(), QUERIES):
-                query, category = planned
-                if keep and not keep(query, category):
-                    continue
-                for item in search_with_fallback(search, planned):
-                    product = to_product(item, department, category)
-                    if product and product.id not in seen:
-                        seen.add(product.id)
-                        products.append(product)
+        for (department, (_, category)), found in zip(planned, results):
+            for item in found:
+                product = to_product(item, department, category)
+                if product and product.id not in seen:
+                    seen.add(product.id)
+                    products.append(product)
         return products
 
 

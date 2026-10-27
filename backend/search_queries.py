@@ -34,6 +34,18 @@ class Query(tuple):
         return query
 
 
+def run_parallel(func, items: list, workers: int = 8) -> list:
+    """func(item) für alle items GLEICHZEITIG (statt 32 Suchen nacheinander) – Ergebnisse in
+    derselben Reihenfolge. copy_context: jede Suche kennt Land/Person der Anfrage (contextvars)."""
+    import contextvars
+    from concurrent.futures import ThreadPoolExecutor
+    if len(items) <= 1:
+        return [func(item) for item in items]
+    with ThreadPoolExecutor(max_workers=min(workers, len(items))) as pool:
+        futures = [pool.submit(contextvars.copy_context().run, func, item) for item in items]
+        return [future.result() for future in futures]
+
+
 def search_with_fallback(search, query) -> list:
     """search(text) -> Treffer. Findet die genaue Suche zu wenig, kommt die breitere dazu
     ("Baggy Light Wash Jeans" -> "Jeans"). Doppelte Angebote sortieren die Quellen selbst aus."""

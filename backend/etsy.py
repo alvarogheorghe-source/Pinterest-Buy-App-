@@ -25,7 +25,7 @@ from backend.i18n import tr
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms, gender_of)
 from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError
-from backend.search_queries import ENGLISH, build_queries, search_with_fallback
+from backend.search_queries import ENGLISH, build_queries, run_parallel, search_with_fallback
 
 API_URL = "https://openapi.etsy.com/v3/application"
 RESULTS_PER_QUERY = 20
@@ -140,15 +140,16 @@ class EtsyProductSource(CachedSource):
     def fetch_for(self, pins: list[dict], departments, keep=None) -> list[Product]:
         """Suche passend zu beliebigen Pins (auch zu einem hochgeladenen Foto).
         keep(query, category) -> False überspringt eine Suche."""
+        planned = [(department, query) for department in departments
+                   for query in build_queries(pins, department, ENGLISH)
+                   if not keep or keep(query[0], query[1])]
+        # Alle Suchen gleichzeitig – sonst wartet der Shop über eine Minute
+        results = run_parallel(lambda job: search_with_fallback(search, job[1]), planned)
         products, seen = [], set()
-        for department in departments:
-            for planned in build_queries(pins, department, ENGLISH):
-                query, category = planned
-                if keep and not keep(query, category):
-                    continue
-                for listing in search_with_fallback(search, planned):
-                    product = to_product(listing, department, category)
-                    if product and product.id not in seen:
-                        seen.add(product.id)
-                        products.append(product)
+        for (department, (_, category)), found in zip(planned, results):
+            for listing in found:
+                product = to_product(listing, department, category)
+                if product and product.id not in seen:
+                    seen.add(product.id)
+                    products.append(product)
         return products

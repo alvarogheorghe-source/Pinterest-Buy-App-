@@ -56,3 +56,22 @@ def test_feed_rrp_becomes_original_price():
            "rrp_price": "59.90", "merchant_category": "Jeans"}
     product = feeds.to_product(row, {"name": "awin", "preset": "awin"})
     assert (product.price, product.original_price) == (39.9, 59.9)
+
+
+def test_searches_run_in_parallel_and_keep_order_and_context():
+    import contextvars
+    import threading
+    import time
+    from backend.search_queries import run_parallel
+    who = contextvars.ContextVar("who", default="niemand")
+    who.set("AT")
+    threads = set()
+
+    def slow(n):
+        threads.add(threading.get_ident())
+        time.sleep(0.05)
+        return (n, who.get())
+
+    started = time.time()
+    assert run_parallel(slow, [1, 2, 3, 4]) == [(1, "AT"), (2, "AT"), (3, "AT"), (4, "AT")]
+    assert time.time() - started < 0.15 and len(threads) > 1          # gleichzeitig
