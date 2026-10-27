@@ -102,3 +102,11 @@ def test_shops_from_other_countries_are_shown_where_they_deliver():
     assert feeds.awin_countries("DE", "Unipolar DE") == ["DE", "AT", "CH"]
     assert feeds.awin_countries("US", "Shop") == ["US", "CA"]
     assert feeds.awin_countries("BR", "Loja") == ["BR"]
+
+
+def test_list_shows_status_of_every_shop(awin_list, capsys):
+    feeds.print_awin_list()
+    out = capsys.readouterr().out
+    assert "Denim Store" in out and "✓ wird geladen" in out
+    assert "Noch Nicht Store" in out and "nicht angenommen" in out
+    assert "geheim-123" not in out

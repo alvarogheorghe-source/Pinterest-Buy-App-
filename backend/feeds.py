@@ -269,6 +269,25 @@ def print_candidates(everything: bool = False, limit: int = 150) -> None:
     print("\nBewerben: Awin -> Advertisers -> Join Programmes -> Namen suchen -> Join")
 
 
+def print_awin_list(search: str = "") -> None:
+    """Was meldet Awin über jeden Shop? Name, Land, Status, Produkte – ob er übernommen wird."""
+    key = os.getenv("AWIN_FEED_KEY", "").strip()
+    rows = read_rows(download(AWIN_LIST_URL.format(key=key)))
+    shown = 0
+    for row in rows:
+        name = _column(row, "name")
+        if search and search.lower() not in name.lower():
+            continue
+        status = _column(row, "status") or "?"
+        used = "✓ wird geladen" if _joined(status) and _column(row, "url").startswith("http") \
+            else "– nicht angenommen" if not _joined(status) else "✗ keine Feed-Adresse"
+        print(f"  {name[:30]:<30} {_column(row, 'region')[:4]:<4} {status[:14]:<14} "
+              f"{_column(row, 'products') or '?':>7} Produkte  {used}")
+        shown += 1
+    print(f"\n{shown} Feeds in Awins Liste" + (f" mit \"{search}\"" if search else "") +
+          ". Shops OHNE Produkt-Feed stehen hier gar nicht – die kann Malipin nicht zeigen.")
+
+
 def all_feeds() -> list[dict]:
     """feeds.json + automatisch gefundene Awin-Feeds (ohne doppelte Namen)."""
     feeds = load_config()
@@ -551,7 +570,18 @@ def main() -> None:
                         help="Awin-Shops mit Feed zeigen, bei denen du dich bewerben kannst")
     parser.add_argument("--alle", action="store_true", help="mit --kandidaten: alle Branchen")
     parser.add_argument("--anzahl", type=int, default=150, help="mit --kandidaten: wie viele (0 = alle)")
+    parser.add_argument("--liste", nargs="?", const="", metavar="NAME",
+                        help="Awins Feed-Liste mit Status zeigen (optional nur Shops mit NAME)")
     args = parser.parse_args()
+    if args.liste is not None:
+        if not os.getenv("AWIN_FEED_KEY", "").strip():
+            print("AWIN_FEED_KEY fehlt in .env.")
+            return
+        try:
+            print_awin_list(args.liste)
+        except Exception as error:  # noqa: BLE001
+            print(f"Awin-Liste nicht ladbar: {_without_keys(str(error))}")
+        return
     if args.kandidaten:
         if not os.getenv("AWIN_FEED_KEY", "").strip():
             print("AWIN_FEED_KEY fehlt in .env (Awin -> Toolbox -> Create-a-Feed).")
