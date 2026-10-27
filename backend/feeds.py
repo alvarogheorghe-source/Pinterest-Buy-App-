@@ -42,7 +42,7 @@ from backend import storage
 from backend.config import BASE_DIR
 from backend.counterfeit import looks_like_fake
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
-                              STYLE_PATTERNS, find_terms)
+                              STYLE_PATTERNS, find_terms, gender_of)
 from backend.products import Product, ProductSource, ProductSourceError, sale_price
 
 logger = logging.getLogger(__name__)
@@ -66,6 +66,7 @@ PRESETS = {
         "category": ["merchant_category", "category_name"], "color": ["colour"],
         "description": ["product_short_description", "description"],
         "original_price": ["rrp_price", "product_price_old", "base_price"],
+        "gender": ["Fashion:suitable_for", "suitable_for", "gender"],
     },
     # Google-Shopping-Format – viele Netzwerke (Tradedoubler, Adcell, Admitad …) bieten es an
     "google": {
@@ -76,6 +77,7 @@ PRESETS = {
         "category": ["product_type", "g:product_type", "google_product_category"],
         "color": ["color", "g:color"], "description": ["description", "g:description"],
         "original_price": ["price", "g:price"],     # Normalpreis, wenn es einen sale_price gibt
+        "gender": ["gender", "g:gender"],
     },
     # Allgemein: gängige Spaltennamen; alles andere über "fields" in feeds.json
     "generic": {
@@ -89,6 +91,7 @@ PRESETS = {
         "category": ["category", "categories", "category_path", "merchantCategoryName"],
         "color": ["color", "colour"], "description": ["description", "short_description"],
         "original_price": ["old_price", "original_price", "rrp", "list_price", "regular_price"],
+        "gender": ["gender", "Gender", "suitable_for"],
     },
 }
 
@@ -366,6 +369,18 @@ def _https(url: str) -> str:
     return "https://" + url[7:] if url.startswith("http://") else url
 
 
+# Passt nicht ins Shop-Fenster: Unterwäsche, Socken, Bademode (keine eigene Kategorie – "Pants"
+# ist auf Britisch eine Unterhose!) und Kinderkleidung. "Slip Dress" / "Slip-On" sind ok.
+NOT_SHOWN = re.compile(
+    r"\b(boxer\w*|briefs?|slips?(?![\s-]*(dress|kleid|on|rock|skirt))|panty|panties|thongs?|"
+    r"tanga|string-?tanga|unterhose\w*|unterwäsche|underwear|lingerie|dessous|bhs?|bras?|"
+    r"bralettes?|socken|socks?|strümpfe|strumpfhose\w*|tights|pyjamas?|schlafanzug\w*|"
+    r"bademode|bikini\w*|badeanzug\w*|swimsuit\w*|swimwear|badehose\w*|bielizna|majtki|"
+    r"skarpet\w*|jazz-pants|hipster|ondergoed|sokken)\b", re.I)
+KIDS = re.compile(r"\b(kinder\w*|kids?|baby|babys|children'?s?|girls?|boys?|mädchen|jungen|"
+                  r"junior|toddler|dziec\w*|niemowl\w*)\b", re.I)
+
+
 def to_product(row: dict, feed: dict) -> Product | None:
     """Eine Feed-Zeile -> Product. None, wenn etwas Wichtiges fehlt oder es nicht passt."""
     fields = {**PRESETS[feed.get("preset", "generic")],
@@ -393,6 +408,10 @@ def to_product(row: dict, feed: dict) -> Product | None:
     category = (from_name or categories or [None])[0]
     if not category:
         return None                          # weder Mode noch Wohnen erkennbar -> weglassen
+    department = CATEGORY_SYNONYMS[category][0]
+    if department == "mode" and (NOT_SHOWN.search(f"{category_text} {name}")
+                                 or KIDS.search(f"{category_text} {name}")):
+        return None
 
     text = f"{name} {_pick(row, fields['color'])} {_pick(row, fields['description'])[:300]}"
     shop = _pick(row, fields["shop"]) or feed.get("label") or feed["name"]
@@ -401,7 +420,9 @@ def to_product(row: dict, feed: dict) -> Product | None:
         name=name[:90], shop=shop[:60], seller=shop[:60],
         price=round(price, 2), currency=currency,
         original_price=sale_price(price, parse_price(_pick(row, fields["original_price"]))[0]),
-        department=CATEGORY_SYNONYMS[category][0], category=category,
+        department=department, category=category,
+        gender=gender_of(_pick(row, fields.get("gender", [])), category_text, name)
+        if department == "mode" else None,
         colors=sorted(find_terms(text, COLOR_PATTERNS)),
         style_tags=sorted(find_terms(text, STYLE_PATTERNS)),
         image_url=image, affiliate_url=url,
@@ -418,8 +439,10 @@ def import_feed(feed: dict) -> dict:
     for row in read_rows(download(feed["url"])):
         rows += 1
         product = to_product(row, feed)
-        if product and product.id not in seen:
-            seen.add(product.id)
+        # Größen/Varianten haben eigene IDs, aber denselben Namen -> nur einmal zeigen
+        variant = (product.shop.lower(), re.sub(r"\W+", " ", product.name.lower()).strip()) if product else None
+        if product and product.id not in seen and variant not in seen:
+            seen.update((product.id, variant))
             products.append(product)
             if len(products) >= feed.get("max_products", MAX_PER_FEED):
                 break

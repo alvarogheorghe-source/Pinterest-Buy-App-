@@ -50,6 +50,8 @@ class Product(BaseModel):
     trusted_note: str = ""
     # Lieferländer (z.B. aus feeds.json); leer = überall bzw. von der Quelle schon passend
     countries: list[str] = []
+    # Für wen: "damen", "herren" oder None (unisex / unbekannt)
+    gender: str | None = None
 
     @field_validator("affiliate_url")
     @classmethod

@@ -447,8 +447,10 @@ def get_profile():
 @app.get("/api/recommendations")
 def get_recommendations(min_price: float | None = None, max_price: float | None = None,
                         category: str | None = None,
-                        department: products.Department = "mode", trusted_only: bool = False):
-    """Produkte einer Welt im Budget, sortiert nach Passung zum Stilprofil dieser Welt."""
+                        department: products.Department = "mode", trusted_only: bool = False,
+                        gender: Literal["auto", "damen", "herren", "alle"] = "auto"):
+    """Produkte einer Welt im Budget, sortiert nach Passung zum Stilprofil dieser Welt.
+    gender: "auto" = wie deine Pins (pinnst du Damenmode, keine Herrenteile)."""
     pins_list = storage.load_pins()["pins"]
     profile = matching.build_style_profile(pins_list, department)
     source = products.get_product_source()
@@ -458,6 +460,8 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
                                          department, currency=here.currency, country=here.code)
     if trusted_only:
         selection = [p for p in selection if p.trusted]
+    wanted = for_whom(gender, pins_list)
+    selection = [p for p in selection if not (wanted and p.gender and p.gender != wanted)]
     ranked = shops.apply_bonus(matching.rank_products(selection, profile))
     # Bilder: "sieht aus wie deine Pins" (nur wenn Vektoren berechnet wurden)
     ranked = vision.apply_visual(ranked, pins_list, department,
@@ -472,7 +476,15 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
         "products": local(shops.mix(feedback.apply_feedback(ranked, all_products,
                                                              feedback.load_feedback()))),
         "currency": here.currency,
+        "gender": wanted,
     }
+
+
+def for_whom(choice: str, pins_list: list[dict]) -> str | None:
+    """Damen/Herren: bewusste Wahl im Shop – sonst aus den Pins erkannt (None = alles)."""
+    if choice in ("damen", "herren"):
+        return choice
+    return matching.pins_gender(pins_list) if choice == "auto" else None
 
 
 @app.get("/api/looks")
@@ -483,8 +495,11 @@ def get_looks():
     available = products.filter_products(products.get_product_source().load(),
                                          department="mode", country=here.code)
     disliked = feedback.ids_with_vote(feedback.load_feedback(), "dislike")
-    found = looks.shop_the_look(storage.load_pins()["pins"],
-                                [p for p in available if p.id not in disliked],
+    pins_list = storage.load_pins()["pins"]
+    wanted = for_whom("auto", pins_list)
+    found = looks.shop_the_look(pins_list,
+                                [p for p in available if p.id not in disliked
+                                 and not (wanted and p.gender and p.gender != wanted)],
                                 vision.EmbeddingStore.load_existing())
     for look in found:
         local(look["items"])

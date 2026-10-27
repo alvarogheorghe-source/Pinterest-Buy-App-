@@ -204,6 +204,34 @@ def find_terms(text: str, patterns: dict[str, re.Pattern]) -> set[str]:
     return {term for term, pattern in patterns.items() if pattern.search(text)}
 
 
+# --- Für wen? Damen / Herren ------------------------------------------------------------------
+# Wörter in Produktnamen, Shop-Kategorien und Pins (DE, EN und häufige Feed-Sprachen)
+_WOMEN = re.compile(r"\b(damen\w*|women'?s?|woman|ladies|lady|female|frauen\w*|wmns|"
+                    r"damsk\w*|dames|femme|donna|mujer)\b", re.I)
+_MEN = re.compile(r"\b(herren\w*|men'?s?|man|male|männer\w*|mesk\w*|męsk\w*|heren|homme|"
+                  r"uomo|hombre)\b", re.I)
+
+
+def gender_of(*texts: str) -> str | None:
+    """Erster eindeutiger Text entscheidet: "damen", "herren" oder None (unisex / unklar)."""
+    for text in texts:
+        women, men = bool(_WOMEN.search(text or "")), bool(_MEN.search(text or ""))
+        if women != men:
+            return "damen" if women else "herren"
+    return None
+
+
+def pins_gender(pins: list[dict]) -> str | None:
+    """Pinnst du klar Damen- oder Herrenmode? (deutlich mehr Pins einer Seite) – sonst None."""
+    counts = Counter(gender_of(pin_text(pin)) for pin in pins)
+    women, men = counts["damen"], counts["herren"]
+    if women >= 2 * max(men, 1) or (women and not men):
+        return "damen"
+    if men >= 2 * max(women, 1) or (men and not women):
+        return "herren"
+    return None
+
+
 def pin_text(pin: dict) -> str:
     """Alle Texte eines Pins: Titel, Beschreibung, Alt-Text und Name des Boards."""
     parts = ["title", "description", "alt_text", "board_name"]

@@ -9,6 +9,8 @@ const banner = document.getElementById("profile-banner");
 const categorySelect = document.getElementById("category-select");
 const categoryFilter = document.getElementById("category-filter");
 const sortSelect = document.getElementById("sort-select");
+const genderSelect = document.getElementById("gender-select");
+const genderFilter = document.getElementById("gender-filter");
 const budgetChips = document.getElementById("budget-chips");
 const pinItemsCount = document.getElementById("pin-items-count");
 const tabButtons = document.querySelectorAll(".tab");
@@ -18,7 +20,13 @@ const DEPARTMENT_NAMES = { mode: "Mode", wohnen: "Wohnen & Deko" };
 
 // Aktueller Zustand. Welt und Tab stehen auch in der Adresse, z.B. "#wohnen/pins",
 // damit Links und der Zurück-Button funktionieren.
-const filters = { department: "mode", tab: "products", maxPrice: "", category: "", sort: "match" };
+const filters = { department: "mode", tab: "products", maxPrice: "", category: "", sort: "match",
+  gender: readGender() };
+
+// Damen/Herren: bewusste Wahl merken (nur in diesem Browser)
+function readGender() {
+  try { return localStorage.getItem("malipin-gender") || "auto"; } catch { return "auto"; }
+}
 
 // "#wohnen/pins" -> { department: "wohnen", tab: "pins" }
 function readHash() {
@@ -52,6 +60,8 @@ async function load() {
   if (filters.maxPrice) common.set("max_price", filters.maxPrice);
   const productParams = new URLSearchParams(common);
   if (filters.category) productParams.set("category", filters.category);
+  if (filters.department === "mode") productParams.set("gender", filters.gender);
+  genderFilter.hidden = filters.department !== "mode";
 
   // Beide Abfragen gleichzeitig starten und auf beide warten
   const [recResponse, pinResponse] = await Promise.all([
@@ -582,6 +592,13 @@ budgetChips.addEventListener("click", (event) => {
 
 categorySelect.addEventListener("change", () => {
   filters.category = categorySelect.value;
+  load();
+});
+
+genderSelect.value = filters.gender;
+genderSelect.addEventListener("change", () => {
+  filters.gender = genderSelect.value;
+  try { localStorage.setItem("malipin-gender", filters.gender); } catch { /* privat */ }
   load();
 });
 
