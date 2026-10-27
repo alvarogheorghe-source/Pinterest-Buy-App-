@@ -83,6 +83,10 @@ def search(query: str) -> list[dict]:
     return details.get("results", [])
 
 
+# Mode von Etsy passt selten (viele KI-Bilder, Print-on-Demand) – nur Wohnen & Deko
+ALLOWED_DEPARTMENTS = ("wohnen",)
+
+
 def to_product(listing: dict, department: str, query_category: str) -> Product | None:
     """Etsy-Angebot -> Product. None, wenn wichtige Angaben fehlen oder es nicht passt."""
     try:
@@ -141,6 +145,7 @@ class EtsyProductSource(CachedSource):
         """Suche passend zu beliebigen Pins (auch zu einem hochgeladenen Foto).
         keep(query, category) -> False überspringt eine Suche."""
         planned = [(department, query) for department in departments
+                   if department in ALLOWED_DEPARTMENTS
                    for query in build_queries(pins, department, ENGLISH)
                    if not keep or keep(query[0], query[1])]
         # Alle Suchen gleichzeitig – sonst wartet der Shop über eine Minute

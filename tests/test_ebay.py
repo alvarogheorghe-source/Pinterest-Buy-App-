@@ -257,7 +257,7 @@ def test_same_quality_rules_as_feeds():
     assert to_product(item("4", "Damen Jeans Basic", "6.00", condition="Neu"), "mode", "Hosen") is None
 
 
-def test_old_cached_results_are_dropped_when_rules_change(monkeypatch):
+def test_old_cached_results_are_dropped_when_rules_change(fake, monkeypatch):
     from backend import products, storage
 
     class Source(products.CachedSource):

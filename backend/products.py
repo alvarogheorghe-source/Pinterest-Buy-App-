@@ -106,7 +106,7 @@ class JsonProductSource(ProductSource):
 
 # Erhöhen, wenn sich Such- oder Filterregeln ändern -> alte Zwischenergebnisse (eBay, Etsy …)
 # werden verworfen statt bis zu einer Stunde weiter angezeigt
-RULES_VERSION = 2
+RULES_VERSION = 3
 
 
 class CachedSource(ProductSource):

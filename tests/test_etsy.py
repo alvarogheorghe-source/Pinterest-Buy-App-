@@ -140,14 +140,15 @@ def both(fake_etsy, monkeypatch):
     return fake_ebay, fake_etsy
 
 
-def test_ebay_and_etsy_are_mixed(both, client):
+def test_etsy_only_for_home_decor(both, client):
     fake_ebay, fake_etsy = both
     save_pins("beige oversized hoodie")
     fake_ebay.results["beige oversized Pullover"] = [item("1", "Beige Oversized Pullover")]
     fake_etsy.results["beige oversized sweater"] = [listing(2, "Beige oversized sweater")]
     data = client.get("/api/recommendations?department=mode").json()
     assert data["sources"] == ["ebay", "etsy"]
-    assert {p["id"] for p in data["products"][:2]} == {"ebay-1", "etsy-2"}
+    assert [p["id"] for p in data["products"]] == ["ebay-1"]       # Mode: kein Etsy
+    assert not any("sweater" in q for q in getattr(fake_etsy, "queries", []))
 
 
 def test_one_source_down_the_other_still_shows(both, client):
