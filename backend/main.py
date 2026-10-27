@@ -9,7 +9,7 @@ import time
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
@@ -62,8 +62,10 @@ def multi_user() -> bool:
 app.add_middleware(UserMiddleware)
 app.add_middleware(i18n.LanguageMiddleware)   # Sprache pro Anfrage (Cookie "lang" / Browser)
 app.add_middleware(region.RegionMiddleware)   # Land & Währung pro Anfrage (Cookie "country" …)
+# Auf dem Server (PUBLIC_URL=https://…): Sitzungs-Cookie nur über HTTPS
 app.add_middleware(SessionMiddleware, secret_key=session_secret, same_site="lax",
-                   max_age=365 * 24 * 3600)  # Kennung bleibt ein Jahr (sonst Daten "weg")
+                   max_age=365 * 24 * 3600,  # Kennung bleibt ein Jahr (sonst Daten "weg")
+                   https_only=os.getenv("PUBLIC_URL", "").startswith("https://"))
 
 
 # --- Fehlerbehandlung -------------------------------------------------------------
@@ -635,6 +637,25 @@ def start_page():
     if storage.load_tokens():
         return RedirectResponse("/shop.html")
     return FileResponse(FRONTEND_DIR / "index.html")
+
+
+# --- Impressum & Datenschutz (gleiche Seiten wie auf der Vorstellungsseite) ----------------
+
+@app.get("/impressum.html", response_class=HTMLResponse)
+def impressum():
+    from scripts import build_site
+    try:
+        return build_site.impressum_page()
+    except build_site.BuildError as error:          # website/impressum.json fehlt/unvollständig
+        raise HTTPException(503, str(error)) from error
+
+
+@app.get("/datenschutz.html", response_class=HTMLResponse)
+def datenschutz():
+    from scripts import build_site
+    privacy = build_site.markdown_to_html((build_site.ROOT / "PRIVACY.md").read_text("utf-8"))
+    return build_site.subpage("Privacy Policy", privacy, "How Malipin handles your data.",
+                              "/datenschutz.html", lang="en")
 
 
 # Das Frontend (HTML/CSS/JS) wird direkt vom Backend ausgeliefert.

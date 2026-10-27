@@ -96,3 +96,9 @@ def test_pinterest_coming_soon_when_closed(client, monkeypatch):
     assert response.headers["location"] == "/konto.html?bald=1"
     monkeypatch.delenv("PINTEREST_OPEN")
     assert client.get("/api/features").json() == {"pinterest": True}
+
+
+def test_legal_pages_served_by_the_app(client):
+    assert "Impressum" in client.get("/impressum.html").text
+    assert "Privacy Policy" in client.get("/datenschutz.html").text
+    assert 'href="/impressum.html"' in client.get("/").text

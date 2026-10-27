@@ -1,0 +1,9 @@
+[Unit]
+Description=Malipin: jede Nacht um 3:17 Feeds + Bilder
+
+[Timer]
+OnCalendar=*-*-* 03:17
+Persistent=true
+
+[Install]
+WantedBy=timers.target

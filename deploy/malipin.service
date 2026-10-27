@@ -1,0 +1,18 @@
+# Malipin als Dienst: startet beim Hochfahren, nach einem Absturz von selbst neu.
+# Installiert von deploy/setup.sh nach /etc/systemd/system/malipin.service
+[Unit]
+Description=Malipin (FastAPI)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=malipin
+WorkingDirectory=/opt/malipin
+# Nur lokal erreichbar – nach außen spricht Caddy (HTTPS)
+ExecStart=/opt/malipin/.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=always
+RestartSec=3
+# Geheimnisse stehen in /opt/malipin/.env (nur für den Benutzer malipin lesbar)
+
+[Install]
+WantedBy=multi-user.target

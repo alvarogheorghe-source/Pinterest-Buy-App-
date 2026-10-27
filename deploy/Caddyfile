@@ -1,0 +1,10 @@
+# Caddy: holt das HTTPS-Zertifikat (Let's Encrypt) automatisch und erneuert es.
+# Installiert von deploy/setup.sh nach /etc/caddy/Caddyfile
+malipin.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:8000
+}
+
+www.malipin.com {
+	redir https://malipin.com{uri} permanent
+}
