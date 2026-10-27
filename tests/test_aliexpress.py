@@ -70,10 +70,12 @@ def test_only_brandless_items_in_the_shop(fake_ali, client):
     ]
     data = client.get("/api/recommendations?department=mode").json()
     assert data["sources"] == ["aliexpress"]
-    assert [p["id"] for p in data["products"]] == ["aliexpress-1001"]
-    product = data["products"][0]
-    assert product["sponsored"] is True and product["shop"] == "AliExpress"   # Werbung
-    assert all("samba" not in q.lower() for q in fake_ali.queries)            # nie nach Marken suchen
+    assert data["products"] == []                                # AliExpress: keine Mode mehr
+    assert not any("hoodie" in q.lower() for q in fake_ali.queries)
+    from backend.aliexpress import to_product
+    product = to_product(offer("1001", "Beige Oversized Hoodie Unisex"), "mode", "Oberteile")
+    assert product.sponsored is True and product.shop == "AliExpress"         # Werbung
+    assert to_product(offer("1002", "Nike Oversized Hoodie Beige"), "mode", "Oberteile") is None
 
 
 def test_wrong_keys_clear_message(fake_ali, client):

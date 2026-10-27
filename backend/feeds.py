@@ -52,7 +52,7 @@ CONFIG_FILE = BASE_DIR / "feeds.json"
 STORE_FILE = "feed_products.json"           # für alle gleich (storage.GLOBAL_FILES)
 # Erhöhen, wenn sich die Erkennung ändert (Kategorien, Damen/Herren, Filter …) – dann lädt die
 # App die Feeds von selbst neu, statt alte Ergebnisse zu zeigen
-RECOGNITION_VERSION = 4
+RECOGNITION_VERSION = 5
 FEED_MAX_AGE = 24 * 60 * 60                 # Feeds einmal am Tag neu laden
 MAX_PER_FEED = 5000                         # mehr braucht kein Shop-Fenster
 MAX_DOWNLOAD = 300 * 1024 * 1024            # 300 MB – große Feeds sind oft gepackt (.gz)
@@ -403,6 +403,8 @@ def to_product(row: dict, feed: dict) -> Product | None:
     department = CATEGORY_SYNONYMS[category][0]
     if quality.rejected(name, category_text, department, price, currency, category):
         return None
+    if department == "mode" and re.search(r"aliexpress", f"{feed.get('label', '')} {feed['name']}", re.I):
+        return None                          # AliExpress nur für Wohnen & Deko (aliexpress.py)
 
     text = f"{name} {_pick(row, fields['color'])} {_pick(row, fields['description'])[:300]}"
     shop = _pick(row, fields["shop"]) or feed.get("label") or feed["name"]

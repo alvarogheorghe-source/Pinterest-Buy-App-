@@ -17,7 +17,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from backend import (analysis, currency, feedback, i18n, looks, matching, photo, pins, pinterest,
-                     products, region,
+                     product_checks, products, region,
                      shop_links, shops, similar, storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
@@ -460,7 +460,11 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
                                          department, currency=here.currency, country=here.code)
     if trusted_only:
         selection = [p for p in selection if p.trusted]
-    wanted = for_whom(gender, pins_list)
+    # Bild-Prüfung (product_checks.py): KI-Bilder raus, Damen/Herren auch aus dem Bild
+    selection = [p if p.gender or not product_checks.image_gender(p.id)
+                 else p.model_copy(update={"gender": product_checks.image_gender(p.id)})
+                 for p in selection if not product_checks.is_ai(p.id)]
+    wanted = for_whom(gender, pins_list) if department == "mode" else None
     selection = [p for p in selection if not (wanted and p.gender and p.gender != wanted)]
     ranked = shops.apply_bonus(matching.rank_products(selection, profile))
     if wanted:   # sicher Damen- bzw. Herrenteile vor denen ohne Angabe
@@ -471,7 +475,7 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     ranked = vision.apply_visual(ranked, pins_list, department,
                                  vision.EmbeddingStore.load_existing())
     # Nur, was wirklich zu den Pins passt – Rest gar nicht zeigen
-    fitting = [r for r in ranked if fits_pins(r)] if has_taste(profile) else ranked
+    fitting = [r for r in ranked if fits_pins(r, profile, wanted)] if has_taste(profile) else ranked
     unfitting, ranked = len(ranked) - len(fitting), fitting
     return {
         "profile": profile.to_dict(),
@@ -493,11 +497,21 @@ def has_taste(profile: matching.StyleProfile) -> bool:
     return bool(profile.categories or profile.colors or profile.styles)
 
 
-def fits_pins(item: dict) -> bool:
-    """Passt: sieht aus wie die Pins, ODER die Art von Teil kommt in den Pins vor, ODER
-    mindestens zwei Merkmale (z.B. Farbe + Stil) – eine einzelne Farbe reicht nicht."""
+def fits_pins(item: dict, profile: matching.StyleProfile, wanted: str | None = None) -> bool:
+    """Streng – lieber weniger, dafür wirklich Passendes:
+    - sieht aus wie die Pins (Bilderkennung) -> passt
+    - sonst: unklar für wen (Damen/Herren), obwohl die Pins es zeigen -> nein
+    - die Art von Teil muss in den Pins vorkommen UND mind. ein weiteres Merkmal passen
+      (Farbe, Stil, Schnitt, Marke); erkennt man in den Pins keine Teile: zwei Merkmale"""
+    if item.get("looks_like_pins"):
+        return True
+    if wanted and not item.get("gender"):
+        return False
     matched = item.get("matched") or []
-    return bool(item.get("looks_like_pins") or item["category"] in matched or len(matched) >= 2)
+    features = [m for m in matched if m != item["category"]]
+    if profile.categories:
+        return item["category"] in matched and len(features) >= 1
+    return len(features) >= 2
 
 
 GENDER_BONUS = 0.3   # wie ein Begriff in knapp jedem dritten Pin

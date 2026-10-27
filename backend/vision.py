@@ -427,6 +427,13 @@ def main() -> None:
     store = EmbeddingStore(embedder.name)
     tagged = image_tags.tag_pins(embedder, store)
     print(f"Bild-Begriffe für {tagged} Pins erkannt – ansehen mit:  python -m backend.image_tags")
+    # Produkte prüfen: KI-Bilder raus, Damen/Herren aus dem Bild (product_checks.py)
+    from backend import product_checks
+    from backend.products import get_product_source
+    checks = product_checks.run(embedder, store, get_product_source().load())
+    flagged = sum(1 for c in checks.values() if c["ai"] >= product_checks.AI_MIN)
+    print(f"{len(checks)} Produktbilder geprüft, {flagged} sehen nach KI aus – ansehen mit:  "
+          "python -m backend.product_checks")
     # Viele Pins? -> Stil-Schwerpunkte, damit der Shop schnell bleibt
     build_clusters(store, storage.load_pins()["pins"])
     store.save()

@@ -52,7 +52,8 @@ def test_shop_shows_women_or_men_like_the_pins(client, monkeypatch):
 
     def item(n, gender):
         return Product(id=f"f-{n}", name=f"Jeans {n}", shop="S", price=40, category="Hosen",
-                       image_url="https://i/x.jpg", affiliate_url="https://a/x", gender=gender)
+                       colors=["blau"], image_url="https://i/x.jpg", affiliate_url="https://a/x",
+                       gender=gender)
 
     class Source:
         def load(self):
@@ -63,10 +64,10 @@ def test_shop_shows_women_or_men_like_the_pins(client, monkeypatch):
 
     monkeypatch.setattr(products, "get_product_source", lambda: Source())
     storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [
-        {"id": "1", "title": "Damen Jeans Outfit"}]})
+        {"id": "1", "title": "Damen blaue Jeans Outfit"}]})
     ids = lambda q="": sorted(p["id"] for p in client.get(f"/api/recommendations?{q}").json()["products"])
-    assert ids() == ["f-1", "f-3"]                        # Pins: Damen -> keine Herrenteile
-    assert ids("gender=herren") == ["f-2", "f-3"]
+    assert ids() == ["f-1"]                    # Pins: Damen -> keine Herrenteile, keine unklaren
+    assert ids("gender=herren") == ["f-2"]
     assert ids("gender=alle") == ["f-1", "f-2", "f-3"]
 
 
@@ -125,5 +126,43 @@ def test_only_items_that_fit_the_pins_are_shown(client, monkeypatch):
     storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [
         {"id": "1", "title": "beige oversized hoodie outfit"}]})
     data = client.get("/api/recommendations?gender=alle").json()
-    assert sorted(p["id"] for p in data["products"]) == ["f-1", "f-4"]
-    assert data["unfitting"] == 2
+    # f-4: Farbe + Stil, aber Jacken kommen in den Pins nicht vor -> streng: nein
+    assert sorted(p["id"] for p in data["products"]) == ["f-1"]
+    assert data["unfitting"] == 3
+
+
+def test_image_check_removes_ai_pictures_and_fills_in_gender(client, monkeypatch):
+    from backend import product_checks, products, storage
+    from backend.products import Product
+
+    def item(n):
+        return Product(id=f"c-{n}", name=f"Blaue Jeans {n}", shop="S", price=40, category="Hosen",
+                       colors=["blau"], image_url="https://i/x.jpg", affiliate_url="https://a/x")
+
+    class Source:
+        def load(self):
+            return [item(1), item(2), item(3)]
+
+        def warnings(self):
+            return []
+
+    monkeypatch.setattr(products, "get_product_source", lambda: Source())
+    storage.write_json(product_checks.CHECKS_FILE, {
+        "c-1": {"ai": 0.95, "gender": "herren"},          # KI-Bild -> raus
+        "c-2": {"ai": 0.10, "gender": "herren"},          # echt, Herren laut Bild
+        "c-3": {"ai": 0.10, "gender": "damen"}})
+    storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [
+        {"id": "1", "title": "Herren blaue Jeans Outfit"}]})
+    data = client.get("/api/recommendations").json()
+    assert [p["id"] for p in data["products"]] == ["c-2"]
+    assert data["products"][0]["gender"] == "herren"
+
+
+def test_check_math():
+    from backend import product_checks
+    photo = {"real": [1.0, 0.0], "ai": [0.0, 1.0]}
+    gender = {"herren": [1.0, 0.0], "damen": [0.0, 1.0]}
+    result = product_checks.check([0.0, 1.0], photo, gender)
+    assert result["ai"] > 0.99 and result["gender"] == "damen"
+    unclear = product_checks.check([0.7071, 0.7071], photo, gender)
+    assert unclear["gender"] is None and abs(unclear["ai"] - 0.5) < 0.01

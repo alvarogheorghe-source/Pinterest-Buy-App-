@@ -30,7 +30,7 @@ LOCAL_USER = "local"
 # Für alle gemeinsam (keine persönlichen Daten)
 # Für alle gleich: Bild-Vektoren, geprüfte Shops, importierte Produkt-Feeds (feeds.py)
 GLOBAL_FILES = {"embeddings.json", "trusted_shops.json", "feed_products.json",
-                "exchange_rates.json"}
+                "exchange_rates.json", "product_checks.json"}
 
 # Frühere Einzel-Dateien, die beim ersten Start in die Datenbank (Person "local") wandern
 LEGACY_FILES = ["tokens.json", "selected_boards.json", "pins.json", "feedback.json",

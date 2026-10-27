@@ -86,6 +86,10 @@ def search(query: str) -> list[dict]:
         return []
 
 
+# Mode von AliExpress passt fast nie (Qualität, Schnitt, Fotos) – nur Wohnen & Deko
+ALLOWED_DEPARTMENTS = ("wohnen",)
+
+
 def to_product(item: dict, department: str, query_category: str) -> Product | None:
     """AliExpress-Angebot -> Product. None, wenn Angaben fehlen – oder es nach Fake aussieht."""
     title = str(item.get("product_title") or "")
@@ -145,7 +149,7 @@ class AliExpressProductSource(CachedSource):
 
     def fetch_for(self, pins: list[dict], departments, keep=None) -> list[Product]:
         products, seen = [], set()
-        for department in departments:
+        for department in [d for d in departments if d in ALLOWED_DEPARTMENTS]:
             for planned in build_queries(pins, department, ENGLISH):
                 query, category = planned
                 if not no_brand_searches(query, category) or (keep and not keep(query, category)):

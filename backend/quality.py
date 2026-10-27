@@ -71,11 +71,16 @@ def low_quality(name: str, price: float, currency_code: str, category: str) -> b
     return euro is not None and euro < MIN_PRICE_EUR.get(category, 0)
 
 
+# KI-Bilder/-Kunst zerstören den Vibe (oft bei Etsy) – erkennbar schon am Titel
+AI_WORDS = re.compile(r"\b(ai[- ]?(generated|art|image|design)|midjourney|stable diffusion|"
+                      r"dall-?e|ki[- ]?(generiert|kunst|bild))\b", re.I)
+
+
 def rejected(name: str, category_text: str, department: str, price: float, currency_code: str,
              category: str, min_price: bool = True) -> bool:
     """True = nicht zeigen. min_price=False für Second-Hand (gebraucht darf günstig sein)."""
     text = f"{category_text} {name}"
-    if JUNK.search(text):
+    if JUNK.search(text) or AI_WORDS.search(text):
         return True
     if department == "mode" and (NOT_SHOWN.search(text) or KIDS.search(text)):
         return True
