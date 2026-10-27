@@ -66,8 +66,9 @@ def test_shop_shows_women_or_men_like_the_pins(client, monkeypatch):
     storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [
         {"id": "1", "title": "Damen blaue Jeans Outfit"}]})
     ids = lambda q="": sorted(p["id"] for p in client.get(f"/api/recommendations?{q}").json()["products"])
-    assert ids() == ["f-1"]                    # Pins: Damen -> keine Herrenteile, keine unklaren
-    assert ids("gender=herren") == ["f-2"]
+    assert ids() == ["f-1", "f-3"]             # Pins: Damen -> keine Herrenteile (f-3: unklar,
+                                               # aber ohne Bildprüfung nicht bestraft)
+    assert ids("gender=herren") == ["f-2", "f-3"]
     assert ids("gender=alle") == ["f-1", "f-2", "f-3"]
 
 
@@ -125,10 +126,17 @@ def test_only_items_that_fit_the_pins_are_shown(client, monkeypatch):
     monkeypatch.setattr(products, "get_product_source", lambda: Source())
     storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [
         {"id": "1", "title": "beige oversized hoodie outfit"}]})
+    from backend import main
+    monkeypatch.setattr(main, "MIN_SHOWN", 0)
     data = client.get("/api/recommendations?gender=alle").json()
     # f-4: Farbe + Stil, aber Jacken kommen in den Pins nicht vor -> streng: nein
     assert sorted(p["id"] for p in data["products"]) == ["f-1"]
     assert data["unfitting"] == 3
+    # Zu wenig sehr Passendes -> "nah dran" (f-4) wird aufgefüllt, Unpassendes nie
+    monkeypatch.setattr(main, "MIN_SHOWN", 12)
+    data = client.get("/api/recommendations?gender=alle").json()
+    assert [p["id"] for p in data["products"]][0] == "f-1"
+    assert sorted(p["id"] for p in data["products"]) == ["f-1", "f-4"]
 
 
 def test_image_check_removes_ai_pictures_and_fills_in_gender(client, monkeypatch):
