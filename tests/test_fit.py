@@ -68,3 +68,22 @@ def test_shop_shows_women_or_men_like_the_pins(client, monkeypatch):
     assert ids() == ["f-1", "f-3"]                        # Pins: Damen -> keine Herrenteile
     assert ids("gender=herren") == ["f-2", "f-3"]
     assert ids("gender=alle") == ["f-1", "f-2", "f-3"]
+
+
+def test_car_parts_and_fake_discounts_are_not_shown():
+    assert feeds.to_product(row(6, "Plastic Fuel Line Connector Joint 70x30mm Hose Adapter"), FEED) is None
+    assert feeds.to_product(row(7, "594061 Durable Fit For Briggs & Stratton Replacement Cap"), FEED) is None
+    assert feeds.to_product(row(8, "Exotic Strappy Lace Bodysuit - Sexy Teddy Nightwear Lingerie"), FEED) is None
+    assert feeds.to_product(row(9, "Damen Gartenschlauch? nein: Weite Hose Leinen", "Damen > Hosen"), FEED)
+    from backend.products import sale_price
+    assert sale_price(10, 20) == 20          # −50 %: echt
+    assert sale_price(7.42, 67.49) is None   # −89 %: erfundener Originalpreis
+
+
+def test_old_imports_are_redone_automatically(fake, monkeypatch):
+    from backend import storage
+    storage.write_json(feeds.STORE_FILE, {"fetched_at": 9e12, "version": 1, "feeds": {}})
+    calls = []
+    monkeypatch.setattr(feeds, "refresh_in_background", lambda: calls.append(1))
+    feeds.FeedProductSource().load()
+    assert calls

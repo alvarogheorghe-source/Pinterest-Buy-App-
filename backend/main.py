@@ -463,6 +463,10 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     wanted = for_whom(gender, pins_list)
     selection = [p for p in selection if not (wanted and p.gender and p.gender != wanted)]
     ranked = shops.apply_bonus(matching.rank_products(selection, profile))
+    if wanted:   # sicher Damen- bzw. Herrenteile vor denen ohne Angabe
+        for r in ranked:
+            r["score"] = round(r["score"] + GENDER_BONUS * (r.get("gender") == wanted), 3)
+        ranked.sort(key=lambda r: (-r["score"], r["price"]))
     # Bilder: "sieht aus wie deine Pins" (nur wenn Vektoren berechnet wurden)
     ranked = vision.apply_visual(ranked, pins_list, department,
                                  vision.EmbeddingStore.load_existing())
@@ -478,6 +482,9 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
         "currency": here.currency,
         "gender": wanted,
     }
+
+
+GENDER_BONUS = 0.3   # wie ein Begriff in knapp jedem dritten Pin
 
 
 def for_whom(choice: str, pins_list: list[dict]) -> str | None:

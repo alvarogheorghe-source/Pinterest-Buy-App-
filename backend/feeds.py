@@ -49,6 +49,9 @@ logger = logging.getLogger(__name__)
 
 CONFIG_FILE = BASE_DIR / "feeds.json"
 STORE_FILE = "feed_products.json"           # für alle gleich (storage.GLOBAL_FILES)
+# Erhöhen, wenn sich die Erkennung ändert (Kategorien, Damen/Herren, Filter …) – dann lädt die
+# App die Feeds von selbst neu, statt alte Ergebnisse zu zeigen
+RECOGNITION_VERSION = 3
 FEED_MAX_AGE = 24 * 60 * 60                 # Feeds einmal am Tag neu laden
 MAX_PER_FEED = 5000                         # mehr braucht kein Shop-Fenster
 MAX_DOWNLOAD = 300 * 1024 * 1024            # 300 MB – große Feeds sind oft gepackt (.gz)
@@ -376,7 +379,17 @@ NOT_SHOWN = re.compile(
     r"tanga|string-?tanga|unterhose\w*|unterwäsche|underwear|lingerie|dessous|bhs?|bras?|"
     r"bralettes?|socken|socks?|strümpfe|strumpfhose\w*|tights|pyjamas?|schlafanzug\w*|"
     r"bademode|bikini\w*|badeanzug\w*|swimsuit\w*|swimwear|badehose\w*|bielizna|majtki|"
-    r"skarpet\w*|jazz-pants|hipster|ondergoed|sokken)\b", re.I)
+    r"skarpet\w*|jazz-pants|hipster|ondergoed|sokken|nightwear|sleepwear|nachtwäsche|teddy|"
+    r"sexy|erotic\w*|cosplay|costumes?|kostüm\w*|kostium\w*)\b", re.I)
+# Kein Mode/Wohnen, auch wenn ein Wort danach klingt: auf Englisch ist "hose" ein Schlauch,
+# "cap" ein Deckel – große Marktplätze (AliExpress) haben auch Autoteile, Technik, Werkzeug
+JUNK = re.compile(
+    r"\b(automo\w*|autoteil\w*|car|cars|motor\w*|vehicles?|engines?|fuel|carbur\w*|gaskets?|"
+    r"spare parts?|replacement|connectors?|adapters?|fittings?|valves?|bolts?|screws?|"
+    r"bearings?|pumps?|hydraul\w*|pneumat\w*|scuba|diving|regulators?|fishing|hardware|"
+    r"electronic\w*|computer\w*|smartphones?|phone|phones|charger\w*|toys?|spielzeug\w*|"
+    r"samochod\w*|motoryzac\w*|narzędz\w*|elektroni\w*|telefon\w*|wędkar\w*|zabawk\w*|"
+    r"briggs|yamaha|honda|bmw|audi|volkswagen|vw|toyota|ford)\b", re.I)
 KIDS = re.compile(r"\b(kinder\w*|kids?|baby|babys|children'?s?|girls?|boys?|mädchen|jungen|"
                   r"junior|toddler|dziec\w*|niemowl\w*)\b", re.I)
 
@@ -409,6 +422,8 @@ def to_product(row: dict, feed: dict) -> Product | None:
     if not category:
         return None                          # weder Mode noch Wohnen erkennbar -> weglassen
     department = CATEGORY_SYNONYMS[category][0]
+    if JUNK.search(f"{category_text} {name}"):
+        return None
     if department == "mode" and (NOT_SHOWN.search(f"{category_text} {name}")
                                  or KIDS.search(f"{category_text} {name}")):
         return None
@@ -469,7 +484,7 @@ def import_all(feeds: list[dict] | None = None) -> dict:
             feeds = load_config() + [{"name": name, "label": info.get("label", name), "url": ""}
                                      for name, info in (old.get("feeds") or {}).items()
                                      if name.startswith("awin-")]
-    result = {"fetched_at": time.time(), "feeds": {}}
+    result = {"fetched_at": time.time(), "version": RECOGNITION_VERSION, "feeds": {}}
     for feed in feeds:
         try:
             if not feed.get("url"):
@@ -535,7 +550,8 @@ class FeedProductSource(ProductSource):
                 data = import_all()
             except FeedError as err:
                 raise ProductSourceError(f"Produkt-Feeds: {err}") from err
-        elif data.get("fetched_at", 0) < time.time() - FEED_MAX_AGE:
+        elif (data.get("fetched_at", 0) < time.time() - FEED_MAX_AGE
+              or data.get("version") != RECOGNITION_VERSION):
             refresh_in_background()
         products = stored_products()
         if not products and any(f.get("error") for f in (data.get("feeds") or {}).values()):

@@ -232,13 +232,16 @@ def source_names() -> list[str]:
 
 
 def sale_price(price: float, original) -> float | None:
-    """Originalpreis nur, wenn er wirklich höher ist (mind. 5 % Rabatt) – sonst None.
-    Kleine "Rabatte" sind oft nur Rundung und wirken unseriös."""
+    """Originalpreis nur bei einem echten Rabatt (5 bis 70 %) – sonst None.
+    Kleine "Rabatte" sind oft nur Rundung, riesige (−90 %) erfundene "Originalpreise"."""
     try:
         original = float(original)
     except (TypeError, ValueError):
         return None
-    return round(original, 2) if original >= price * 1.05 else None
+    return round(original, 2) if price * 1.05 <= original <= price / (1 - MAX_DISCOUNT) else None
+
+
+MAX_DISCOUNT = 0.7
 
 
 def filter_products(products: list[Product], min_price: float | None = None,
