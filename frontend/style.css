@@ -1648,3 +1648,10 @@ section + section {
   gap: 10px;
   margin-top: 18px;
 }
+
+/* "Pinterest – bald verfügbar" (nav.js): sichtbar, aber nicht klickbar */
+.button.soon, a.soon {
+  opacity: 0.55;
+  cursor: default;
+  pointer-events: none;
+}

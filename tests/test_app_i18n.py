@@ -87,3 +87,12 @@ def test_german_sentences_in_scripts_are_in_the_dictionary(script):
     literals = {" ".join(m.split()) for m in re.findall(r'"((?:[^"\\\n]|\\.)*)"', source)}
     german = {s for s in literals if GERMAN.search(s) and not s.startswith(("/", "."))}
     assert sorted(s for s in german if s not in DICT and s not in SAME) == []
+
+
+def test_pinterest_coming_soon_when_closed(client, monkeypatch):
+    monkeypatch.setenv("PINTEREST_OPEN", "0")
+    assert client.get("/api/features").json() == {"pinterest": False}
+    response = client.get("/auth/login", follow_redirects=False)
+    assert response.headers["location"] == "/konto.html?bald=1"
+    monkeypatch.delenv("PINTEREST_OPEN")
+    assert client.get("/api/features").json() == {"pinterest": True}

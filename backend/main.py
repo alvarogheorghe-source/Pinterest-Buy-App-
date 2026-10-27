@@ -136,9 +136,24 @@ def health():
 
 # --- Login mit Pinterest (OAuth) -------------------------------------------------------
 
+def pinterest_open(request: Request) -> bool:
+    """Darf diese Person Pinterest verbinden? Solange Pinterest uns nur "Trial"-Zugang gibt,
+    klappt der Login nur für eingetragene Testkonten -> öffentlich "Bald verfügbar"
+    (PINTEREST_OPEN=0 in .env). Als Admin angemeldet geht es trotzdem (zum Testen)."""
+    return os.getenv("PINTEREST_OPEN", "1").strip() != "0" or bool(request.session.get("admin"))
+
+
+@app.get("/api/features")
+def features(request: Request):
+    """Was ist für diese Person freigeschaltet? (Frontend: nav.js)"""
+    return {"pinterest": pinterest_open(request)}
+
+
 @app.get("/auth/login")
 def login(request: Request):
     """Schickt den Nutzer zum Einloggen zu Pinterest."""
+    if not pinterest_open(request):
+        return RedirectResponse("/konto.html?bald=1")
     state = secrets.token_urlsafe(16)
     request.session["oauth_state"] = state
     return RedirectResponse(pinterest.build_login_url(state))
