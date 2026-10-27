@@ -123,6 +123,10 @@ def configured() -> bool:
 # Awin listet alle Produkt-Feeds der Shops, bei denen du angenommen bist (CSV). Daraus werden
 # Feeds wie in feeds.json – mit dem Shopnamen als Anzeige. Ausschalten: AWIN_AUTO_FEEDS=0
 AWIN_LIST_URL = "https://productdata.awin.com/datafeed/list/apikey/{key}"
+# Wohin Shops mit diesem Hauptland üblicherweise auch liefern
+NEIGHBOURS = {"DE": ["DE", "AT", "CH"], "AT": ["AT", "DE", "CH"], "CH": ["CH", "DE", "AT"],
+              "GB": ["GB", "IE"], "IE": ["IE", "GB"], "US": ["US", "CA"], "CA": ["CA", "US"],
+              "AU": ["AU"]}
 _AWIN_COLUMNS = {   # mögliche Spaltennamen der Liste (Groß/klein egal)
     "url": ["url", "feed url", "download url"],
     "feed_id": ["feed id", "feed_id", "fid"],
@@ -156,7 +160,9 @@ def discover_awin() -> list[dict]:
         region = _column(row, "region").upper()
         found.append({
             "name": f"awin-{feed_id}", "label": _column(row, "name") or "Awin", "preset": "awin",
-            "url": url, "countries": [region] if re.fullmatch(r"[A-Z]{2}", region) else [],
+            # Awins "Hauptland" ist keine Lieferbeschränkung: deutsche Shops liefern meist auch
+            # nach Österreich/Schweiz, britische nach Irland. Deshalb die ganze Nachbarschaft.
+            "url": url, "countries": NEIGHBOURS.get(region, [region] if re.fullmatch(r"[A-Z]{2}", region) else []),
             "currencies": [],                         # jede Währung – wird umgerechnet
         })
     return found

@@ -46,7 +46,7 @@ def awin_list(fake, monkeypatch, tmp_path):
 def test_only_joined_shops_become_feeds(awin_list):
     found = feeds.discover_awin()
     assert [(f["name"], f["label"], f["countries"]) for f in found] == [
-        ("awin-501", "Denim Store", ["DE"]), ("awin-503", "UK Shop", ["GB"])]
+        ("awin-501", "Denim Store", ["DE", "AT", "CH"]), ("awin-503", "UK Shop", ["GB", "IE"])]
     assert feeds.configured()
 
 
@@ -54,7 +54,7 @@ def test_auto_feeds_are_imported_any_currency_and_key_never_stored(awin_list):
     result = feeds.import_all()
     assert result["feeds"]["awin-501"]["kept"] == 3          # auch die Dollar-Zeile (wird umgerechnet)
     uk = result["feeds"]["awin-503"]["products"]
-    assert uk and uk[0]["currency"] == "GBP" and uk[0]["countries"] == ["GB"]
+    assert uk and uk[0]["currency"] == "GBP" and uk[0]["countries"] == ["GB", "IE"]
     assert "geheim-123" not in (storage.DATA_DIR / feeds.STORE_FILE).read_text()
     assert {f["name"] for f in feeds.known_feeds()} == {"awin-501", "awin-503"}
 
