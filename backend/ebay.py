@@ -25,10 +25,10 @@ import time
 
 import httpx
 
-from backend import region, search_cache, storage
+from backend import quality, region, search_cache, storage
 from backend.i18n import tr
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
-                              STYLE_PATTERNS, find_terms)
+                              STYLE_PATTERNS, find_terms, gender_of)
 from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError, sale_price
 from backend.search_queries import ENGLISH, GERMAN, build_queries, search_with_fallback
 
@@ -166,7 +166,11 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
     categories = [c for c in find_terms(title, CATEGORY_PATTERNS)
                   if CATEGORY_SYNONYMS[c][0] == department]
     condition = item.get("condition", "")
-    second_hand = condition and not condition.lower().startswith(("neu", "new"))
+    second_hand = bool(condition) and not condition.lower().startswith(("neu", "new"))
+    category = categories[0] if categories else query_category
+    # Gemeinsame Regeln (quality.py) – gebraucht darf günstig sein
+    if quality.rejected(title, "", department, price, currency, category, min_price=not second_hand):
+        return None
     return Product(
         id="ebay-" + re.sub(r"[^A-Za-z0-9]", "-", item["itemId"]),
         name=title[:90],
@@ -178,7 +182,8 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
                                           .get("originalPrice") or {}).get("value")),
         currency=currency,
         department=department,
-        category=categories[0] if categories else query_category,
+        category=category,
+        gender=gender_of(title) if department == "mode" else None,
         colors=sorted(find_terms(title, COLOR_PATTERNS)),
         style_tags=sorted(find_terms(title, STYLE_PATTERNS)),
         image_url=large_image(image),

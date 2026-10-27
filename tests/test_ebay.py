@@ -246,3 +246,12 @@ def test_support_report_never_contains_the_secret(fake_ebay, monkeypatch):
     assert "invalid_client" in report and "HTTP 401" in report
     assert "supersecret" not in report and "PRD-supersecret" not in report
     assert "id" in report.split("App ID (Client ID):")[1].splitlines()[0]
+
+
+def test_same_quality_rules_as_feeds():
+    from backend.ebay import to_product
+    assert to_product(item("1", "Herren Boxershorts 3er Pack"), "mode", "Hosen") is None
+    assert to_product(item("2", "Kraftstoffschlauch Motor Ersatzteil", "15"), "mode", "Hosen") is None
+    vintage = to_product(item("3", "Vintage Levis Jeans Herren", "9.50"), "mode", "Hosen")
+    assert vintage and vintage.gender == "herren"                # gebraucht darf günstig sein
+    assert to_product(item("4", "Damen Jeans Basic", "6.00", condition="Neu"), "mode", "Hosen") is None

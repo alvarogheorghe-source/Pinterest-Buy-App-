@@ -19,11 +19,11 @@ import re
 
 import httpx
 
-from backend import storage
+from backend import quality, storage
 from backend.currency import rates
 from backend.i18n import tr
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
-                              STYLE_PATTERNS, find_terms)
+                              STYLE_PATTERNS, find_terms, gender_of)
 from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError
 from backend.search_queries import ENGLISH, build_queries, search_with_fallback
 
@@ -104,6 +104,9 @@ def to_product(listing: dict, department: str, query_category: str) -> Product |
                   if CATEGORY_SYNONYMS[c][0] == department]
     when_made = str(listing.get("when_made", ""))
     vintage = when_made.startswith(("19", "before_"))  # Etsy: Vintage = mind. 20 Jahre alt
+    category = categories[0] if categories else query_category
+    if quality.rejected(title, "", department, amount, currency, category, min_price=not vintage):
+        return None
     shop_name = (listing.get("shop") or {}).get("shop_name")
     # "Etsy · Vintage" oder "Etsy · <Name des Etsy-Shops>"
     shop = "Etsy · Vintage" if vintage else (f"Etsy · {shop_name}" if shop_name else "Etsy")
@@ -115,7 +118,8 @@ def to_product(listing: dict, department: str, query_category: str) -> Product |
         price=round(amount, 2),
         currency=currency,
         department=department,
-        category=categories[0] if categories else query_category,
+        category=category,
+        gender=gender_of(title) if department == "mode" else None,
         colors=sorted(find_terms(title, COLOR_PATTERNS)),
         style_tags=sorted(find_terms(title, STYLE_PATTERNS) | ({"vintage"} if vintage else set())),
         image_url=image,

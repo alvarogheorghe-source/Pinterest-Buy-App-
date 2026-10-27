@@ -24,11 +24,11 @@ import time
 
 import httpx
 
-from backend import region, shops, storage
+from backend import quality, region, shops, storage
 from backend.i18n import tr
 from backend.counterfeit import looks_like_fake, mentions_brand
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
-                              STYLE_PATTERNS, find_terms)
+                              STYLE_PATTERNS, find_terms, gender_of)
 from backend.products import DEPARTMENTS, CachedSource, Product, ProductSourceError, sale_price
 from backend.search_queries import ENGLISH, build_queries, search_with_fallback
 
@@ -107,6 +107,9 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
 
     categories = [c for c in find_terms(title, CATEGORY_PATTERNS)
                   if CATEGORY_SYNONYMS[c][0] == department]
+    category = categories[0] if categories else query_category
+    if quality.rejected(title, "", department, price, currency, category):
+        return None
     return Product(
         id=f"aliexpress-{product_id}",
         name=title[:90],
@@ -116,7 +119,8 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
         original_price=sale_price(price, item.get("target_original_price")),
         currency=currency,
         department=department,
-        category=categories[0] if categories else query_category,
+        category=category,
+        gender=gender_of(title) if department == "mode" else None,
         colors=sorted(find_terms(title, COLOR_PATTERNS)),
         style_tags=sorted(find_terms(title, STYLE_PATTERNS)),
         image_url=image,
