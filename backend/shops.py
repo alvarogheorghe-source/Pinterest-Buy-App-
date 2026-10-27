@@ -42,7 +42,7 @@ class ShopInput(BaseModel):
     def known_platform(cls, platform: str) -> str:
         from backend import feeds
         try:
-            feed_names = {feed["name"] for feed in feeds.load_config()}
+            feed_names = {feed["name"] for feed in feeds.known_feeds()}
         except (feeds.FeedError, ValueError):
             feed_names = set()
         if platform not in PLATFORM_NAMES and platform not in feed_names:

@@ -45,6 +45,7 @@ def fake_feeds(fake, monkeypatch, tmp_path):
     config.write_text(json.dumps(FEEDS))
     monkeypatch.setattr(feeds, "CONFIG_FILE", config)
     monkeypatch.setenv("AWIN_FEED_KEY", "geheim")
+    monkeypatch.setenv("AWIN_AUTO_FEEDS", "0")          # hier nur feeds.json (Auto: test_awin_feeds.py)
     monkeypatch.setenv("PRODUCT_SOURCE", "")
     for name in ("EBAY_CLIENT_ID", "ETSY_API_KEY", "ALIEXPRESS_APP_KEY"):
         monkeypatch.delenv(name, raising=False)

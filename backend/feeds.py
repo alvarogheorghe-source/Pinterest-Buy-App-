@@ -114,9 +114,68 @@ def load_config(path: Path | None = None) -> list[dict]:
 
 def configured() -> bool:
     try:
-        return bool(load_config())
+        return bool(load_config()) or bool(os.getenv("AWIN_FEED_KEY", "").strip())
     except (FeedError, ValueError):
         return False
+
+
+# --- Awin automatisch: jeder Shop, der dich annimmt, kommt von selbst dazu ----------------------
+# Awin listet alle Produkt-Feeds der Shops, bei denen du angenommen bist (CSV). Daraus werden
+# Feeds wie in feeds.json – mit dem Shopnamen als Anzeige. Ausschalten: AWIN_AUTO_FEEDS=0
+AWIN_LIST_URL = "https://productdata.awin.com/datafeed/list/apikey/{key}"
+_AWIN_COLUMNS = {   # mögliche Spaltennamen der Liste (Groß/klein egal)
+    "url": ["url", "feed url", "download url"],
+    "feed_id": ["feed id", "feed_id", "fid"],
+    "name": ["advertiser name", "advertiser", "merchant name"],
+    "status": ["membership status", "status", "relationship"],
+    "region": ["primary region", "region", "country"],
+}
+
+
+def _column(row: dict, key: str) -> str:
+    lower = {k.strip().lower(): v for k, v in row.items() if k}
+    return next((str(lower[c]).strip() for c in _AWIN_COLUMNS[key] if lower.get(c)), "")
+
+
+def discover_awin() -> list[dict]:
+    """Feeds aller Awin-Shops, die dich angenommen haben. Ohne AWIN_FEED_KEY: keine."""
+    key = os.getenv("AWIN_FEED_KEY", "").strip()
+    if not key or os.getenv("AWIN_AUTO_FEEDS", "").strip() == "0":
+        return []
+    found = []
+    for row in read_rows(download(AWIN_LIST_URL.format(key=key))):
+        url, feed_id = _column(row, "url"), re.sub(r"\D", "", _column(row, "feed_id"))
+        status = _column(row, "status").lower()
+        if not url.startswith("http") or not feed_id:
+            continue
+        # Nur angenommene Shops: "notjoined", "pending", "suspended" … zählen nicht
+        if status and (any(word in status for word in ("not", "pending", "reject", "suspend",
+                                                       "pause", "inactive", "declin"))
+                       or not any(word in status for word in ("active", "joined", "approved", "member"))):
+            continue
+        region = _column(row, "region").upper()
+        found.append({
+            "name": f"awin-{feed_id}", "label": _column(row, "name") or "Awin", "preset": "awin",
+            "url": url, "countries": [region] if re.fullmatch(r"[A-Z]{2}", region) else [],
+            "currencies": [],                         # jede Währung – wird umgerechnet
+        })
+    return found
+
+
+def all_feeds() -> list[dict]:
+    """feeds.json + automatisch gefundene Awin-Feeds (ohne doppelte Namen)."""
+    feeds = load_config()
+    names = {feed["name"] for feed in feeds}
+    return feeds + [feed for feed in discover_awin() if feed["name"] not in names]
+
+
+def known_feeds() -> list[dict]:
+    """Alle Feeds mit Namen und Anzeige – ohne Download (für Admin-Seite & Geprüfte Shops)."""
+    feeds = load_config()
+    names = {feed["name"] for feed in feeds}
+    stored = (storage.read_json(STORE_FILE, default={}) or {}).get("feeds") or {}
+    return feeds + [{"name": name, "label": info.get("label", name)}
+                    for name, info in stored.items() if name not in names]
 
 
 def resolve_url(url: str) -> str:
@@ -217,7 +276,8 @@ def to_product(row: dict, feed: dict) -> Product | None:
     currency = (_pick(row, fields["currency"]) or found_currency or "EUR").upper()
     if not (name and raw_id and price and url.startswith("https://") and image.startswith("https://")):
         return None
-    if price < MIN_PRICE or currency not in feed.get("currencies", ["EUR"]):
+    allowed = feed.get("currencies", ["EUR"])          # leer = jede Währung (wird umgerechnet)
+    if price < MIN_PRICE or (allowed and currency not in allowed):
         return None
     if feed.get("counterfeit_filter") and looks_like_fake(name):
         return None
@@ -265,22 +325,41 @@ def import_feed(feed: dict) -> dict:
     return {"products": products, "rows": rows, "kept": len(products)}
 
 
+def _without_keys(text: str) -> str:
+    """Fehlermeldungen können Adressen enthalten – geheime Schlüssel nie speichern oder zeigen."""
+    for name in ("AWIN_FEED_KEY",):
+        key = os.getenv(name, "").strip()
+        if key:
+            text = text.replace(key, "***")
+    return text
+
+
 def import_all(feeds: list[dict] | None = None) -> dict:
     """Alle Feeds neu laden. Fällt einer aus, bleiben seine alten Produkte erhalten."""
-    feeds = load_config() if feeds is None else feeds
     old = storage.read_json(STORE_FILE, default={}) or {}
+    if feeds is None:
+        try:
+            feeds = all_feeds()
+        except (FeedError, httpx.HTTPError, csv.Error) as err:   # Awin-Liste nicht abrufbar
+            logger.warning("Awin-Feedliste nicht abrufbar: %s", err)
+            feeds = load_config() + [{"name": name, "label": info.get("label", name), "url": ""}
+                                     for name, info in (old.get("feeds") or {}).items()
+                                     if name.startswith("awin-")]
     result = {"fetched_at": time.time(), "feeds": {}}
     for feed in feeds:
         try:
+            if not feed.get("url"):
+                raise FeedError("keine Feed-Adresse (Awin-Liste gerade nicht abrufbar)")
             imported = import_feed(feed)
             result["feeds"][feed["name"]] = {
                 "label": feed.get("label", feed["name"]), "countries": feed.get("countries", []),
                 "rows": imported["rows"], "kept": imported["kept"], "error": None,
                 "products": [p.model_dump() for p in imported["products"]]}
         except (FeedError, httpx.HTTPError, ET.ParseError, csv.Error) as err:
-            logger.warning("Feed %s fällt aus: %s", feed["name"], err)
+            message = _without_keys(str(err))
+            logger.warning("Feed %s fällt aus: %s", feed["name"], message)
             previous = (old.get("feeds") or {}).get(feed["name"], {})
-            result["feeds"][feed["name"]] = {**previous, "error": str(err)[:200],
+            result["feeds"][feed["name"]] = {**previous, "error": message[:200],
                                              "products": previous.get("products", [])}
     storage.write_json(STORE_FILE, result)
     return result
@@ -348,19 +427,22 @@ class FeedProductSource(ProductSource):
 
 def main() -> None:
     from backend import config  # noqa: F401  (lädt .env)
-    feeds = load_config()
-    if not feeds:
-        print("Keine Feeds eingetragen – Vorlage: feeds.example.json -> feeds.json kopieren.")
+    if not configured():
+        print("Keine Feeds: AWIN_FEED_KEY in .env eintragen (alle angenommenen Awin-Shops kommen dann "
+              "automatisch) oder feeds.example.json -> feeds.json kopieren.")
         return
-    print(f"Lade {len(feeds)} Feed(s) …\n")
-    result = import_all(feeds)
+    print("Lade alle Feeds (feeds.json + angenommene Awin-Shops) …\n")
+    result = import_all()
+    if not result["feeds"]:
+        print("Noch keine Feeds – bei Awin bist du wohl noch bei keinem Shop angenommen.")
     total = 0
     for name, feed in result["feeds"].items():
         if feed.get("error"):
             print(f"  ✗ {name:<20} Fehler: {feed['error']}")
             continue
         total += feed["kept"]
-        print(f"  ✓ {name:<20} {feed['rows']:>6} Zeilen -> {feed['kept']:>5} passende Produkte")
+        print(f"  ✓ {feed.get('label', name)[:28]:<28} {feed['rows']:>6} Zeilen -> "
+              f"{feed['kept']:>5} passende Produkte")
     print(f"\nZusammen: {total} Produkte im Shop.")
 
 

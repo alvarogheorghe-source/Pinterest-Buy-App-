@@ -308,7 +308,7 @@ def admin_list_feeds(request: Request):
     from backend import feeds
     require_admin(request)
     try:
-        return [{"name": f["name"], "label": f.get("label", f["name"])} for f in feeds.load_config()]
+        return [{"name": f["name"], "label": f.get("label", f["name"])} for f in feeds.known_feeds()]
     except (feeds.FeedError, ValueError):
         return []
 

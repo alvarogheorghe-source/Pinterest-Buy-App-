@@ -164,6 +164,10 @@ daraus normale Malipin-Produkte. **Neuer Shop / neues Netzwerk = ein Eintrag in
   einmal am Tag automatisch im Hintergrund neu geladen. Fällt ein Feed aus, bleiben seine
   alten Produkte.
 - Händler aus einem Feed lassen sich als **Geprüfter Shop** markieren (Admin-Seite).
+- **Awin automatisch:** Mit `AWIN_FEED_KEY` in `.env` holt Malipin die Feed-Liste von Awin und
+  übernimmt **jeden Shop, der dich angenommen hat**, von selbst (Name, Lieferland, jede Währung –
+  wird umgerechnet). Nicht angenommene oder pausierte Shops werden übersprungen.
+  Ausschalten: `AWIN_AUTO_FEEDS=0`.
 - Importieren & prüfen: `python -m backend.feeds`
 
 ### Geprüfte Shops
