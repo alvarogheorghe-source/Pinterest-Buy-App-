@@ -33,3 +33,4 @@ testbilder/
 site/
 ebay-support-report.txt
 data/search_cache.db
+data/exchange_rates.json
