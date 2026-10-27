@@ -104,6 +104,11 @@ class JsonProductSource(ProductSource):
             raise ProductSourceError(f"Fehler in {self.path.name}: {err}")
 
 
+# Erhöhen, wenn sich Such- oder Filterregeln ändern -> alte Zwischenergebnisse (eBay, Etsy …)
+# werden verworfen statt bis zu einer Stunde weiter angezeigt
+RULES_VERSION = 2
+
+
 class CachedSource(ProductSource):
     """Quelle mit Online-Suche (eBay, Etsy, ...). Ergebnisse werden zwischengespeichert,
     damit nicht jeder Klick eine Anfrage kostet. Neue Pins leeren den Speicher."""
@@ -121,7 +126,7 @@ class CachedSource(ProductSource):
         here = region.current().code          # anderes Land -> anderer Marktplatz, neu suchen
         cached = storage.read_json(self.cache_file, default=None)
         if cached and cached.get("fetched_at", 0) > time.time() - self.cache_seconds \
-                and cached.get("region", here) == here:
+                and cached.get("region", here) == here and cached.get("version") == RULES_VERSION:
             return [Product(**p) for p in cached["products"]]
         from backend.i18n import tr
         try:
@@ -129,6 +134,7 @@ class CachedSource(ProductSource):
         except httpx.HTTPError as err:   # kein Internet, Zeitüberschreitung …
             raise ProductSourceError(tr("{name} ist gerade nicht erreichbar.", name=self.name)) from err
         storage.write_json(self.cache_file, {"fetched_at": time.time(), "region": here,
+                                             "version": RULES_VERSION,
                                              "products": [p.model_dump() for p in products]})
         return products
 

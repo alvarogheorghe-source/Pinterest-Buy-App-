@@ -255,3 +255,23 @@ def test_same_quality_rules_as_feeds():
     vintage = to_product(item("3", "Vintage Levis Jeans Herren", "9.50"), "mode", "Hosen")
     assert vintage and vintage.gender == "herren"                # gebraucht darf günstig sein
     assert to_product(item("4", "Damen Jeans Basic", "6.00", condition="Neu"), "mode", "Hosen") is None
+
+
+def test_old_cached_results_are_dropped_when_rules_change(monkeypatch):
+    from backend import products, storage
+
+    class Source(products.CachedSource):
+        name, cache_file = "test", "test_cache.json"
+        calls = 0
+
+        def fetch(self):
+            Source.calls += 1
+            return []
+
+    Source().load()
+    Source().load()
+    assert Source.calls == 1                                  # zwischengespeichert
+    monkeypatch.setattr(products, "RULES_VERSION", products.RULES_VERSION + 1)
+    Source().load()
+    assert Source.calls == 2                                  # neue Regeln -> neu suchen
+    assert storage.read_json("test_cache.json")["version"] == products.RULES_VERSION

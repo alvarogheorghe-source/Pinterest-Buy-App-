@@ -122,7 +122,8 @@ def search(query: str) -> list[dict]:
     """Eine Suche auf eBay (nur Sofort-Kaufen) – gleiche Suchen aller Personen teilen sich
     eine Stunde lang ein Ergebnis (search_cache.py)."""
     here = region.current()
-    key = f"ebay|{here.ebay}|{here.currency}|{os.getenv('EBAY_EPN_CAMPAIGN_ID', '').strip()}|{query}"
+    key = (f"ebay|{here.ebay}|{here.currency}|{os.getenv('EBAY_EPN_CAMPAIGN_ID', '').strip()}|"
+           f"{RESULTS_PER_QUERY}|{query}")      # mehr Treffer pro Suche -> neu fragen
     return search_cache.cached(key, lambda: _search(query))
 
 
