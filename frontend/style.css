@@ -1619,3 +1619,11 @@ section + section {
     grid-template-columns: 38% 1fr;
   }
 }
+
+/* Grid-Kinder dürfen schmaler als ihr Inhalt sein – sonst drücken die Reihen zum Durchwischen
+   die ganze Seite in die Breite (am Handy seitlich verschiebbar) */
+.shop-rows > *,
+.shop-row,
+.looks {
+  min-width: 0;
+}
