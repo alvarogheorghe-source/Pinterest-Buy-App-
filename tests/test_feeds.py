@@ -132,3 +132,13 @@ def test_bad_config_is_rejected(tmp_path):
     with pytest.raises(feeds.FeedError):
         feeds.load_config(bad)
     assert products.source_names()   # App läuft trotzdem
+
+
+def test_line_breaks_inside_fields():
+    """Feeds mit \\r bzw. \\r\\n in Beschreibungen (Windows/Mac) dürfen nicht abbrechen."""
+    data = ('id,title,price,link,image_link,description\r\n'
+            '1,Strickpullover beige,29.90 EUR,https://t.example/1,https://i.example/1.jpg,"Weich\rund warm"\r\n'
+            '2,Wide Leg Jeans,39.90 EUR,https://t.example/2,https://i.example/2.jpg,"Zeile 1\r\nZeile 2"\r\n').encode()
+    rows = list(feeds.read_rows(data))
+    assert [r["id"] for r in rows] == ["1", "2"]
+    assert feeds.to_product(rows[1], {"name": "x", "preset": "google"}).category == "Hosen"

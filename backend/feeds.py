@@ -240,7 +240,8 @@ def read_rows(data: bytes):
         dialect = csv.Sniffer().sniff(text[:5000], delimiters=",;|\t")
     except csv.Error:
         dialect = csv.excel
-    yield from csv.DictReader(io.StringIO(text), dialect=dialect)
+    # newline="": Zeilenumbrüche in Feldern (\r, \r\n – z.B. in Beschreibungen) richtig lesen
+    yield from csv.DictReader(io.StringIO(text, newline=""), dialect=dialect)
 
 
 # --- Zeile -> Produkt ---------------------------------------------------------------------------
