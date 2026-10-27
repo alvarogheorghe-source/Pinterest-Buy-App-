@@ -476,7 +476,13 @@
     "Shop the Look": "Shop the Look",
     "Outfits aus deinen Pins – Teil für Teil zum Nachshoppen.": "Outfits from your pins – shop them piece by piece.",
     "Dein Pin": "Your pin",
-    "Ganzer Look: {price}": "Whole look: {price}"
+    "Ganzer Look: {price}": "Whole look: {price}",
+    "Für Wohnen & Deko sind gerade noch keine Shops verbunden.": "No home & decor shops are connected yet.",
+    "Für Mode sind gerade noch keine Shops verbunden.": "No fashion shops are connected yet.",
+    "Wir holen laufend neue Partner-Shops dazu – schau bald wieder vorbei!": "We're adding new partner shops all the time – check back soon!",
+    "Teile aus deinen Pins ansehen ({n})": "See items from your pins ({n})",
+    "Zur Mode": "Go to fashion",
+    "Zu Wohnen & Deko": "Go to home & decor"
   },
   "same": [
     "mal",

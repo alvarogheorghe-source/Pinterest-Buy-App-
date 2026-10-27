@@ -93,8 +93,15 @@ async function load() {
     renderRows(!filters.category && filters.sort === "match"
       ? themedRows(recommendations.products, profile, recommendations.currency) : [], hasProfile);
     renderGrid(items.map((p) => productToCard(p, hasProfile)), "Produkt", "Produkte",
-      "Keine Produkte in diesem Budget. Probier einen höheren Betrag.");
-    showSources(recommendations.sources || ["demo"]);
+      filters.maxPrice || filters.category
+        ? "Keine Produkte in diesem Budget. Probier einen höheren Betrag."
+        : "");
+    // Gar nichts in dieser Welt (noch kein passender Partner-Shop) – ehrlich sagen statt "Budget"
+    if (!items.length && !filters.maxPrice && !filters.category) {
+      renderNoShopsYet(pinItems.length);
+    } else {
+      showSources(recommendations.sources || ["demo"]);
+    }
   }
   showWarnings(filters.tab === "pins" ? [] : recommendations.warnings || []);
 }
@@ -205,6 +212,33 @@ function renderRows(list, hasProfile) {
     rows.appendChild(Object.assign(document.createElement("h2"),
       { className: "shop-row-title all-title", textContent: t("Alle Vorschläge") }));
   }
+}
+
+function renderNoShopsYet(pinCount) {
+  const box = Object.assign(document.createElement("div"), { className: "empty no-shops" });
+  box.append(
+    Object.assign(document.createElement("p"), { className: "no-shops-title",
+      textContent: filters.department === "wohnen"
+        ? "Für Wohnen & Deko sind gerade noch keine Shops verbunden."
+        : "Für Mode sind gerade noch keine Shops verbunden." }),
+    Object.assign(document.createElement("p"), { className: "muted",
+      textContent: "Wir holen laufend neue Partner-Shops dazu – schau bald wieder vorbei!" }),
+  );
+  const actions = Object.assign(document.createElement("div"), { className: "no-shops-actions" });
+  if (pinCount) {     // Teile aus den eigenen Pins gibt es trotzdem
+    const pins = Object.assign(document.createElement("button"), { className: "button",
+      textContent: t("Teile aus deinen Pins ansehen ({n})", { n: pinCount }) });
+    pins.addEventListener("click", () => writeHash(filters.department, "pins"));
+    actions.append(pins);
+  }
+  const other = filters.department === "wohnen" ? "mode" : "wohnen";
+  const switchWorld = Object.assign(document.createElement("button"), { className: "button secondary",
+    textContent: other === "mode" ? "Zur Mode" : "Zu Wohnen & Deko" });
+  switchWorld.addEventListener("click", () => writeHash(other, "products"));
+  actions.append(switchWorld);
+  box.append(actions);
+  grid.replaceChildren(box);
+  resultCount.textContent = "";
 }
 
 // Budget-Chips in der Währung der Person: "bis 15 €", "up to $15", "up to £15" …
