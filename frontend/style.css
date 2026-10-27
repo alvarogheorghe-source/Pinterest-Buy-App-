@@ -1655,3 +1655,34 @@ section + section {
   cursor: default;
   pointer-events: none;
 }
+
+/* Gleichmäßige Kacheln: Shop/Kategorie 1 Zeile, Name max. 2 Zeilen mit "…",
+   Button immer unten auf gleicher Höhe (auch in den Reihen ohne Begründung) */
+.card .card-shop {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.card .card-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-height: 2.5em;          /* auch kurze Namen belegen 2 Zeilen */
+  line-height: 1.25;
+}
+
+.card .card-actions {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+/* "Werbung" (mit Rahmen) und "Link zu eBay" gleich hoch -> Buttons exakt auf einer Linie */
+.card .card-actions > span {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 22px;
+}
