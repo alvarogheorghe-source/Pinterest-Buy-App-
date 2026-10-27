@@ -202,3 +202,21 @@ def test_visual_recommenders_in_evaluate(fake):
     # Ohne Bild-URL: kein Signal
     no_image = [{**cases[0], "pin": {"title": "", "description": ""}}]
     assert evaluate(no_image, recommenders["Bilder"], products)["no_signal"] == 1
+
+
+def test_progress_line_and_intermediate_saves(capsys):
+    from backend.vision import Progress
+
+    class Store:
+        saves = 0
+
+        def save(self):
+            Store.saves += 1
+
+    progress = Progress("Produkte", Store(), every=2)
+    progress(1, 4)
+    progress(2, 4)
+    progress(4, 4)
+    out = capsys.readouterr().out
+    assert "Produkte: 4 / 4 Bilder (100%) – fertig" in out and out.endswith("\n")
+    assert Store.saves == 2

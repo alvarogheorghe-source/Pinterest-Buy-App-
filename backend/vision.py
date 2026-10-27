@@ -19,6 +19,7 @@ Ohne sie (oder ohne data/embeddings.json) funktioniert die App wie bisher.
 import hashlib
 import io
 import threading
+import time
 import math
 import operator
 import os
@@ -286,7 +287,27 @@ def index(store: EmbeddingStore, embedder: Embedder, entries: list[tuple[str, st
     return {"total": len(entries), "new": len(todo) - failed, "failed": failed}
 
 
-def index_all(embedder: Embedder) -> dict:
+class Progress:
+    """Fortschritt im Terminal: "Produkte: 1.200 / 6.000 Bilder (20 %) – noch ca. 25 Min."
+    Speichert zwischendurch, damit ein Abbruch nicht alles kostet."""
+
+    def __init__(self, label: str, store: "EmbeddingStore", every: int = 500):
+        self.label, self.store, self.every = label, store, every
+        self.started, self.saved = time.time(), 0
+
+    def __call__(self, done: int, total: int) -> None:
+        elapsed = time.time() - self.started
+        left = elapsed / done * (total - done) if done else 0
+        rest = f"noch ca. {max(1, round(left / 60))} Min." if done < total else "fertig"
+        print(f"\r  {self.label}: {done:,} / {total:,} Bilder ({done / total:.0%}) – {rest}   "
+              .replace(",", "."),
+              end="" if done < total else "\n", flush=True)
+        if done - self.saved >= self.every:      # Zwischenstand sichern
+            self.store.save()
+            self.saved = done
+
+
+def index_all(embedder: Embedder, show_progress: bool = False) -> dict:
     """Alle Produkte und gespeicherten Pins berechnen und speichern."""
     from backend.products import get_product_source
     store = EmbeddingStore(embedder.name)
@@ -294,8 +315,10 @@ def index_all(embedder: Embedder) -> dict:
     pin_entries = [(f"pin:{pin['id']}", pin.get("image_url"))
                    for pin in storage.load_pins()["pins"]]
     result = {
-        "products": index(store, embedder, product_entries),
-        "pins": index(store, embedder, pin_entries),
+        "products": index(store, embedder, product_entries,
+                          Progress("Produkte", store) if show_progress else None),
+        "pins": index(store, embedder, pin_entries,
+                      Progress("Pins", store) if show_progress else None),
     }
     store.save()
     return result
@@ -417,7 +440,9 @@ def main() -> None:
     except VisionUnavailable as err:
         print(f"Fehler: {err}")
         sys.exit(1)
-    result = index_all(embedder)
+    print("Berechne Bilder – schon berechnete werden übersprungen. Abbrechen mit Ctrl+C geht,")
+    print("der Zwischenstand bleibt gespeichert.\n")
+    result = index_all(embedder, show_progress=True)
     for kind, stats in result.items():
         print(f"{kind:>9}: {stats['total']} insgesamt, {stats['new']} neu berechnet, "
               f"{stats['failed']} Bilder nicht ladbar")
