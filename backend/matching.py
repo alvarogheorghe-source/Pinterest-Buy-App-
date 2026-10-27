@@ -13,6 +13,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 
+from backend import languages
 from backend.brands import BRANDS
 from backend.products import DEPARTMENTS, Product
 
@@ -125,9 +126,11 @@ DEPARTMENT_WORDS = {
 def _word_pattern(word: str) -> str:
     """Ein Wort als Suchausdruck. Ein * vorne erlaubt deutsche zusammengesetzte
     Wörter: "*vase" findet auch "Keramikvase" und "Glasvase"."""
+    ending = r"\w*" if word.endswith("~") else ""      # "~" = beliebige Endung (languages.py)
+    word = word.rstrip("~")
     if word.startswith("*"):
-        return r"\w*" + re.escape(word[1:])
-    return re.escape(word)
+        return r"\w*" + re.escape(word[1:]) + ending
+    return re.escape(word) + ending
 
 
 def _compile(synonyms: dict[str, list[str]], suffix: str = "") -> dict[str, re.Pattern]:
@@ -144,10 +147,18 @@ PLURAL = "(?:s|es)?"
 # Deutsche Adjektiv-Endungen: "schwarze Jacke", "beiger Pullover", "weißes Regal"
 ADJECTIVE = "e?[rsnm]?"  # schwarz-e, schwarz-er, beige-r, weiß-es ...
 
-COLOR_PATTERNS = _compile(COLOR_SYNONYMS, suffix=ADJECTIVE)
-STYLE_PATTERNS = _compile(STYLE_SYNONYMS)
-CATEGORY_PATTERNS = _compile({c: words for c, (_, words) in CATEGORY_SYNONYMS.items()},
-                             suffix=PLURAL)
+
+
+def _with_languages(synonyms: dict[str, list[str]], more: dict[str, list[str]]) -> dict:
+    """Deutsch/Englisch + Polnisch, Niederländisch … (languages.py) für Shop-Feeds"""
+    return {term: words + more.get(term, []) for term, words in synonyms.items()}
+
+
+COLOR_PATTERNS = _compile(_with_languages(COLOR_SYNONYMS, languages.COLORS), suffix=ADJECTIVE)
+STYLE_PATTERNS = _compile(_with_languages(STYLE_SYNONYMS, languages.STYLES))
+CATEGORY_PATTERNS = _compile(_with_languages(
+    {c: words for c, (_, words) in CATEGORY_SYNONYMS.items()}, languages.CATEGORIES),
+    suffix=PLURAL)
 DEPARTMENT_PATTERNS = _compile(DEPARTMENT_WORDS)
 BRAND_PATTERNS = _compile({name: list(brand.words) for name, brand in BRANDS.items()})
 
