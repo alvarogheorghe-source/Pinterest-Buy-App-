@@ -526,7 +526,12 @@
     "Werbehinweis": "Advertising notice",
     "Zeig Mali deinen Stil": "Show Mali your style",
     "Lade ein Foto von einem Outfit oder Teil hoch, das dir gefällt. Mali sucht dir dann passende Teile, neu und Second Hand.": "Upload a photo of an outfit or piece you like. Mali will find matching pieces for you, new and second hand.",
-    "Foto hochladen": "Upload a photo"
+    "Foto hochladen": "Upload a photo",
+    "Pfad": "Path",
+    "Finde Teile im {title}-Vibe": "Find pieces in the {title} vibe",
+    "Lade ein Outfit-Foto hoch, das dir gefällt. Mali sucht dir ähnliche Teile, neu und Second Hand.": "Upload a photo of an outfit you like. Mali finds similar pieces for you, new and second hand.",
+    "Weitere Vibes": "More vibes",
+    "{title} Vibe, Bedeutung und typische Teile | Malipin": "{title} vibe, meaning and typical pieces | Malipin"
   },
   "same": [
     "mal",

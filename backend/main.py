@@ -21,7 +21,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from backend import (analysis, currency, feedback, i18n, looks, matching, photo, pins, pinterest,
                      product_checks, products, quality, rate_limit, region,
                      shop_links, shops, similar, skimlinks, stats, storage, style_guide, vibe,
-                     vision)
+                     vibe_pages, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Malipin")
@@ -780,6 +780,25 @@ def datenschutz():
     privacy = build_site.markdown_to_html((build_site.ROOT / "PRIVACY.md").read_text("utf-8"))
     return build_site.subpage("Privacy Policy", privacy, "How Malipin handles your data.",
                               "/datenschutz.html", lang="en")
+
+
+# --- Eine Seite pro Vibe (/stil/goth-baddie) + Sitemap für Google ----------------------------
+
+@app.get("/stil/{name}", response_class=HTMLResponse)
+def vibe_page(name: str):
+    page = vibe_pages.render(name)
+    if page is None:
+        raise HTTPException(404, "Diesen Vibe kenne ich nicht.")
+    return page
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap():
+    paths = ["/", "/foto.html", "/stile.html", *vibe_pages.all_paths()]
+    urls = "".join(f"  <url><loc>{vibe_pages.SITE_URL}{p}</loc></url>\n" for p in paths)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + "</urlset>\n")
+    return Response(xml, media_type="application/xml")
 
 
 # Das Frontend (HTML/CSS/JS) wird direkt vom Backend ausgeliefert.

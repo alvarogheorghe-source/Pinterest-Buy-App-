@@ -186,11 +186,15 @@ function vibeCard(vibe) {
   card.id = vibe.slug;
   card.dataset.vibe = vibe.slug;      // eigene Farben pro Vibe (style.css)
   const head = make("header", "vibe-card-head");
-  head.append(icon(ICONS[vibe.slug], "vibe-icon"), make("h3", "vibe-title", vibe.title),
+  // Titel führt zur eigenen Seite des Vibes (/stil/goth-baddie), die auch geteilt wird
+  const vibeUrl = `/stil/${vibe.slug.replace(/^vibe-/, "")}`;
+  const heading = make("h3", "vibe-title");
+  heading.append(Object.assign(make("a", "vibe-title-link", vibe.title), { href: vibeUrl }));
+  head.append(icon(ICONS[vibe.slug], "vibe-icon"), heading,
     shareButton(() => share({
       title: `${vibe.title} | Malipin`,
       text: t("Das ist der {title}-Vibe. Schau mal, ob er zu dir passt! 🐰", { title: vibe.title }),
-      url: pageUrl(`#${vibe.slug}`),
+      url: location.origin + vibeUrl,
     })));
   card.append(head);
 

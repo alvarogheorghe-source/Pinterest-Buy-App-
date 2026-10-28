@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Sitemap für den App-Server. Die öffentliche Website erzeugt ihre eigene (scripts/build_site.py). -->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://malipin.com/</loc></url>
-  <url><loc>https://malipin.com/foto.html</loc></url>
-  <url><loc>https://malipin.com/stile.html</loc></url>
-</urlset>
