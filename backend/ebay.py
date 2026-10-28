@@ -122,7 +122,7 @@ def search(query: str) -> list[dict]:
     """Eine Suche auf eBay (nur Sofort-Kaufen) – gleiche Suchen aller Personen teilen sich
     eine Stunde lang ein Ergebnis (search_cache.py)."""
     here = region.current()
-    key = (f"ebay|{here.ebay}|{here.currency}|{os.getenv('EBAY_EPN_CAMPAIGN_ID', '').strip()}|"
+    key = (f"ebay|{here.ebay}|{here.code}|{here.currency}|{os.getenv('EBAY_EPN_CAMPAIGN_ID', '').strip()}|"
            f"{RESULTS_PER_QUERY}|{query}")      # mehr Treffer pro Suche -> neu fragen
     return search_cache.cached(key, lambda: _search(query))
 
@@ -130,7 +130,9 @@ def search(query: str) -> list[dict]:
 def _search(query: str) -> list[dict]:
     params = {"q": query, "limit": RESULTS_PER_QUERY,
               "filter": f"buyingOptions:{{FIXED_PRICE}},price:[{MIN_PRICE}..],"
-                        f"priceCurrency:{region.current().currency}"}
+                        f"priceCurrency:{region.current().currency},"
+                        # Nur Angebote, die wirklich ins Land der Person geliefert werden
+                        f"deliveryCountry:{region.current().code}"}
     headers = {
         "Authorization": f"Bearer {app_token()}",
         # Marktplatz des Landes der Person (region.py): ebay.at, ebay.com, ebay.co.uk …

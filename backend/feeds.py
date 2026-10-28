@@ -52,7 +52,7 @@ CONFIG_FILE = BASE_DIR / "feeds.json"
 STORE_FILE = "feed_products.json"           # für alle gleich (storage.GLOBAL_FILES)
 # Erhöhen, wenn sich die Erkennung ändert (Kategorien, Damen/Herren, Filter …) – dann lädt die
 # App die Feeds von selbst neu, statt alte Ergebnisse zu zeigen
-RECOGNITION_VERSION = 5
+RECOGNITION_VERSION = 6
 FEED_MAX_AGE = 24 * 60 * 60                 # Feeds einmal am Tag neu laden
 MAX_PER_FEED = 5000                         # mehr braucht kein Shop-Fenster
 MAX_DOWNLOAD = 300 * 1024 * 1024            # 300 MB – große Feeds sind oft gepackt (.gz)
@@ -134,22 +134,35 @@ AWIN_LIST_URL = "https://productdata.awin.com/datafeed/list/apikey/{key}"
 NEIGHBOURS = {"DE": ["DE", "AT", "CH"], "AT": ["AT", "DE", "CH"], "CH": ["CH", "DE", "AT"],
               "GB": ["GB", "IE"], "IE": ["IE", "GB"], "US": ["US", "CA"], "CA": ["CA", "US"],
               "AU": ["AU"]}
-# EU-Binnenmarkt: Shops aus anderen EU-Ländern (PL, NL, FR …) liefern meist in die ganze EU
 EU = ["AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR", "HR", "HU", "IE",
       "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK"]
 # Weltweite Shops: egal welches Awin-Land, sie liefern überallhin
 WORLDWIDE = re.compile(r"aliexpress|temu|shein", re.I)
+# Shops, von denen wir GEPRÜFT haben (auf ihrer Seite nachgesehen), dass sie in die ganze EU
+# liefern. Alle anderen nur in ihrem Land (+ Nachbarn wie DE/AT/CH) – lieber weniger zeigen
+# als etwas, das man nicht bestellen kann. Eintragen: Teil des Shopnamens, klein geschrieben.
+SHIPS_EU: list[str] = []
 
 
 def awin_countries(region: str, name: str) -> list[str]:
     """Wo ein Awin-Shop gezeigt wird ([] = überall)."""
     if WORLDWIDE.search(name):
         return []
+    if region in EU and any(shop in name.lower() for shop in SHIPS_EU):
+        return EU
     if region in NEIGHBOURS:
         return NEIGHBOURS[region]
-    if region in EU:
-        return EU
     return [region] if re.fullmatch(r"[A-Z]{2}", region) else []
+
+
+# Währung des Shop-Landes – falls ein Feed keine Währungsspalte hat (sonst wäre 889 Złoty "889 €")
+REGION_CURRENCY = {
+    "PL": "PLN", "GB": "GBP", "US": "USD", "CA": "CAD", "AU": "AUD", "CH": "CHF", "SE": "SEK",
+    "DK": "DKK", "NO": "NOK", "CZ": "CZK", "HU": "HUF", "RO": "RON", "BG": "BGN", "BR": "BRL",
+    "IE": "EUR", "DE": "EUR", "AT": "EUR", "NL": "EUR", "BE": "EUR", "FR": "EUR", "IT": "EUR",
+    "ES": "EUR", "PT": "EUR", "FI": "EUR", "GR": "EUR", "SK": "EUR", "SI": "EUR", "LU": "EUR",
+    "EE": "EUR", "LV": "EUR", "LT": "EUR", "HR": "EUR", "MT": "EUR", "CY": "EUR",
+}
 _AWIN_COLUMNS = {   # mögliche Spaltennamen der Liste (Groß/klein egal)
     "url": ["url", "feed url", "download url"],
     "feed_id": ["feed id", "feed_id", "fid"],
@@ -191,6 +204,7 @@ def discover_awin() -> list[dict]:
             # Awins "Hauptland" ist keine Lieferbeschränkung: deutsche Shops liefern meist auch
             # nach Österreich/Schweiz, britische nach Irland. Deshalb die ganze Nachbarschaft.
             "url": url, "countries": awin_countries(region, _column(row, "name")),
+            "default_currency": REGION_CURRENCY.get(region, "EUR"),
             "currencies": [],                         # jede Währung – wird umgerechnet
         })
     return found
@@ -400,7 +414,8 @@ def to_product(row: dict, feed: dict) -> Product | None:
     raw_id = _pick(row, fields["id"])
     url, image = _https(_pick(row, fields["url"])), _https(_pick(row, fields["image"]))
     price, found_currency = parse_price(_pick(row, fields["price"]))
-    currency = (_pick(row, fields["currency"]) or found_currency or "EUR").upper()
+    currency = (_pick(row, fields["currency"]) or found_currency
+                or feed.get("default_currency") or "EUR").upper()
     if not (name and raw_id and price and url.startswith("https://") and image.startswith("https://")):
         return None
     allowed = feed.get("currencies", ["EUR"])          # leer = jede Währung (wird umgerechnet)

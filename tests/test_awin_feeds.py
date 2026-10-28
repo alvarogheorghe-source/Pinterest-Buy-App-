@@ -98,7 +98,8 @@ def test_candidates_famous_first_without_joined_or_irrelevant(awin_list, monkeyp
 
 def test_shops_from_other_countries_are_shown_where_they_deliver():
     assert feeds.awin_countries("PL", "AliExpress PL") == []            # weltweit
-    assert "AT" in feeds.awin_countries("NL", "Direct-Running NL")      # EU-Binnenmarkt
+    assert feeds.awin_countries("NL", "Direct-Running NL") == ["NL"]     # Lieferung unbekannt
+    assert feeds.awin_countries("PL", "Converse PL") == ["PL"]
     assert feeds.awin_countries("DE", "Unipolar DE") == ["DE", "AT", "CH"]
     assert feeds.awin_countries("US", "Shop") == ["US", "CA"]
     assert feeds.awin_countries("BR", "Loja") == ["BR"]
@@ -110,3 +111,17 @@ def test_list_shows_status_of_every_shop(awin_list, capsys):
     assert "Denim Store" in out and "✓ wird geladen" in out
     assert "Noch Nicht Store" in out and "nicht angenommen" in out
     assert "geheim-123" not in out
+
+
+def test_feed_without_currency_column_uses_the_shops_country(monkeypatch):
+    feed = {"name": "awin-9", "preset": "awin", "currencies": [], "default_currency": "PLN"}
+    row = {"aw_product_id": "1", "product_name": "Converse Hoodie", "aw_deep_link": "https://a/1",
+           "merchant_image_url": "https://img/1.jpg", "search_price": "889", "merchant_name": "Converse PL",
+           "merchant_category": "Bluzy"}
+    product = feeds.to_product(row, feed)
+    assert product and product.currency == "PLN"            # 889 Złoty, nicht 889 €
+
+
+def test_verified_eu_shipping_shops(monkeypatch):
+    monkeypatch.setattr(feeds, "SHIPS_EU", ["direct-running"])
+    assert "AT" in feeds.awin_countries("NL", "Direct-Running NL")

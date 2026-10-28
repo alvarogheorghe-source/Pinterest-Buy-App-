@@ -205,7 +205,7 @@ def test_marketplace_and_affiliate_headers(fake_ebay, monkeypatch):
     assert request.headers["X-EBAY-C-MARKETPLACE-ID"] == "EBAY_AT"
     assert request.headers["X-EBAY-C-ENDUSERCTX"] == "affiliateCampaignId=5338"
     assert parse_qs(request.url.query.decode())["filter"] == [
-        "buyingOptions:{FIXED_PRICE},price:[5..],priceCurrency:EUR"]
+        "buyingOptions:{FIXED_PRICE},price:[5..],priceCurrency:EUR,deliveryCountry:AT"]   # nur Lieferbares
 
 
 def test_sandbox_keys_and_ebay_reason(fake_ebay, client, monkeypatch):
