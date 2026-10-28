@@ -53,39 +53,28 @@
       </button>
     </nav>
 
-    <section class="filters">
-      <div>
-        <span class="filter-label">Budget</span>
-        <div class="chips" id="budget-chips">
-          <button class="chip" data-max="15">bis 15 €</button>
-          <button class="chip" data-max="25">bis 25 €</button>
-          <button class="chip" data-max="40">bis 40 €</button>
-          <button class="chip" data-max="60">bis 60 €</button>
-          <button class="chip active" data-max="">Alle</button>
-        </div>
-      </div>
-      <div id="category-filter">
-        <label class="filter-label" for="category-select">Kategorie</label>
-        <select id="category-select">
-          <option value="">Alle Kategorien</option>
-        </select>
-      </div>
-      <div>
-        <label class="filter-label" for="sort-select">Sortieren</label>
-        <select id="sort-select">
-          <option value="match">Passt am besten</option>
-          <option value="price">Preis aufsteigend</option>
-        </select>
-      </div>
-      <div id="gender-filter">
-        <label class="filter-label" for="gender-select">Für</label>
-        <select id="gender-select">
-          <option value="auto">Wie meine Pins</option>
-          <option value="damen">Damen</option>
-          <option value="herren">Herren</option>
-          <option value="alle">Alle</option>
-        </select>
-      </div>
+    <!-- Filter: eine schlanke Zeile Auswahl-Pillen (Beschriftung steckt in den Optionen) -->
+    <section class="filters" aria-label="Filter">
+      <select id="budget-select" class="filter-pill" aria-label="Budget">
+        <option value="">Jedes Budget</option>
+        <option value="15">bis 15 €</option>
+        <option value="25">bis 25 €</option>
+        <option value="40">bis 40 €</option>
+        <option value="60">bis 60 €</option>
+      </select>
+      <select id="category-select" class="filter-pill" aria-label="Kategorie">
+        <option value="">Alle Kategorien</option>
+      </select>
+      <select id="gender-select" class="filter-pill" aria-label="Für">
+        <option value="auto">Für: wie meine Pins</option>
+        <option value="damen">Für: Damen</option>
+        <option value="herren">Für: Herren</option>
+        <option value="alle">Für: alle</option>
+      </select>
+      <select id="sort-select" class="filter-pill filter-sort" aria-label="Sortieren">
+        <option value="match">Passt am besten</option>
+        <option value="price">Preis aufsteigend</option>
+      </select>
     </section>
 
     <!-- Shop the Look: Outfit-Pins mit den passenden Teilen (shop.js: renderLooks) -->

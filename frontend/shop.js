@@ -7,11 +7,11 @@ const looksBox = document.getElementById("looks");
 const resultCount = document.getElementById("result-count");
 const banner = document.getElementById("profile-banner");
 const categorySelect = document.getElementById("category-select");
-const categoryFilter = document.getElementById("category-filter");
+const categoryFilter = document.getElementById("category-select");
 const sortSelect = document.getElementById("sort-select");
 const genderSelect = document.getElementById("gender-select");
-const genderFilter = document.getElementById("gender-filter");
-const budgetChips = document.getElementById("budget-chips");
+const genderFilter = document.getElementById("gender-select");
+const budgetSelect = document.getElementById("budget-select");
 const pinItemsCount = document.getElementById("pin-items-count");
 const tabButtons = document.querySelectorAll(".tab");
 const deptButtons = document.querySelectorAll(".dept");
@@ -78,7 +78,7 @@ async function load() {
     return;
   }
   const recommendations = await recResponse.json();
-  labelBudgetChips(recommendations.currency);
+  labelBudget(recommendations.currency);
   const pinItems = await pinResponse.json();
   const profile = recommendations.profile;
 
@@ -254,12 +254,12 @@ function renderNoShopsYet(pinCount, onlyUnfitting = false) {
   resultCount.textContent = "";
 }
 
-// Budget-Chips in der Währung der Person: "bis 15 €", "up to $15", "up to £15" …
-function labelBudgetChips(currency = "EUR") {
+// Budget in der Währung der Person: "bis 15 €", "up to $15", "up to £15" …
+function labelBudget(currency = "EUR") {
   const format = new Intl.NumberFormat(window.LOCALE || "de-AT",
     { style: "currency", currency, maximumFractionDigits: 0 });
-  for (const chip of budgetChips.querySelectorAll(".chip[data-max]")) {
-    if (chip.dataset.max) chip.textContent = t("bis {price}", { price: format.format(chip.dataset.max) });
+  for (const option of budgetSelect.options) {
+    if (option.value) option.textContent = t("bis {price}", { price: format.format(option.value) });
   }
 }
 
@@ -498,33 +498,32 @@ function createCard(data) {
   note.className = "card-reason";
   note.textContent = data.note || "";
 
+  // Kein "Zum Shop"-Knopf pro Kachel (wirkt unruhig) – die ganze Kachel ist der Link.
+  // Die Kennzeichnung ("Werbung" / "Link aus deinem Pin") bleibt immer sichtbar.
   const actions = document.createElement("div");
   actions.className = "card-actions";
-  const link = document.createElement("a");
-  link.className = "button";
-  link.textContent = data.buttonText;
-  link.href = data.href;
-  link.target = "_blank"; // neuer Tab
-  link.rel = data.rel;
   const label = document.createElement("span");
   label.className = data.labelClass;
   label.textContent = data.label;
-  actions.append(link, label);
+  actions.append(label);
 
   body.append(topLine, title, price);
   if (data.hint) body.appendChild(Object.assign(document.createElement("p"),
     { className: "card-hint", textContent: data.hint }));
   body.append(note, actions);
 
-  // Bild und Name als Link zur Detailseite (nur bei Katalog-Produkten)
-  if (data.detailUrl) {
-    const imageLink = document.createElement("a");
-    imageLink.className = "card-link";
-    imageLink.href = data.detailUrl;
+  // Bild und Name sind der Link: Katalog-Produkte -> Detailseite (dort "Zum Shop"),
+  // Teile aus Pins -> direkt zum Angebot (neuer Tab)
+  const makeLink = () => {
+    const a = Object.assign(document.createElement("a"), { className: "card-link" });
+    a.href = data.detailUrl || data.href;
+    if (!data.detailUrl) Object.assign(a, { target: "_blank", rel: data.rel });
+    return a;
+  };
+  if (data.detailUrl || data.href) {
+    const imageLink = makeLink();
     imageLink.appendChild(imageBox);
-    const titleLink = document.createElement("a");
-    titleLink.className = "card-link";
-    titleLink.href = data.detailUrl;
+    const titleLink = makeLink();
     title.replaceWith(titleLink);
     titleLink.appendChild(title);
     card.append(imageLink, body);
@@ -584,12 +583,8 @@ for (const button of tabButtons) {
 }
 window.addEventListener("hashchange", applyHash);
 
-budgetChips.addEventListener("click", (event) => {
-  const chip = event.target.closest(".chip");
-  if (!chip) return;
-  for (const c of budgetChips.querySelectorAll(".chip")) c.classList.remove("active");
-  chip.classList.add("active");
-  filters.maxPrice = chip.dataset.max;
+budgetSelect.addEventListener("change", () => {
+  filters.maxPrice = budgetSelect.value;
   load();
 });
 
