@@ -1872,3 +1872,30 @@ section + section {
 .card .card-actions {
   margin-top: 0;          /* Kennzeichnung direkt unter dem Preis */
 }
+
+/* Kopfzeile der Kachel: Shop links (mit …), Kennzeichnung rechts – leise, aber immer lesbar */
+.card .card-shop {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: normal;
+}
+
+.card .card-shop-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.card .card-tag {
+  flex: none;
+  padding: 0;
+  border: none;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}

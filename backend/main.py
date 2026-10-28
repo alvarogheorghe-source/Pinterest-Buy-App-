@@ -496,9 +496,8 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     # Nur, was wirklich zu den Pins passt – Rest gar nicht zeigen
     if has_taste(profile):
         checked = product_checks.load()
+        # Qualität vor Menge: lieber eine halbleere Seite als Unpassendes
         fitting = [r for r in ranked if fits_pins(r, profile, wanted, checked)]
-        if len(fitting) < MIN_SHOWN:   # zu wenig sehr Passendes -> mit "nah dran" auffüllen
-            fitting += [r for r in ranked if r not in fitting and close_to_pins(r)]
     else:
         fitting = ranked
     unfitting, ranked = len(ranked) - len(fitting), fitting
@@ -522,17 +521,17 @@ def has_taste(profile: matching.StyleProfile) -> bool:
     return bool(profile.categories or profile.colors or profile.styles)
 
 
-MIN_SHOWN = 12   # weniger sehr Passendes -> mit "nah dran" auffüllen statt leerer Seite
-
-
 def fits_pins(item: dict, profile: matching.StyleProfile, wanted: str | None = None,
               checked: dict | None = None) -> bool:
     """Streng – lieber weniger, dafür wirklich Passendes:
+    - Widerspruch zu den Pins (Schnitt, Typ: Skinny statt Baggy, Shorts statt Jeans) -> nie
     - sieht aus wie die Pins (Bilderkennung) -> passt
     - sonst: unklar für wen (Damen/Herren), obwohl Bilderkennung UND Pins es hätten zeigen
       können -> nein (ohne Bildprüfung wissen wir es schlicht nicht – dann nicht bestrafen)
     - die Art von Teil muss in den Pins vorkommen UND mind. ein weiteres Merkmal passen
       (Farbe, Stil, Schnitt, Marke); erkennt man in den Pins keine Teile: zwei Merkmale"""
+    if item.get("clashes"):            # Skinny, obwohl du Baggy pinnst -> nie
+        return False
     if item.get("looks_like_pins"):
         return True
     if wanted and not item.get("gender") and item["id"] in (checked or {}):
@@ -543,11 +542,6 @@ def fits_pins(item: dict, profile: matching.StyleProfile, wanted: str | None = N
         return item["category"] in matched and len(features) >= 1
     return len(features) >= 2
 
-
-def close_to_pins(item: dict) -> bool:
-    """Nah dran: die Art von Teil kommt in den Pins vor ODER zwei Merkmale passen."""
-    matched = item.get("matched") or []
-    return item["category"] in matched or len(matched) >= 2
 
 
 GENDER_BONUS = 0.3   # wie ein Begriff in knapp jedem dritten Pin

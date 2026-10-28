@@ -389,15 +389,17 @@ def explain(matched: list[str], profile: StyleProfile) -> str:
 
 DETAIL_WEIGHT = 0.6     # Bootcut gepinnt + Bootcut im Titel -> bis zu 0.6 Punkte extra
 DETAIL_CLASH = 0.4      # Bootcut gepinnt, Titel sagt "Skinny" -> bis zu 0.4 Punkte weniger
+CLASH_MIN_SHARE = 0.25  # Widerspruch zählt, wenn mind. jeder 4. Pin dieser Art das andere zeigt
 
 
-def detail_points(product: Product, profile: StyleProfile) -> tuple[float, list[str]]:
-    """Punkte für Schnitt & Details im Produkttitel -> (Punkte, passende Details).
+def detail_points(product: Product, profile: StyleProfile) -> tuple[float, list[str], list[str]]:
+    """Punkte für Schnitt & Details im Produkttitel -> (Punkte, passende Details, Widersprüche).
 
-    Plus, wenn ein gepinntes Detail im Titel steht. Minus, wenn der Titel in derselben
-    Gruppe etwas anderes sagt, das du NICHT pinnst (Skinny statt Bootcut)."""
+    Plus, wenn ein gepinntes Detail im Titel steht. Minus – und ein Widerspruch –, wenn der
+    Titel in derselben Gruppe etwas anderes sagt, das du NICHT pinnst: Skinny statt Baggy,
+    Shorts statt Jeans. Widersprüche zeigt der Shop gar nicht (main.fits_pins)."""
     found = {name for _, name in details.find(product.name, [product.category])}
-    points, matched = 0.0, []
+    points, matched, clashes = 0.0, [], []
     for name in found:
         share = profile.detail_share(product.category, name)
         if share > 0:
@@ -408,9 +410,12 @@ def detail_points(product: Product, profile: StyleProfile) -> tuple[float, list[
         rivals = [profile.detail_share(product.category, other)
                   for other, _ in profile.top_details(product.category)
                   if details.BY_NAME[other].group == group]
-        if group != "typ" and rivals:     # Typ-Unterschiede regelt schon die Kategorie
+        if rivals:
             points -= DETAIL_CLASH * max(rivals)
-    return points, sorted(matched, key=lambda n: -profile.detail_share(product.category, n))
+            if max(rivals) >= CLASH_MIN_SHARE:     # nicht wegen eines einzelnen Pins
+                clashes.append(name)
+    return (points, sorted(matched, key=lambda n: -profile.detail_share(product.category, n)),
+            sorted(clashes))
 
 
 def rank_products(products: list[Product], profile: StyleProfile) -> list[dict]:
@@ -426,12 +431,13 @@ def rank_products(products: list[Product], profile: StyleProfile) -> list[dict]:
         # Nur Begriffe, die im Profil vorkommen; häufigste zuerst
         matched = sorted((t for t in terms if profile.mentions(t) > 0),
                          key=profile.weight, reverse=True)
-        extra, matched_details = detail_points(product, profile)
+        extra, matched_details, clashes = detail_points(product, profile)
         score = sum(profile.weight(t) for t in matched) + extra
         matched = matched_details + matched   # das genaueste Merkmal zuerst in der Begründung
         results.append({
             **product.model_dump(),
             "score": round(score, 3),
+            "clashes": clashes,           # z.B. ["Skinny"], wenn du Baggy pinnst
             "matched": matched,
             "reason": explain(matched, profile),
         })

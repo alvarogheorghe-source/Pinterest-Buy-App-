@@ -126,17 +126,11 @@ def test_only_items_that_fit_the_pins_are_shown(client, monkeypatch):
     monkeypatch.setattr(products, "get_product_source", lambda: Source())
     storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [
         {"id": "1", "title": "beige oversized hoodie outfit"}]})
-    from backend import main
-    monkeypatch.setattr(main, "MIN_SHOWN", 0)
     data = client.get("/api/recommendations?gender=alle").json()
     # f-4: Farbe + Stil, aber Jacken kommen in den Pins nicht vor -> streng: nein
+    # (kein Auffüllen mehr – Qualität vor Menge)
     assert sorted(p["id"] for p in data["products"]) == ["f-1"]
     assert data["unfitting"] == 3
-    # Zu wenig sehr Passendes -> "nah dran" (f-4) wird aufgefüllt, Unpassendes nie
-    monkeypatch.setattr(main, "MIN_SHOWN", 12)
-    data = client.get("/api/recommendations?gender=alle").json()
-    assert [p["id"] for p in data["products"]][0] == "f-1"
-    assert sorted(p["id"] for p in data["products"]) == ["f-1", "f-4"]
 
 
 def test_image_check_removes_ai_pictures_and_fills_in_gender(client, monkeypatch):
@@ -202,3 +196,28 @@ def test_ebay_first_when_equally_good(client, monkeypatch):
     storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [{"id": "1", "title": "blaue Jeans"}]})
     ids = [p["id"] for p in client.get("/api/recommendations?gender=alle").json()["products"]]
     assert ids == ["ebay-1", "feed-1", "etsy-1"]
+
+
+def test_cut_or_type_against_the_pins_is_never_shown(client, monkeypatch):
+    from backend import products, storage
+    from backend.products import Product
+
+    def item(pid, name):
+        return Product(id=pid, name=name, shop="eBay", price=30, category="Hosen",
+                       colors=["schwarz"], image_url="https://i/x.jpg", affiliate_url="https://a/x")
+
+    class Source:
+        def load(self):
+            return [item("ebay-1", "Schwarze Baggy Jeans"), item("ebay-2", "Schwarze Skinny Jeans"),
+                    item("ebay-3", "Schwarze Jeans Shorts Bermuda"), item("ebay-4", "Schwarze Jeans")]
+
+        def warnings(self):
+            return []
+
+    monkeypatch.setattr(products, "get_product_source", lambda: Source())
+    storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [
+        {"id": str(n), "title": "schwarze baggy jeans outfit"} for n in range(4)]})
+    data = client.get("/api/recommendations?gender=alle").json()
+    ids = [p["id"] for p in data["products"]]
+    assert "ebay-2" not in ids and "ebay-3" not in ids       # Skinny / Shorts: Widerspruch
+    assert ids[0] == "ebay-1" and "ebay-4" in ids             # Baggy zuerst, ohne Angabe ok

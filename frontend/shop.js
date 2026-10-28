@@ -425,7 +425,8 @@ function pinItemToCard(item) {
     href: item.link,
     // nofollow = fremder, nicht von uns geprüfter Link
     rel: "nofollow noopener",
-    label: "Link aus deinem Pin",
+    label: "Aus deinem Pin",
+    isPinItem: true,
     labelClass: "source-label",
   };
 }
@@ -456,9 +457,15 @@ function createCard(data) {
   const body = document.createElement("div");
   body.className = "card-body";
 
+  // Oben: "EBAY · SECOND HAND"  ……  "WERBUNG" (Kennzeichnung rechts, wird nie abgeschnitten)
   const topLine = document.createElement("p");
   topLine.className = "card-shop";
-  topLine.textContent = data.topLine;
+  topLine.append(Object.assign(document.createElement("span"),
+    { className: "card-shop-name", textContent: data.topLine }));
+  if (data.labelClass !== "source-label" || data.isPinItem) {
+    topLine.append(Object.assign(document.createElement("span"),
+      { className: `card-tag ${data.labelClass}`, textContent: data.label }));
+  }
 
   const title = document.createElement("h3");
   title.className = "card-name";
@@ -479,18 +486,11 @@ function createCard(data) {
   note.textContent = data.note || "";
 
   // Kein "Zum Shop"-Knopf pro Kachel (wirkt unruhig) – die ganze Kachel ist der Link.
-  // Die Kennzeichnung ("Werbung" / "Link aus deinem Pin") bleibt immer sichtbar.
-  const actions = document.createElement("div");
-  actions.className = "card-actions";
-  const label = document.createElement("span");
-  label.className = data.labelClass;
-  label.textContent = data.label;
-  actions.append(label);
 
   body.append(topLine, title, price);
   if (data.hint) body.appendChild(Object.assign(document.createElement("p"),
     { className: "card-hint", textContent: data.hint }));
-  body.append(note, actions);
+  body.append(note);
 
   // Bild und Name sind der Link: Katalog-Produkte -> Detailseite (dort "Zum Shop"),
   // Teile aus Pins -> direkt zum Angebot (neuer Tab)
