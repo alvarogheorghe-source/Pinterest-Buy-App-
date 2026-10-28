@@ -823,8 +823,8 @@ details p {
 
   /* Sehr schmale Handys: "Shop" oben ausblenden, "Shop ansehen" steht im Hero */
   @media (max-width: 420px) {
-    .header-nav .header-link:not(.nav-saved):not(.lang-switch) {
-      display: none;   /* ♡ Merkliste und Sprachumschalter bleiben sichtbar */
+    .header-nav .nav-links .header-link {
+      display: none;   /* ♡ Merkliste, Sprache und "Kostenlos starten" bleiben sichtbar */
     }
   }
 

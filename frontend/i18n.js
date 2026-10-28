@@ -83,7 +83,7 @@
     };
     const nav = document.querySelector(".header-nav");
     if (nav && !nav.querySelector(".lang-switch")) {
-      nav.prepend(makeLink("header-link lang-switch", other.toUpperCase()));
+      (nav.querySelector(".nav-icons") || nav).append(makeLink("lang-switch lang-pill", other.toUpperCase()));
     }
     const footer = document.querySelector(".site-footer") || document.querySelector("main");
     if (footer && !footer.querySelector(".lang-switch")) {

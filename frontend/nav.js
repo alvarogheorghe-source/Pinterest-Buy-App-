@@ -49,3 +49,12 @@ updateSavedCount();
   new MutationObserver((changes) => changes.forEach((c) => c.addedNodes.forEach(scan)))
     .observe(document.body, { childList: true, subtree: true });
 })();
+
+
+// Aktuelle Seite in der Kopfzeile hervorheben ("Shop" im Shop, "Stile" im Stil-Lexikon …)
+for (const link of document.querySelectorAll(".header-nav a[href^='/']")) {
+  if (new URL(link.href).pathname === location.pathname) {
+    link.classList.add("is-active");
+    link.setAttribute("aria-current", "page");
+  }
+}
