@@ -51,6 +51,31 @@ async function start() {
       { value: feed.name }));
   }
   renderList(await response.json());
+  renderStats(await fetch("/api/admin/stats").then((r) => r.json()));
+}
+
+// --- Besucherzahlen ----------------------------------------------------------------------------
+
+function renderStats({ days, totals, top_shops: topShops }) {
+  const labels = { visitors: "Besucher", views: "Seitenaufrufe", clicks: "Klicks zu Shops",
+                   photos: "Foto-Suchen" };
+  document.getElementById("stats-totals").replaceChildren(...Object.entries(labels).map(([key, label]) => {
+    const box = el("div", "stats-box");
+    box.append(el("strong", "", String(totals[key])), el("span", "muted", label));
+    return box;
+  }));
+  const table = document.getElementById("stats-days");
+  const head = el("tr");
+  for (const text of ["Tag", ...Object.values(labels)]) head.append(el("th", "", text));
+  table.replaceChildren(head, ...days.slice().reverse().slice(0, 14).map((day) => {
+    const row = el("tr");
+    row.append(el("td", "", day.day));
+    for (const key of Object.keys(labels)) row.append(el("td", "", String(day[key])));
+    return row;
+  }));
+  document.getElementById("stats-shops").textContent = topShops.length
+    ? "Meiste Klicks: " + topShops.map(([shop, count]) => `${shop} (${count})`).join(", ")
+    : "Noch keine Klicks zu Shops.";
 }
 
 loginForm.addEventListener("submit", async (event) => {

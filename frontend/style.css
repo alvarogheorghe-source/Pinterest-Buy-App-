@@ -2752,3 +2752,11 @@ body.needs-input-mode .filters {
   display: none;
 }
 #source-note:empty + .source-sep { display: none; }
+
+/* Admin: Besucherzahlen */
+.stats-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 12px 0 16px; }
+.stats-box { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 14px; background: var(--chip-bg); }
+.stats-box strong { font-size: 1.5rem; }
+.stats-table { width: 100%; border-collapse: collapse; font-size: .9rem; margin-bottom: 12px; }
+.stats-table th, .stats-table td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.stats-table th:first-child, .stats-table td:first-child { text-align: left; }

@@ -63,7 +63,11 @@ Malipin only uses what is needed for the site to work, so there is no cookie ban
 - `lang` for your language and, only if you choose one, `country` for your country and currency
 - local storage in your browser for small settings, for example whether you have hidden Mali
 
-There is no analytics, no tracking and no advertising cookie.
+There is no analytics service, no tracking and no advertising cookie. Malipin only counts, per
+day, how many pages were opened, how many people visited, how often someone clicked through to
+a shop and how many photo searches there were. To count visitors without cookies, a checksum is
+made from the IP address, the browser name and a random value that changes every day. It is
+only kept in memory and forgotten at midnight. Only the totals are stored.
 
 ## Where the data is stored and for how long
 
@@ -108,6 +112,7 @@ weitergegeben und nicht für Werbeprofile genutzt. Bilder werden auf unserem eig
 Zahlen umgewandelt, nur für deine Vorschläge. Hochgeladene Fotos werden nie gespeichert. An
 eBay, Etsy und AliExpress gehen nur kurze Suchbegriffe ohne persönliche Daten. Manche Links sind
 Affiliate-Links (als Werbung gekennzeichnet), einige laufen über Skimlinks. Erst beim Klick
-erfahren Skimlinks und der Shop davon. Malipin setzt nur notwendige Cookies, kein Tracking. Die
+erfahren Skimlinks und der Shop davon. Malipin setzt nur notwendige Cookies, kein Tracking. Besuche werden nur als Tageszahlen
+gezählt, ohne Cookie und ohne IP-Adressen zu speichern. Die
 Daten liegen auf unserem Server in der EU. Mit „Alle meine Daten löschen“ unter „Mein Pinterest“
 ist alles sofort weg. Fragen gerne an company.malipin@gmail.com.

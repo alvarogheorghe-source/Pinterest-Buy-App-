@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
-  <title>Admin | Geprüfte Shops</title>
+  <title>Admin | Malipin</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/bunny.css">
@@ -19,7 +19,7 @@
   </header>
 
   <main class="admin">
-    <h1 class="page-title">Geprüfte Shops</h1>
+    <h1 class="page-title">Admin</h1>
 
     <!-- Anmelden -->
     <form id="login-form" class="admin-card" hidden>
@@ -30,6 +30,14 @@
     </form>
 
     <div id="admin-panel" hidden>
+      <!-- Besucherzahlen (ohne Cookies, backend/stats.py) -->
+      <section class="admin-card">
+        <h2>Besucher <span class="muted">letzte 30 Tage</span></h2>
+        <div id="stats-totals" class="stats-totals"></div>
+        <table id="stats-days" class="stats-table"></table>
+        <p id="stats-shops" class="muted"></p>
+      </section>
+
       <!-- Shop eintragen -->
       <form id="shop-form" class="admin-card">
         <h2>Neuen Shop eintragen</h2>

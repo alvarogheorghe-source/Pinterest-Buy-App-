@@ -20,7 +20,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from backend import (analysis, currency, feedback, i18n, looks, matching, photo, pins, pinterest,
                      product_checks, products, quality, rate_limit, region,
-                     shop_links, shops, similar, skimlinks, storage, style_guide, vibe,
+                     shop_links, shops, similar, skimlinks, stats, storage, style_guide, vibe,
                      vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
@@ -325,6 +325,26 @@ def admin_list_shops(request: Request):
     return shops.load()
 
 
+class Hit(BaseModel):
+    type: Literal["view", "click"]
+    page: str = Field("", max_length=100)
+    url: str = Field("", max_length=2000)
+
+
+@app.post("/api/hit", status_code=204)
+def hit(data: Hit, request: Request):
+    """Besucherzählung ohne Cookies (backend/stats.py): Seite aufgerufen / zu einem Shop geklickt."""
+    stats.record(data.type, ip=request.client.host if request.client else "",
+                 user_agent=request.headers.get("user-agent", ""),
+                 page=data.page, shop=stats.shop_name(data.url))
+
+
+@app.get("/api/admin/stats")
+def admin_stats(request: Request, days: int = Query(30, ge=1, le=400)):
+    require_admin(request)
+    return stats.summary(days)
+
+
 @app.get("/api/admin/feeds")
 def admin_list_feeds(request: Request):
     """Feed-Namen für die Plattform-Auswahl auf der Admin-Seite."""
@@ -364,6 +384,7 @@ async def upload_photo(request: Request, force: bool = False):
         raise HTTPException(415, "Bitte ein Foto schicken (JPG, PNG, WebP …).")
     if not rate_limit.allow(request.client.host if request.client else "?"):
         raise HTTPException(429, "Das waren gerade sehr viele Fotos. Probier es in ein paar Minuten nochmal.")
+    stats.record("photo", user_agent=request.headers.get("user-agent", ""))
     async with PHOTO_SLOTS:   # höchstens 2 Fotos gleichzeitig, der Rest wartet kurz
         return await analyse_photo(request, force)
 

@@ -37,3 +37,4 @@ data/exchange_rates.json
 data/product_checks.json
 # Tägliche Sicherungen (backend/backup.py)
 backups/
+data/stats.json

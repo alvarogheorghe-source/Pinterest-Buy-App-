@@ -58,3 +58,19 @@ for (const link of document.querySelectorAll(".header-nav a[href^='/']")) {
     link.setAttribute("aria-current", "page");
   }
 }
+
+
+// Besucherzählung ohne Cookies (backend/stats.py): nur "Seite aufgerufen" und "zu einem Shop
+// geklickt", keine Kennung, nichts im Browser gespeichert.
+function hit(data) {
+  const body = new Blob([JSON.stringify(data)], { type: "application/json" });
+  if (!navigator.sendBeacon?.("/api/hit", body)) {
+    fetch("/api/hit", { method: "POST", body, keepalive: true }).catch(() => {});
+  }
+}
+
+hit({ type: "view", page: location.pathname });
+document.addEventListener("click", (event) => {
+  const link = event.target.closest?.("a[href^='http']");
+  if (link && link.host !== location.host) hit({ type: "click", url: link.href });
+}, true);
