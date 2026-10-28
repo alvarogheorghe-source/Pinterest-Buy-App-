@@ -17,7 +17,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from backend import (analysis, currency, feedback, i18n, looks, matching, photo, pins, pinterest,
-                     product_checks, products, region,
+                     product_checks, products, quality, region,
                      shop_links, shops, similar, storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
@@ -481,6 +481,10 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     selection = [p if p.gender or not product_checks.image_gender(p.id)
                  else p.model_copy(update={"gender": product_checks.image_gender(p.id)})
                  for p in selection if not product_checks.is_ai(p.id)]
+    # Luxusmarken nur, wenn du sie pinnst (keine Gucci-Schuhe, wenn du nie Gucci gepinnt hast)
+    pinned_luxury = set().union(*(quality.luxury_in(matching.pin_text(pin)) for pin in pins_list))
+    selection = [p for p in selection
+                 if not (lux := quality.luxury_in(p.name)) or lux & pinned_luxury]
     vision.embed_in_background(selection)   # neue Fotos still anschauen (fürs nächste Laden)
     wanted = for_whom(gender, pins_list) if department == "mode" else None
     selection = [p for p in selection if not (wanted and p.gender and p.gender != wanted)]

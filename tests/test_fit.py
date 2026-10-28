@@ -239,3 +239,28 @@ def test_photo_must_roughly_match_the_pins():
     # Foto noch nicht angeschaut: nur sehr sichere Text-Treffer
     assert not fits_pins(item(None, ["Hosen", "schwarz"]), profile)
     assert fits_pins(item(None, ["Hosen", "schwarz", "Baggy"]), profile)
+
+
+def test_luxury_brands_only_when_pinned(client, monkeypatch):
+    from backend import products, quality, storage
+    from backend.products import Product
+    assert quality.luxury_in("GUCCI Ace Sneaker Leder") == {"gucci"}
+    assert quality.luxury_in("YSL Tasche") == {"saint laurent"}
+    assert quality.luxury_in("Guccio Sneaker") == set()                   # nur ganze Wörter
+
+    def item(pid, name):
+        return Product(id=pid, name=name, shop="eBay", price=90, category="Schuhe",
+                       colors=["weiß"], image_url="https://i/x.jpg", affiliate_url="https://a/x")
+
+    class Source:
+        def load(self):
+            return [item("ebay-1", "Gucci Ace Sneaker Weiß"), item("ebay-2", "Weiße Leder Sneaker")]
+
+        def warnings(self):
+            return []
+
+    monkeypatch.setattr(products, "get_product_source", lambda: Source())
+    storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [{"id": "1", "title": "weiße sneaker"}]})
+    assert [p["id"] for p in client.get("/api/recommendations?gender=alle").json()["products"]] == ["ebay-2"]
+    storage.save_pins({"fetched_at": 2, "board_ids": ["x"], "pins": [{"id": "1", "title": "gucci weiße sneaker"}]})
+    assert "ebay-1" in [p["id"] for p in client.get("/api/recommendations?gender=alle").json()["products"]]

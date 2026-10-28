@@ -76,6 +76,24 @@ AI_WORDS = re.compile(r"\b(ai[- ]?(generated|art|image|design)|midjourney|stable
                       r"dall-?e|ki[- ]?(generiert|kunst|bild))\b", re.I)
 
 
+# Luxusmarken: nur zeigen, wenn die Person sie selbst pinnt (sonst "Gucci-Schuhe für 800 €",
+# obwohl niemand danach gefragt hat – auf Marktplätzen außerdem oft Fälschungen)
+LUXURY = ["gucci", "prada", "louis vuitton", "balenciaga", "dior", "chanel", "saint laurent",
+          "yves saint laurent", "ysl", "versace", "fendi", "bottega veneta", "valentino",
+          "givenchy", "burberry", "moncler", "off-white", "alexander mcqueen", "hermès", "hermes",
+          "loewe", "celine", "céline", "miu miu", "dolce & gabbana", "dolce gabbana", "d&g",
+          "golden goose", "jimmy choo", "christian louboutin", "louboutin", "rick owens",
+          "maison margiela", "margiela", "balmain", "kenzo", "jacquemus", "the row",
+          "tom ford", "philipp plein", "dsquared2", "moschino", "stone island", "canada goose"]
+_LUXURY = re.compile(r"(?<!\w)(" + "|".join(re.escape(b) for b in LUXURY) + r")(?!\w)", re.I)
+
+
+def luxury_in(text: str) -> set[str]:
+    """Welche Luxusmarken kommen im Text vor? (klein geschrieben, "ysl" -> "saint laurent")"""
+    found = {m.lower() for m in _LUXURY.findall(text or "")}
+    return {"saint laurent" if b in ("ysl", "yves saint laurent") else b for b in found}
+
+
 def rejected(name: str, category_text: str, department: str, price: float, currency_code: str,
              category: str, min_price: bool = True) -> bool:
     """True = nicht zeigen. min_price=False für Second-Hand (gebraucht darf günstig sein)."""
