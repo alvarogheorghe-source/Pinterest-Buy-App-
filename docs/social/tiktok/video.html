@@ -9,6 +9,77 @@
 // Inhalte zwischen y 180 und 1520, rechts nicht über x 940.
 const W = 1080, H = 1920, BEAT = 0.4;
 const ctx = document.getElementById("c").getContext("2d");
+// Sprache: ?lang=en -> englische Texte (alle Textfunktionen übersetzen automatisch)
+const LANG = new URLSearchParams(location.search).get("lang") || "de";
+const EN = {
+"Du bist zu 100 %": "You're 100% one",
+"einer dieser": "of these",
+"Vibes": "vibes",
+"Lederjacke": "Leather jacket",
+"Plateau-Boots": "Platform boots",
+"Silberschmuck": "Silver jewelry",
+"Leinenhose": "Linen pants",
+"Goldene Creolen": "Gold hoops",
+"Ballerinas": "Ballet flats",
+"Baby Tee": "Baby tee",
+"Low Rise Jeans": "Low rise jeans",
+"Glitzer": "Glitter",
+"Hoodie": "Hoodie",
+"Cargohose": "Cargo pants",
+"Chunky Sneaker": "Chunky sneakers",
+"Blumenkleid": "Floral dress",
+"Korbtasche": "Basket bag",
+"Strickjacke": "Cardigan",
+"Cashmere": "Cashmere",
+"Loafer": "Loafers",
+"Trenchcoat": "Trench coat",
+"Schleifen": "Bows",
+"Spitze": "Lace",
+"Fleece": "Fleece",
+"Trailschuhe": "Trail shoes",
+"Windjacke": "Windbreaker",
+"Welcher bist du?": "Which one are you?",
+"Welcher bist": "Which one",
+"du?": "are you?",
+"Kommentier deinen Vibe": "Comment your vibe",
+"Dein Pinterest-Board": "Your Pinterest board",
+"kann jetzt": "can now",
+"SHOPPEN": "SHOP",
+"Mali checkt": "Mali checks",
+"jeden Pin …": "every pin …",
+"… und findet alles": "… and finds it all",
+"in deinem Budget": "within your budget",
+"Dein Pinterest.": "Your Pinterest.",
+"Dein Shop.": "Your shop.",
+"Folg uns, bald geht's los": "Follow us, launching soon",
+"€ 39,90": "€39.90",
+"€ 14,99": "€14.99",
+"€ 29,00": "€29.00",
+"€ 18,50": "€18.50",
+"€ 24,90": "€24.90",
+"€ 49,00": "€49.00",
+"€ 22,00": "€22.00",
+"€ 31,90": "€31.90",
+"€ 27,50": "€27.50",
+"Werbung": "Ad",
+"Dieses Outfit": "Want this",
+"nachkaufen?": "outfit?",
+"für unter 120 €": "under €120",
+"Screenshot …": "Screenshot …",
+"… Mali findet's!": "… Mali finds it!",
+"Baggy Jeans": "Baggy jeans",
+"Weiße Sneaker": "White sneakers",
+"44,90 €": "€44.90",
+"29,99 €": "€29.99",
+"39,00 €": "€39.00",
+"Alles zusammen 113,89 €": "Total €113.89",
+"Screenshot rein.": "Screenshot it.",
+"Mali findet's": "Mali finds it",
+"Bald auf malipin.com": "Soon on malipin.com",
+"bald verfügbar": "coming soon"
+};
+const tr = (s) => (LANG === "en" && EN[s] !== undefined ? EN[s] : s);
+
 const FONT = '"Inter Display", Inter, sans-serif';
 
 // ---------- Mali (gleiche Pixel wie frontend/bunny.js) ----------
@@ -91,6 +162,7 @@ function round(x, y, w, h, r) {
 }
 function label(lines, cx, cy, size, { bg = "#fff", fg = "#3a2a30", weight = 800, scale = 1, alpha = 1, pad = 0.42, rot = 0 } = {}) {
   if (alpha <= 0 || scale <= 0) return;
+  lines = lines.map(tr);
   ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(scale, scale);
   ctx.font = `${weight} ${size}px ${FONT}`;
   const widest = Math.max(...lines.map((l) => ctx.measureText(l).width)) * (1 + pad * 2 * size / 100 * 0) + size * pad * 2;
@@ -108,6 +180,7 @@ function label(lines, cx, cy, size, { bg = "#fff", fg = "#3a2a30", weight = 800,
 // Großer Hook-Text: weiß mit dicker dunkler Kontur (klassischer TikTok-Look), leicht schräg
 function hook(lines, cx, cy, size, { scale = 1, alpha = 1, rot = -0.04, fill = "#fff", stroke = "#2d2326" } = {}) {
   if (alpha <= 0 || scale <= 0) return;
+  lines = lines.map(tr);
   ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(scale, scale);
   ctx.font = `900 ${size}px ${FONT}`;
   const widest = Math.max(...lines.map((l) => ctx.measureText(l).width)) + size * 0.2;
@@ -124,7 +197,7 @@ function hook(lines, cx, cy, size, { scale = 1, alpha = 1, rot = -0.04, fill = "
 function text(str, x, y, size, color, { weight = 800, alpha = 1, align = "center", font = FONT } = {}) {
   ctx.save(); ctx.globalAlpha = alpha; ctx.font = `${weight} ${size}px ${font}`;
   ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.fillStyle = color;
-  ctx.fillText(str, x, y); ctx.restore();
+  ctx.fillText(tr(str), x, y); ctx.restore();
 }
 function flash(t, time, strength = 0.8, len = 0.18) {
   const a = punch(t, time, len) * strength;

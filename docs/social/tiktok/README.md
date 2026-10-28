@@ -11,6 +11,7 @@ Drei 12-Sekunden-Videos im Mali-Pixel-Look, 1080×1920, mit eigenem Chiptune-Sou
 Neu erzeugen (Linux/Mac mit Node, Playwright, ffmpeg, Python + numpy):
 ```
 python3 sound.py .
-node render.js "$(pwd)"
+node render.js "$(pwd)"        # Deutsch
+node render.js "$(pwd)" en     # Englisch
 ```
 Texte bleiben im sicheren Bereich (nicht unter TikToks Knöpfen rechts und der Beschreibung unten).

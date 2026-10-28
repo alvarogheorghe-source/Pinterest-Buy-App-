@@ -1,12 +1,14 @@
 const { chromium } = require('playwright');
 const { spawn } = require('child_process');
-const D = process.argv[2], FPS = 30;
-const names = { 1: 'malipin-tiktok-1-welcher-vibe', 2: 'malipin-tiktok-2-pinterest-shop', 3: 'malipin-tiktok-3-screenshot' };
+const D = process.argv[2], LANG = process.argv[3] || 'de', FPS = 30;   // node render.js <ordner> [de|en]
+const names = LANG === 'en'
+  ? { 1: 'malipin-tiktok-1-which-vibe-en', 2: 'malipin-tiktok-2-pinterest-shop-en', 3: 'malipin-tiktok-3-screenshot-en' }
+  : { 1: 'malipin-tiktok-1-welcher-vibe', 2: 'malipin-tiktok-2-pinterest-shop', 3: 'malipin-tiktok-3-screenshot' };
 (async () => {
   const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
   for (const v of [1, 2, 3]) {
-    await p.goto(`file://${D}/video.html?v=${v}`); await p.waitForTimeout(400);
+    await p.goto(`file://${D}/video.html?v=${v}&lang=${LANG}`); await p.waitForTimeout(400);
     const duration = await p.evaluate(() => window.duration);
     const ff = spawn('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-',
       '-i', `${D}/sound-${v}.wav`, '-map', '0:v', '-map', '1:a', '-shortest',
