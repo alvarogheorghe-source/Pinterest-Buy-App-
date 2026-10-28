@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>html, body { margin: 0; background: #000; } canvas { display: block; }</style></head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// Malipin TikTok-Teaser. Alles hängt an der Zeit t (Sekunden) -> Bild für Bild renderbar.
+// Takt: 150 BPM, 1 Schlag = 0,4 s (Musik: sound.py). Sicherer Bereich für TikTok-Bedienelemente:
+// Inhalte zwischen y 180 und 1520, rechts nicht über x 940.
+const W = 1080, H = 1920, BEAT = 0.4;
+const ctx = document.getElementById("c").getContext("2d");
+const FONT = '"Inter Display", Inter, sans-serif';
+
+// ---------- Mali (gleiche Pixel wie frontend/bunny.js) ----------
+const PAL = { o: "#6b5656", w: "#fffaf6", s: "#f1e1da", p: "#f6a5b9", b: "#ffc7d1", k: "#2d2326", r: "#ff6b8b" };
+const IDLE = [
+  "....oo....oo....", "...owwo..owwo...", "...owpo..opwo...", "...owpo..opwo...",
+  "...owpo..opwo...", "...owwoooowwo...", "..owwwwwwwwwwo..", ".owwwwwwwwwwwwo.",
+  ".owwkkwwwwkkwwo.", ".owbkkwwwwkkbwo.", ".owwwwwppwwwwwo.", "..owwwwwwwwwwo..",
+  "..owwwwwwwwwwo..", ".oswwwwwwwwwwso.", ".oswpwwwwwwpwso.", "..oooooooooooo.."];
+const mk = (rows) => IDLE.map((r, i) => rows[i] || r);
+const MALI = {
+  idle: IDLE,
+  blink: mk({ 8: ".owwwwwwwwwwwwo.", 9: ".owboowwwwoobwo." }),
+  happy: mk({ 8: ".owwwowwwwowwwo.", 9: ".owbowowwowobwo." }),
+  shock: mk({ 8: ".owkkkwwwwkkkwo.", 9: ".owkkkwwwwkkkwo.", 10: ".owwwwwkkwwwwwo." }),
+};
+const HEART = [".rr.rr.", "rrrrrrr", "rrrrrrr", ".rrrrr.", "..rrr..", "...r..."];
+
+function pixels(rows, x, y, s, pal, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha;
+  rows.forEach((row, r) => [...row].forEach((ch, c) => {
+    if (ch === "." || !pal[ch]) return;
+    ctx.fillStyle = pal[ch];
+    ctx.fillRect(Math.round(x + c * s), Math.round(y + r * s), Math.ceil(s), Math.ceil(s));
+  }));
+  ctx.restore();
+}
+function mali(cx, cy, s, face = "idle", alpha = 1, squash = 0) {
+  ctx.save(); ctx.globalAlpha = alpha * 0.18; ctx.fillStyle = "#6b5656";
+  ctx.beginPath(); ctx.ellipse(cx, cy + 8.6 * s, 6 * s, 1.1 * s, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.translate(cx, cy + 8 * s); ctx.scale(1 + squash, 1 - squash); ctx.translate(-cx, -(cy + 8 * s));
+  pixels(MALI[face], cx - 8 * s, cy - 8 * s, s, PAL, alpha);
+  ctx.restore();
+}
+function heart(cx, cy, s, alpha = 1) { pixels(HEART, cx - 3.5 * s, cy - 3 * s, s, PAL, alpha); }
+
+// ---------- Pixel-Teile ----------
+const ITEMS = {
+  jacket: ["...XX..XX...", "..XXXwwXXX..", ".XXXXwwXXXX.", "XXXXXwwXXXXX", "XXXXXwwXXXXX",
+           "XX.XXwwXX.XX", "XX.XXwwXX.XX", "XX.XXwwXX.XX", "XX.XXXXXX.XX", "...XXXXXX..."],
+  jeans:  ["..XXXXXXXX..", "..XXXXXXXX..", "..XXXX.XXX..", ".XXXXX.XXXX.", ".XXXX..XXXX.",
+           ".XXXX..XXXX.", "XXXXX..XXXXX", "XXXXX..XXXXX", "XXXXX..XXXXX", "XXXX....XXXX"],
+  sneaker:["............", "....XXX.....", "...XXXXX....", "..XXXXXXXX..", ".XXXXXXXXXXX",
+           "XXXXXXXXXXXX", "GGGGGGGGGGGG", "............"],
+  bag:    ["....XXXX....", "...X....X...", "...X....X...", ".XXXXXXXXXX.", ".XXXXXXXXXX.",
+           ".XXXXwwXXXX.", ".XXXXXXXXXX.", ".XXXXXXXXXX.", ".XXXXXXXXXX."],
+  top:    [".XX....XX.", ".XXXXXXXX.", "XXXXXXXXXX", "XXXXXXXXXX", "..XXXXXX..",
+           "..XXXXXX..", "..XXXXXX..", "..XXXXXX.."],
+  dress:  ["...XXXX...", "...XXXX...", "..XXXXXX..", "..XXXXXX..", ".XXXXXXXX.",
+           ".XXXXXXXX.", "XXXXXXXXXX", "XXXXXXXXXX", "XXXXXXXXXX"],
+  vase:   ["...XXXX...", "...XXXX...", "....XX....", "...XXXX...", "..XXXXXX..",
+           ".XXXXXXXX.", ".XXXXXXXX.", ".XXXXXXXX.", "..XXXXXX.."],
+  lamp:   ["..XXXXXX..", ".XXXXXXXX.", "XXXXXXXXXX", "....XX....", "....XX....",
+           "....XX....", "...XXXX...", "..XXXXXX.."],
+};
+function item(name, cx, cy, s, color, alpha = 1) {
+  const rows = ITEMS[name];
+  pixels(rows, cx - rows[0].length * s / 2, cy - rows.length * s / 2, s,
+         { X: color, w: "#fffaf6", G: "#8c7f78" }, alpha);
+}
+
+// ---------- Helfer ----------
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeBack = (x) => { const c = 2.2; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+// Kurzer "Punch" direkt nach einem Ereignis bei time (1 -> 0)
+const punch = (t, time, len = 0.25) => (t >= time && t < time + len) ? 1 - (t - time) / len : 0;
+
+function bg(top, bottom) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, top); g.addColorStop(1, bottom);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function round(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function label(lines, cx, cy, size, { bg = "#fff", fg = "#3a2a30", weight = 800, scale = 1, alpha = 1, pad = 0.42, rot = 0 } = {}) {
+  if (alpha <= 0 || scale <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.font = `${weight} ${size}px ${FONT}`;
+  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width)) * (1 + pad * 2 * size / 100 * 0) + size * pad * 2;
+  if (widest > 780) { size = size * 780 / widest; ctx.font = `${weight} ${size}px ${FONT}`; }
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const lh = size * 1.28, total = lh * lines.length;
+  lines.forEach((line, i) => {
+    const y = -total / 2 + lh * i + lh / 2;
+    const w = ctx.measureText(line).width + size * pad * 2;
+    if (bg) { ctx.fillStyle = bg; round(-w / 2, y - lh / 2, w, lh, size * 0.28); ctx.fill(); }
+    ctx.fillStyle = fg; ctx.fillText(line, 0, y + size * 0.04);
+  });
+  ctx.restore();
+}
+// Großer Hook-Text: weiß mit dicker dunkler Kontur (klassischer TikTok-Look), leicht schräg
+function hook(lines, cx, cy, size, { scale = 1, alpha = 1, rot = -0.04, fill = "#fff", stroke = "#2d2326" } = {}) {
+  if (alpha <= 0 || scale <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.font = `900 ${size}px ${FONT}`;
+  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width)) + size * 0.2;
+  if (widest > 780) { size = size * 780 / widest; ctx.font = `900 ${size}px ${FONT}`; }
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.lineJoin = "round"; ctx.lineWidth = size * 0.2; ctx.strokeStyle = stroke;
+  const lh = size * 1.08;
+  lines.forEach((line, i) => {
+    const y = (i - (lines.length - 1) / 2) * lh;
+    ctx.strokeText(line, 0, y); ctx.fillStyle = Array.isArray(fill) ? fill[i] : fill; ctx.fillText(line, 0, y);
+  });
+  ctx.restore();
+}
+function text(str, x, y, size, color, { weight = 800, alpha = 1, align = "center", font = FONT } = {}) {
+  ctx.save(); ctx.globalAlpha = alpha; ctx.font = `${weight} ${size}px ${font}`;
+  ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.fillStyle = color;
+  ctx.fillText(str, x, y); ctx.restore();
+}
+function flash(t, time, strength = 0.8, len = 0.18) {
+  const a = punch(t, time, len) * strength;
+  if (a > 0) { ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fillRect(0, 0, W, H); }
+}
+function burst(t, time, cx, cy) {     // Herzchen fliegen auseinander
+  const k = prog(t, time, time + 0.9);
+  if (k <= 0 || k >= 1) return;
+  for (let i = 0; i < 8; i++) {
+    const ang = i / 8 * Math.PI * 2 + 0.3;
+    heart(cx + Math.cos(ang) * 320 * easeOut(k), cy + Math.sin(ang) * 260 * easeOut(k) - 80 * k, 8, 1 - k);
+  }
+}
+function endCard(t, start, headline, sub) {
+  if (t < start) return;
+  bg("#fff3f6", "#ffd2e0");
+  const l = t - start;
+  const hop = Math.abs(Math.sin(l * Math.PI / BEAT)) * 36;
+  mali(W / 2, 640 - hop, 22, (l % 1.6) > 1.45 ? "blink" : "happy", 1, punch(t, start, 0.3) * 0.15);
+  burst(t, start, W / 2, 600);
+  hook(headline, W / 2, 1010, 104, { scale: easeBack(prog(t, start, start + 0.3)) });
+  if (sub) label([sub], W / 2, 1220, 46, { bg: "#c93a69", fg: "#fff", weight: 800, scale: easeBack(prog(t, start + 0.4, start + 0.7)) });
+  text("malipin", W / 2, 1355, 92, "#3a2a30", { weight: 800, alpha: prog(t, start + 0.6, start + 0.9), font: 'Georgia, "DejaVu Serif", serif' });
+  label(["bald verfügbar"], W / 2, 1450, 38, { bg: "#3a2a30", fg: "#fff", weight: 800, alpha: prog(t, start + 0.8, start + 1.1) });
+}
+
+// ---------- Video 1: Welcher Vibe bist du? ----------
+const VIBES = [
+  ["Goth Baddie", "#140f15", "#3b2433", "#ff86b0", ["Lederjacke", "Plateau-Boots", "Silberschmuck"], true],
+  ["Clean Girl", "#fbf4ec", "#efe0d0", "#a07c5a", ["Leinenhose", "Goldene Creolen", "Ballerinas"]],
+  ["Y2K Baby", "#ffc2e6", "#bba6ff", "#b0368a", ["Baby Tee", "Low Rise Jeans", "Glitzer"]],
+  ["Streetwear Icon", "#18222d", "#3d5367", "#ffd166", ["Hoodie", "Cargohose", "Chunky Sneaker"], true],
+  ["Cottagecore", "#eef3e2", "#cfe0b6", "#5f7d3a", ["Blumenkleid", "Korbtasche", "Strickjacke"]],
+  ["Quiet Luxury", "#ece6dd", "#cbbfae", "#6e5a45", ["Cashmere", "Loafer", "Trenchcoat"]],
+  ["Coquette Era", "#ffe1ea", "#ffb8cf", "#c93a69", ["Schleifen", "Spitze", "Ballerinas"]],
+  ["Gorpcore", "#dfe8e1", "#93ad9a", "#2f5a45", ["Fleece", "Trailschuhe", "Windjacke"]],
+];
+const V1_START = 1.6, V1_STEP = 0.8, V1_END = V1_START + VIBES.length * V1_STEP;   // 8.0
+function video1(t) {
+  if (t >= V1_END) return endCard(t, V1_END, ["Welcher bist", "du?"], "Kommentier deinen Vibe");
+  if (t < V1_START) {
+    bg("#ff6b8b", "#c93a69");
+    // Streifen-Hintergrund, der sich bewegt
+    ctx.save(); ctx.globalAlpha = 0.12; ctx.fillStyle = "#fff";
+    for (let i = -4; i < 14; i++) { ctx.save(); ctx.translate(i * 160 + (t * 300) % 160, 0); ctx.rotate(0.35); ctx.fillRect(0, -200, 60, 2600); ctx.restore(); }
+    ctx.restore();
+    hook(["Du bist zu 100 %", "einer dieser", "Vibes"], W / 2, 480, 118, { scale: lerp(1.35, 1, easeOut(prog(t, 0, 0.18))), fill: ["#fff", "#fff", "#ffe066"] });
+    const hop = Math.abs(Math.sin(t * Math.PI / BEAT)) * 60;
+    mali(W / 2, 1120 - hop, 24, t > 1.0 ? "shock" : "idle", 1, punch(t % BEAT, 0, 0.12) * 0.12);
+    flash(t, 0, 0.9);
+    return;
+  }
+  const i = Math.floor((t - V1_START) / V1_STEP), local = (t - V1_START) - i * V1_STEP;
+  const [name, top, bottom, accent, pieces, dark] = VIBES[i];
+  bg(top, bottom);
+  const fg = dark ? "#fff" : "#3a2a30";
+  // Fortschritt oben: 8 Punkte
+  for (let k = 0; k < VIBES.length; k++) {
+    ctx.fillStyle = k <= i ? accent : (dark ? "rgba(255,255,255,.25)" : "rgba(58,42,48,.18)");
+    round(W / 2 - 4 * 70 + k * 70 + 6, 200, 58, 12, 6); ctx.fill();
+  }
+  const pop = easeBack(prog(local, 0, 0.2));
+  label([name], W / 2, 380, 104, { bg: accent, fg: "#fff", scale: pop, rot: (i % 2 ? 1 : -1) * 0.03, weight: 900 });
+  const jump = Math.sin(prog(local, 0, 0.4) * Math.PI) * 90;
+  mali(W / 2, 860 - jump, 22, local < 0.45 ? "happy" : "idle", 1, punch(t, V1_START + i * V1_STEP + 0.4, 0.15) * 0.14);
+  burst(t, V1_START + i * V1_STEP, W / 2, 780);
+  pieces.forEach((piece, k) => {
+    const a = easeBack(prog(local, 0.06 + k * 0.07, 0.2 + k * 0.07));
+    label([piece], W / 2 + (k - 1) * 0, 1150 + k * 112, 52, { bg: dark ? "rgba(255,255,255,.16)" : "rgba(255,255,255,.85)", fg, weight: 800, scale: a });
+  });
+  label(["Welcher bist du?"], W / 2, 1490, 44, { bg: "#3a2a30", fg: "#fff", weight: 800 });
+  flash(t, V1_START + i * V1_STEP, 0.6, 0.12);
+}
+
+// ---------- Video 2: Dein Pinterest kann shoppen ----------
+const PINS = [
+  ["#2b2228", "jacket", 240], ["#e9d8c4", "top", 190], ["#8fa9c9", "jeans", 220],
+  ["#f3e6dc", "vase", 190], ["#c93a69", "bag", 220], ["#f5f1ea", "sneaker", 180],
+  ["#b8c9a3", "dress", 230], ["#d7b98e", "lamp", 200], ["#3b4a5c", "jeans", 210],
+];
+const PRICES = ["€ 39,90", "€ 14,99", "€ 29,00", "€ 18,50", "€ 24,90", "€ 49,00", "€ 22,00", "€ 31,90", "€ 27,50"];
+const V2_DROP = 4.8, V2_END = 8.4;
+function shade(hex) {
+  const n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  const mix = (v) => Math.round(v + (255 - v) * 0.78);
+  return `rgb(${mix(r)},${mix(g)},${mix(b)})`;
+}
+function pinBoard(t, scroll, scan) {
+  const colW = 250, gap = 22, x0 = (W - colW * 3 - gap * 2) / 2, top = 560;
+  const cols = [0, 0, 0];
+  PINS.forEach(([color, kind, h], i) => {
+    const flip = easeBack(prog(t, V2_DROP + i * 0.08, V2_DROP + 0.25 + i * 0.08));
+    const extra = 66 * clamp(flip);
+    const c = i % 3, x = x0 + c * (colW + gap), y = top + cols[c] - scroll;
+    cols[c] += h + extra + gap;
+    ctx.save(); ctx.translate(x + colW / 2, y + h / 2); ctx.scale(1 + punch(t, V2_DROP + i * 0.08, 0.2) * 0.08, 1 + punch(t, V2_DROP + i * 0.08, 0.2) * 0.08); ctx.translate(-(x + colW / 2), -(y + h / 2));
+    ctx.save(); ctx.shadowColor = "rgba(58,42,48,.14)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
+    ctx.fillStyle = "#fff"; round(x, y, colW, h + extra, 24); ctx.fill(); ctx.restore();
+    ctx.save(); round(x + 10, y + 10, colW - 20, h - 20, 16); ctx.clip();
+    ctx.fillStyle = shade(color); ctx.fillRect(x, y, colW, h);
+    item(kind, x + colW / 2, y + h / 2, 12, color);
+    if (scan !== null && Math.abs(scan - (y + h / 2)) < 140) { ctx.fillStyle = "rgba(255,107,139,.22)"; ctx.fillRect(x, y, colW, h); }
+    ctx.restore();
+    if (flip > 0) {
+      text(PRICES[i], x + 20, y + h + 26, 36, "#3a2a30", { align: "left", alpha: clamp(flip) });
+      label(["Werbung"], x + 64, y + 40, 20, { bg: "rgba(255,255,255,.92)", fg: "#7a606a", weight: 700, alpha: clamp(flip), pad: 0.5 });
+    }
+    ctx.restore();
+  });
+}
+function video2(t) {
+  if (t >= V2_END) return endCard(t, V2_END, ["Dein Pinterest.", "Dein Shop."], "Folg uns, bald geht's los");
+  bg("#fff8fa", "#ffe0ea");
+  const scroll = t < 2 ? 260 - easeOut(prog(t, 0, 2)) * 260 : 0;
+  const scan = t > 2.4 && t < 4.4 ? lerp(560, 1650, prog(t, 2.4, 4.4)) : null;
+  pinBoard(t, scroll, scan);
+  if (scan !== null) {
+    const g = ctx.createLinearGradient(0, scan - 70, 0, scan + 6);
+    g.addColorStop(0, "rgba(255,107,139,0)"); g.addColorStop(1, "rgba(255,107,139,.9)");
+    ctx.fillStyle = g; ctx.fillRect(0, scan - 70, W, 76);
+  }
+  const g = ctx.createLinearGradient(0, 0, 0, 600);
+  g.addColorStop(0, "#fff8fa"); g.addColorStop(0.8, "#fff8fa"); g.addColorStop(1, "rgba(255,248,250,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, 600);
+  if (t < 2.0) hook(["Dein Pinterest-Board", "kann jetzt", "SHOPPEN"], W / 2, 360, 96, { scale: lerp(1.4, 1, easeOut(prog(t, 0, 0.18))), fill: ["#fff", "#fff", "#ff6b8b"] });
+  else if (t < V2_DROP) hook(["Mali checkt", "jeden Pin …"], W / 2, 360, 100, { scale: easeBack(prog(t, 2.0, 2.25)) });
+  else hook(["… und findet alles", "in deinem Budget"], W / 2, 360, 90, { scale: easeBack(prog(t, V2_DROP, V2_DROP + 0.25)), fill: ["#fff", "#ffe066"] });
+  // Mali hoppelt rein
+  if (t > 1.8) {
+    const inX = lerp(-220, 800, easeOut(prog(t, 1.8, 2.4)));
+    const hop = Math.abs(Math.sin(t * Math.PI / BEAT)) * (t < 2.4 ? 70 : 20);
+    const face = t > V2_DROP ? "happy" : (t > 4.0 ? "shock" : "idle");
+    mali(inX, 1420 - hop, 13, face);
+    burst(t, V2_DROP, inX, 1350);
+  }
+  flash(t, 0, 0.9); flash(t, V2_DROP, 0.7);
+}
+
+// ---------- Video 3: Dieses Outfit nachkaufen? ----------
+const PERSON = [
+  "......hhhh......", ".....hhhhhh.....", ".....hffffh.....", ".....hffffh.....",
+  "......ffff......", ".......ff.......", "...JJJJJJJJJJ...", "..JJJJJWWJJJJJ..",
+  "..JJJJJWWJJJJJ..", "..JJ.JJWWJJ.JJ..", "..JJ.JJWWJJ.JJ..", "..JJ.JJWWJJ.JJ..",
+  "..ff.JJWWJJ.ff..", ".....JJJJJJ.....", "....BBBBBBBB....", "....BBBBBBBB....",
+  "....BBBB.BBBB...", "...BBBBB.BBBBB..", "...BBBBB.BBBBB..", "...BBBBB.BBBBB..",
+  "...BBBBB.BBBBB..", "..BBBBBB.BBBBBB.", "..BBBBBB.BBBBBB.", "..SSSSS...SSSSS.",
+  "..SSSSS...SSSSS."];
+const PERSON_PAL = { h: "#4a3428", f: "#f1c9a8", J: "#1e1a1d", W: "#fffaf6", B: "#7fa0c8", S: "#f4f1ec" };
+function phone(x, y, w, h) {
+  ctx.save(); ctx.shadowColor = "rgba(58,42,48,.28)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 16;
+  ctx.fillStyle = "#231c20"; round(x, y, w, h, w * 0.09); ctx.fill(); ctx.restore();
+  const b = w * 0.026;
+  ctx.save(); round(x + b, y + b, w - 2 * b, h - 2 * b, w * 0.07); ctx.clip();
+  const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, "#efe4ee"); g.addColorStop(1, "#cdd7e6");
+  ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+  const ps = (w - 2 * b) / 22;
+  pixels(PERSON, x + w / 2 - 8 * ps, y + h * 0.14, ps, PERSON_PAL);
+  const u = w / 600;
+  for (let i = 0; i < 3; i++) { ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.beginPath(); ctx.arc(x + w - 60 * u, y + h - 360 * u + i * 95 * u, 26 * u, 0, 7); ctx.fill(); }
+  ctx.fillStyle = "rgba(255,255,255,.85)"; round(x + 34 * u, y + h - 130 * u, w * 0.5, 20 * u, 10 * u); ctx.fill();
+  round(x + 34 * u, y + h - 94 * u, w * 0.34, 20 * u, 10 * u); ctx.fill();
+  ctx.restore();
+}
+const FINDS = [["jacket", "#1e1a1d", "Lederjacke", "44,90 €"], ["jeans", "#7fa0c8", "Baggy Jeans", "29,99 €"],
+               ["sneaker", "#f4f1ec", "Weiße Sneaker", "39,00 €"]];
+const V3_SHOT = 1.6, V3_DROP = 3.6, V3_TOTAL = 5.2, V3_END = 8.0;
+function video3(t) {
+  if (t >= V3_END) return endCard(t, V3_END, ["Screenshot rein.", "Mali findet's"], "Bald auf malipin.com");
+  bg("#fff8fa", "#ffe0ea");
+  const shrink = easeOut(prog(t, V3_SHOT + 0.3, V3_SHOT + 0.8));
+  const pw = lerp(470, 330, shrink), ph = pw * 2.0;
+  const px = lerp((W - 470) / 2, 80, shrink), py = lerp(570, 560, shrink);
+  const kick = punch(t, V3_SHOT, 0.2) * 0.06;
+  ctx.save(); ctx.translate(px + pw / 2, py + ph / 2); ctx.scale(1 - kick, 1 - kick); ctx.translate(-(px + pw / 2), -(py + ph / 2));
+  phone(px, py, pw, ph);
+  ctx.restore();
+  // Texte oben (immer innerhalb x 90–990)
+  if (t < V3_SHOT) {
+    hook(["Dieses Outfit", "nachkaufen?"], W / 2, 330, 112, { scale: lerp(1.4, 1, easeOut(prog(t, 0, 0.18))) });
+    label(["für unter 120 €"], W / 2 + 120, 500, 50, { bg: "#ffe066", fg: "#3a2a30", weight: 900, rot: 0.06, scale: easeBack(prog(t, 0.6, 0.85)) });
+  } else if (t < V3_DROP) hook(["Screenshot …"], W / 2, 330, 120, { scale: easeBack(prog(t, V3_SHOT, V3_SHOT + 0.25)) });
+  else hook(["… Mali findet's!"], W / 2, 330, 112, { scale: easeBack(prog(t, V3_DROP, V3_DROP + 0.25)), fill: "#ffe066" });
+  // Scan
+  if (t > V3_SHOT + 0.8 && t < V3_DROP) {
+    const sy = lerp(py + 30, py + ph - 30, prog(t, V3_SHOT + 0.8, V3_DROP));
+    ctx.fillStyle = "rgba(255,107,139,.9)"; ctx.fillRect(px + 10, sy, pw - 20, 8);
+  }
+  if (t > V3_SHOT + 0.6) {
+    const a = prog(t, V3_SHOT + 0.6, V3_SHOT + 0.9);
+    mali(px + pw - 20, py + ph + 10 - Math.abs(Math.sin(t * Math.PI / BEAT)) * 22, 9, t > V3_DROP ? "happy" : "idle", a);
+  }
+  // Treffer-Karten rechts neben dem Handy (x 440–930)
+  FINDS.forEach(([kind, color, name, price], i) => {
+    const time = V3_DROP + i * 0.4, a = easeBack(prog(t, time, time + 0.22));
+    if (a <= 0) return;
+    const x = 440, y = 560 + i * 222, w = 490, h = 200;
+    ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.scale(a, a); ctx.translate(-(x + w / 2), -(y + h / 2));
+    ctx.save(); ctx.shadowColor = "rgba(58,42,48,.16)"; ctx.shadowBlur = 28; ctx.shadowOffsetY = 10;
+    ctx.fillStyle = "#fff"; round(x, y, w, h, 28); ctx.fill(); ctx.restore();
+    ctx.fillStyle = color === "#f4f1ec" ? "#d8cbc4" : shade(color); round(x + 16, y + 16, 168, h - 32, 18); ctx.fill();
+    item(kind, x + 100, y + h / 2, 11, color);
+    text(name, x + 206, y + 62, 36, "#3a2a30", { align: "left" });
+    text(price, x + 206, y + 118, 46, "#c93a69", { align: "left", weight: 900 });
+    label(["Werbung"], x + 252, y + 165, 20, { bg: "#fde9ef", fg: "#7a606a", weight: 700, pad: 0.5 });
+    ctx.restore();
+  });
+  // Summe
+  const s = easeBack(prog(t, V3_TOTAL, V3_TOTAL + 0.25));
+  if (s > 0) {
+    label(["Alles zusammen 113,89 €"], W / 2, 1360, 60, { bg: "#3a2a30", fg: "#fff", weight: 900, scale: s, rot: -0.02 });
+    burst(t, V3_TOTAL, W / 2, 1360);
+  }
+  flash(t, 0, 0.9); flash(t, V3_SHOT, 1, 0.3); flash(t, V3_TOTAL, 0.4);
+}
+
+const VIDEOS = { 1: [video1, 12], 2: [video2, 12], 3: [video3, 12] };
+const which = Number(new URLSearchParams(location.search).get("v") || 1);
+window.duration = VIDEOS[which][1];
+window.draw = (t) => {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
+  // Ganzes Bild pulsiert leicht im Takt (Zoom auf jedem Schlag)
+  const pulse = 1 + 0.012 * Math.exp(-(t % BEAT) * 14);
+  ctx.translate(W / 2, H / 2); ctx.scale(pulse, pulse); ctx.translate(-W / 2, -H / 2);
+  VIDEOS[which][0](t);
+};
+window.draw(0);
+</script>
+</body></html>
