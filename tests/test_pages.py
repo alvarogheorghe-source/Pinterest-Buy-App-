@@ -68,3 +68,13 @@ def test_every_page_has_the_mali_logo(client, path):
 
 def test_frontend_files_are_revalidated(client):
     assert client.get("/style.css").headers["cache-control"] == "no-cache"
+
+
+def test_every_page_links_privacy_and_imprint():
+    """Impressum und Datenschutz müssen von jeder Seite aus erreichbar sein."""
+    from backend.config import FRONTEND_DIR
+    for page in FRONTEND_DIR.glob("*.html"):
+        if page.name == "admin.html":
+            continue
+        html = page.read_text(encoding="utf-8")
+        assert "/impressum.html" in html and "/datenschutz.html" in html, page.name
