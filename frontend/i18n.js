@@ -12,11 +12,18 @@
   const LANGS = ["de", "en"];
   const read = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
 
+  // Zeitzonen im deutschsprachigen Raum: wer dort ist, sieht Shops wie ebay.at mit deutschen
+  // Titeln – dann auch die Seite auf Deutsch (sonst Englisch + deutsche Produkte gemischt)
+  const GERMAN_ZONES = ["Europe/Vienna", "Europe/Berlin", "Europe/Zurich", "Europe/Busingen", "Europe/Vaduz"];
+
   function choose() {
     const saved = read("malipin-lang");
-    if (LANGS.includes(saved)) return saved;
+    if (LANGS.includes(saved)) return saved;          // bewusste Wahl gewinnt immer
     const browser = navigator.languages || [navigator.language || "de"];
-    return browser.some((l) => l.toLowerCase().startsWith("de")) ? "de" : "en";
+    if (browser.some((l) => l.toLowerCase().startsWith("de"))) return "de";
+    let zone = "";
+    try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch { /* alt */ }
+    return GERMAN_ZONES.includes(zone) ? "de" : "en";
   }
 
   const lang = choose();

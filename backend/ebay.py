@@ -147,7 +147,7 @@ def _search(query: str) -> list[dict]:
             for item in response.json().get("itemSummaries", [])]
 
 
-def to_product(item: dict, department: str, query_category: str) -> Product | None:
+def to_product(item: dict, department: str, query_category: str, query: str = "") -> Product | None:
     """eBay-Ergebnis -> Product. None, wenn wichtige Angaben fehlen."""
     try:
         price = float(item["price"]["value"])
@@ -185,7 +185,8 @@ def to_product(item: dict, department: str, query_category: str) -> Product | No
         currency=currency,
         department=department,
         category=category,
-        gender=gender_of(title) if department == "mode" else None,
+        # Steht nichts im Titel: Geschlecht aus der Suche ("Herren Baggy Jeans")
+        gender=gender_of(title, query) if department == "mode" else None,
         colors=sorted(find_terms(title, COLOR_PATTERNS)),
         style_tags=sorted(find_terms(title, STYLE_PATTERNS)),
         image_url=large_image(image),
@@ -212,9 +213,9 @@ class EbayProductSource(CachedSource):
         # Alle Suchen gleichzeitig – sonst wartet der Shop über eine Minute
         results = run_parallel(lambda job: search_with_fallback(search, job[1]), planned)
         products, seen = [], set()
-        for (department, (_, category)), found in zip(planned, results):
+        for (department, (query, category)), found in zip(planned, results):
             for item in found:
-                product = to_product(item, department, category)
+                product = to_product(item, department, category, query)
                 if product and product.id not in seen:
                     seen.add(product.id)
                     products.append(product)

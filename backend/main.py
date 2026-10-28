@@ -616,7 +616,7 @@ def typical(term: str, category: str, profile: matching.StyleProfile) -> bool:
 
 GENDER_BONUS = 0.3   # wie ein Begriff in knapp jedem dritten Pin
 # Mindest-Ähnlichkeit des Fotos zu den Pins (0..1, "sieht aus wie" ab 0.6) – darunter nie
-VISUAL_GATE = 0.45
+VISUAL_GATE = 0.25   # Produktfotos (flach/Bügel) ähneln Outfit-Pins nie stark: gute Treffer 0.25-0.45
 SOURCE_BONUS = {"ebay": 0.2, "etsy": -0.1}   # Vorrang für eBay, Etsy etwas zurück
 
 

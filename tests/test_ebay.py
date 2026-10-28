@@ -275,3 +275,10 @@ def test_old_cached_results_are_dropped_when_rules_change(fake, monkeypatch):
     Source().load()
     assert Source.calls == 2                                  # neue Regeln -> neu suchen
     assert storage.read_json("test_cache.json")["version"] == products.RULES_VERSION
+
+
+def test_gender_from_the_search_when_the_title_says_nothing():
+    from backend.ebay import to_product
+    product = to_product(item("7", "H&M Jeans Baggy Fit Schwarz"), "mode", "Hosen", "Herren schwarz Baggy Jeans")
+    assert product.gender == "herren"
+    assert to_product(item("8", "Damen Jeans Baggy"), "mode", "Hosen", "Herren Baggy Jeans").gender == "damen"
