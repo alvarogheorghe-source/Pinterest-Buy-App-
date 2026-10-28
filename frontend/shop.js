@@ -424,10 +424,11 @@ function pinItemToCard(item) {
     buttonText: "Zum Angebot",
     href: item.link,
     // nofollow = fremder, nicht von uns geprüfter Link
-    rel: "nofollow noopener",
-    label: "Aus deinem Pin",
+    rel: item.sponsored ? "sponsored noopener" : "nofollow noopener",
+    // Über Skimlinks umgeleitet -> Partnerlink -> "Werbung"
+    label: item.sponsored ? "Werbung" : "Aus deinem Pin",
     isPinItem: true,
-    labelClass: "source-label",
+    labelClass: item.sponsored ? "ad-label" : "source-label",
   };
 }
 

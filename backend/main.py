@@ -18,7 +18,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from backend import (analysis, currency, feedback, i18n, looks, matching, photo, pins, pinterest,
                      product_checks, products, quality, region,
-                     shop_links, shops, similar, storage, vibe, vision)
+                     shop_links, shops, similar, skimlinks, storage, vibe, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Malipin")
@@ -94,8 +94,9 @@ def http_error(request: Request, exc: StarletteHTTPException):
 
 
 def local(items: list[dict]) -> list[dict]:
-    """Preise in der Währung der Person: local_price/local_currency (+ converted, wenn umgerechnet).
-    Der Originalpreis bleibt in price/currency – im Shop zählt er."""
+    """Für die Anzeige vorbereiten: Preise in der Währung der Person (local_price/local_currency,
+    + converted, wenn umgerechnet; der Originalpreis bleibt in price/currency – im Shop zählt er)
+    und Shop-Links ohne eigenes Partnerprogramm über Skimlinks (skimlinks.py)."""
     target, table = region.current().currency, currency.rates()
     for item in items:
         if item.get("price") is None or not item.get("currency"):
@@ -107,6 +108,8 @@ def local(items: list[dict]) -> list[dict]:
             if item.get("original_price"):        # Sale: "statt 49,90 €"
                 item["local_original_price"] = currency.convert(item["original_price"],
                                                                 item["currency"], target, table)
+    for item in items:                            # Shop-Links ohne Partnerprogramm -> Skimlinks
+        skimlinks.apply(item)
     return items
 
 
