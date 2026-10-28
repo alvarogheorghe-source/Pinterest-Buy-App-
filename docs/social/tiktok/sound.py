@@ -1,4 +1,5 @@
-"""Eigener Chiptune-Sound für die Malipin-TikToks (150 BPM, 1 Schlag = 0,4 s) + Effekte.
+"""Eigene Musik für die Malipin-TikToks (150 BPM, 1 Schlag = 0,4 s) + Effekte.
+Jedes Video hat einen eigenen Stil: 1 Chiptune, 2 Lo-Fi, 3 Trap.
 
 Alles selbst erzeugt (Sinus, Rechteck, Rauschen) -> keine fremden Rechte.
 Aufruf: python3 sound.py <ordner>  -> sound-1.wav, sound-2.wav, sound-3.wav
@@ -131,7 +132,24 @@ def blip(freq=1760):
 
 
 # ---------- Musik ----------
-def music(length, drums_from, drums_to, light_after):
+def placer(out):
+    def put(sig, at, vol=1.0):
+        i = int(at * SR)
+        j = min(len(out), i + len(sig))
+        if j > i:
+            out[i:j] += sig[: j - i] * vol
+    return put
+
+
+def sine(freq, dur, decay=4.0, attack=0.004, vol=1.0, harmonics=(1.0,)):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    w = sum(a * np.sin(2 * np.pi * freq * (k + 1) * t) for k, a in enumerate(harmonics))
+    return w * env(n, attack=attack, decay=decay) * vol
+
+
+# Video 1: Chiptune – fröhlich, 8-Bit (C – G – Am – F)
+def music_chiptune(length, drums_from, drums_to, light_after):
     out = np.zeros(int(length * SR) + SR)
 
     def put(sig, at, vol=1.0):
@@ -169,9 +187,103 @@ def music(length, drums_from, drums_to, light_after):
     return out
 
 
-def render(length, events, drums_from, drums_to, light_after, path):
-    # Musik weicher (Tiefpass ~3 kHz), damit die Rechteckwellen am Handy nicht kratzen
-    out = lowpass(music(length, drums_from, drums_to, light_after), 0.33) * 0.75
+# Video 2: Lo-Fi – weiche Septakkorde, Halbtempo-Beat mit Swing, Vinyl-Knistern
+LOFI = [("F", ["F", "A", "C", "E"]), ("E", ["E", "G", "B", "D"]),
+        ("D", ["D", "F", "A", "C"]), ("C", ["C", "E", "G", "B"])]
+
+
+def music_lofi(length, drums_from, drums_to, light_after):
+    out = np.zeros(int(length * SR) + SR)
+    put = placer(out)
+    swing = 0.05
+    for bar in range(int(length / BAR) + 1):
+        at = bar * BAR
+        root, tones = LOFI[bar % 4]
+        # Akkord als weiche Fläche (Rhodes-artig: Grundton + leise Obertöne)
+        order = list(NOTE)
+        for k, note in enumerate(tones):
+            octave = 4 if order.index(note) >= order.index(root) else 5   # Akkord nach oben schichten
+            put(sine(hz(note, octave), BAR * 1.1, decay=1.2, attack=0.03, vol=0.10,
+                     harmonics=(1.0, 0.25, 0.08)), at + k * 0.012)
+        put(sine(hz(root, 2), BAR * 0.9, decay=1.6, attack=0.01, vol=0.32, harmonics=(1.0, 0.3)), at)
+        for b in range(4):
+            t0 = at + b * BEAT
+            on = drums_from <= t0 < drums_to or t0 >= light_after
+            put(hat(0.04), t0, 0.16)
+            put(hat(0.04), t0 + BEAT / 2 + swing, 0.12)
+            if on and b == 0:
+                put(kick(0.35, low=45, high=110, k=22), t0, 0.9)
+            if on and b == 1:
+                put(kick(0.3, low=45, high=110, k=22), t0 + BEAT / 2 + swing, 0.6)
+            if on and b == 2:
+                put(lowpass(snare(), 0.25), t0, 0.7)
+    # Melodie in der Endkarte: ruhig, sinusweich
+    for k, (n_, o) in enumerate([("A", 5), ("C", 6), ("E", 6), ("D", 6), ("C", 6), ("A", 5)]):
+        put(sine(hz(n_, o), BEAT * 1.2, decay=3, vol=0.12, harmonics=(1.0, 0.2)), light_after + k * BEAT * 0.75)
+    # Vinyl: leises Rauschen + vereinzelte Knackser
+    out[: int(length * SR)] += lowpass(noise(length), 0.05) * 0.03
+    for _ in range(int(length * 7)):
+        i = rng.integers(0, int(length * SR) - 200)
+        out[i:i + 60] += rng.uniform(-1, 1, 60) * np.exp(-np.arange(60) / 8) * 0.25
+    return out
+
+
+# Video 3: Trap – 808-Bass, Hi-Hat-Rolls, Clap auf 3 (Am – F – C – G)
+TRAP = ["A", "F", "C", "G"]
+
+
+def bass808(freq, dur=0.7):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    f = freq * (1 + 0.6 * np.exp(-t * 40))                 # kurzer Pitch-Kick am Anfang
+    x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 2.8)
+    return np.tanh(x * 2.2) * 0.8                           # leicht verzerrt wie echte 808
+
+
+def clap():
+    x = np.zeros(int(0.25 * SR))
+    for k, start in enumerate((0, 0.012, 0.024)):
+        c = noise(0.2) * np.exp(-np.arange(int(0.2 * SR)) / SR * (60 if k < 2 else 18))
+        i = int(start * SR)
+        x[i:i + len(c)] += c[: len(x) - i]
+    return (x - lowpass(x, 0.15)) * 0.8
+
+
+def music_trap(length, drums_from, drums_to, light_after):
+    out = np.zeros(int(length * SR) + SR)
+    put = placer(out)
+    pent = [("A", 5), ("C", 6), ("D", 6), ("E", 6), ("G", 6), ("E", 6), ("D", 6), ("C", 6)]
+    for bar in range(int(length / BAR) + 1):
+        at = bar * BAR
+        root = TRAP[bar % 4]
+        on = drums_from <= at < drums_to or at >= light_after
+        # Pluck-Melodie (Moll-Pentatonik), Achtel
+        for k in range(8):
+            n_, o = pent[(bar * 3 + k) % len(pent)]
+            put(square(hz(n_, o), BEAT / 2 * 0.6, duty=0.125, decay=18, vol=0.07), at + k * BEAT / 2)
+        if not on:
+            put(hat(0.03), at, 0.15)
+            put(hat(0.03), at + 2 * BEAT, 0.15)
+            continue
+        for hit in (0, 1.5, 2.5):                           # 808-Muster pro Takt (in Schlägen)
+            f = hz(root, 1)
+            while f < 42:                                   # 808 zwischen ca. 42 und 84 Hz halten
+                f *= 2
+            put(bass808(f), at + hit * BEAT, 0.85)
+            put(kick(0.2, low=55, high=170, k=35), at + hit * BEAT, 0.6)
+        put(clap(), at + 2 * BEAT, 0.75)
+        # Hi-Hats: Achtel, im letzten Schlag jedes zweiten Takts ein schneller Roll
+        for k in range(8):
+            put(hat(0.03), at + k * BEAT / 2, 0.22)
+        if bar % 2 == 1:
+            for k in range(6):
+                put(hat(0.02), at + 3 * BEAT + k * BEAT / 6, 0.18 + k * 0.02)
+    return out
+
+
+def render(length, events, music, drums_from, drums_to, light_after, path, soften=0.33):
+    # Musik weicher (Tiefpass), damit Rechteckwellen am Handy nicht kratzen
+    out = lowpass(music(length, drums_from, drums_to, light_after), soften) * 0.75
 
     def put(sig, at, vol=1.0):
         i = int(at * SR)
@@ -201,17 +313,17 @@ if __name__ == "__main__":
     v1 += [(1.6 + i * 0.8 - 0.12, whoosh, 0.22) for i in range(1, 8)]
     v1 += [(1.6 + i * 0.8, pop) for i in range(8)]
     v1 += [(8.0, boom), (8.0, ding), (8.4, ding, 1568.0, 2349.0)]
-    render(12, v1, 1.6, 8.0, 8.0, f"{folder}/sound-1.wav")
+    render(12, v1, music_chiptune, 1.6, 8.0, 8.0, f"{folder}/sound-1.wav")
     # Video 2: Hook, Mali hüpft rein, Scan, Drop mit Preisen, Endkarte
     v2 = [(0, boom), (1.8, whoosh, 0.35), (2.2, pop), (2.4, riser, 2.4)]
     v2 += [(2.4 + i * 0.2, blip, 1320 + (i % 3) * 220) for i in range(11)]
     v2 += [(4.8, boom)] + [(4.8 + i * 0.16, pop) for i in range(6)]
     v2 += [(8.4, boom), (8.4, ding), (8.8, ding, 1568.0, 2349.0)]
-    render(12, v2, 0.0, 8.4, 8.4, f"{folder}/sound-2.wav")
+    render(12, v2, music_lofi, 0.0, 8.4, 8.4, f"{folder}/sound-2.wav", soften=0.22)
     # Video 3: Hook, Preis-Sticker, Auslöser, Scan, Treffer, Ka-ching, Endkarte
     v3 = [(0, boom), (0.6, pop), (1.6, shutter), (1.9, whoosh, 0.3), (2.4, riser, 1.2)]
     v3 += [(2.4 + i * 0.2, blip, 1320 + (i % 3) * 220) for i in range(6)]
     v3 += [(3.6, boom), (3.6, pop), (4.0, pop), (4.4, pop), (5.2, kaching)]
     v3 += [(8.0, boom), (8.0, ding), (8.4, ding, 1568.0, 2349.0)]
-    render(12, v3, 1.6, 8.0, 8.0, f"{folder}/sound-3.wav")
+    render(12, v3, music_trap, 1.6, 8.0, 8.0, f"{folder}/sound-3.wav", soften=0.45)
     print("ok")

@@ -1,6 +1,6 @@
 # TikTok-Teaser (Malipin)
 
-Drei 12-Sekunden-Videos im Mali-Pixel-Look, 1080×1920, mit eigenem Chiptune-Sound (150 BPM).
+Drei 12-Sekunden-Videos im Mali-Pixel-Look, 1080×1920, jedes mit eigener Musik (150 BPM): 1 Chiptune, 2 Lo-Fi, 3 Trap.
 
 | Datei | Inhalt |
 |---|---|
