@@ -8,9 +8,6 @@ const resultCount = document.getElementById("result-count");
 const banner = document.getElementById("profile-banner");
 const categorySelect = document.getElementById("category-select");
 const categoryFilter = document.getElementById("category-select");
-const sortSelect = document.getElementById("sort-select");
-const genderSelect = document.getElementById("gender-select");
-const genderFilter = document.getElementById("gender-select");
 const budgetSelect = document.getElementById("budget-select");
 const pinItemsCount = document.getElementById("pin-items-count");
 const tabButtons = document.querySelectorAll(".tab");
@@ -20,13 +17,8 @@ const DEPARTMENT_NAMES = { mode: "Mode", wohnen: "Wohnen & Deko" };
 
 // Aktueller Zustand. Welt und Tab stehen auch in der Adresse, z.B. "#wohnen/pins",
 // damit Links und der Zurück-Button funktionieren.
-const filters = { department: "mode", tab: "products", maxPrice: "", category: "", sort: "match",
-  gender: readGender() };
-
-// Damen/Herren: bewusste Wahl merken (nur in diesem Browser)
-function readGender() {
-  try { return localStorage.getItem("malipin-gender") || "auto"; } catch { return "auto"; }
-}
+// Damen/Herren entscheidet der Server aus den Pins, sortiert wird immer nach Passung
+const filters = { department: "mode", tab: "products", maxPrice: "", category: "" };
 
 // "#wohnen/pins" -> { department: "wohnen", tab: "pins" }
 function readHash() {
@@ -41,14 +33,6 @@ function writeHash(department, tab) {
   location.hash = tab === "pins" ? `${department}/pins` : department;
 }
 
-
-// Sortiert nach Preis in deiner Währung (der Server rechnet £, $ … um).
-// Teile ohne Preis oder ohne Wechselkurs kommen ans Ende.
-function sortByPrice(items) {
-  const localPrice = (item) => item.local_price ?? Infinity;   // vom Server umgerechnet
-  return [...items].sort((a, b) => localPrice(a) - localPrice(b));
-}
-
 // --- Daten laden ---------------------------------------------------------------------------
 
 let loadCounter = 0;   // nur die neueste Anfrage darf anzeigen (schnelles Filter-Klicken)
@@ -60,8 +44,6 @@ async function load() {
   if (filters.maxPrice) common.set("max_price", filters.maxPrice);
   const productParams = new URLSearchParams(common);
   if (filters.category) productParams.set("category", filters.category);
-  if (filters.department === "mode") productParams.set("gender", filters.gender);
-  genderFilter.hidden = filters.department !== "mode";
 
   // Beide Abfragen gleichzeitig starten und auf beide warten
   const [recResponse, pinResponse] = await Promise.all([
@@ -88,19 +70,17 @@ async function load() {
   if (filters.tab === "pins") {
     rows.replaceChildren();
     looksBox.hidden = true;
-    const items = filters.sort === "price" ? sortByPrice(pinItems) : pinItems;
+    const items = pinItems;
     renderGrid(items.map(pinItemToCard), "Teil", "Teile",
       profile.pin_count > 0
         ? "Keine Pins mit Shop-Link in diesem Bereich gefunden (oder alle über deinem Budget)."
         : "Lade zuerst deine Pins unter „Mein Pinterest“.");
   } else {
     const hasProfile = profile.pin_count > 0;
-    const items = filters.sort === "price"
-      ? sortByPrice(recommendations.products)
-      : recommendations.products;
+    const items = recommendations.products;
     loadLooks(current);
     // Themen-Reihen nur in der Standard-Ansicht (ohne Kategorie-Filter, nach Passung sortiert)
-    renderRows(!filters.category && filters.sort === "match"
+    renderRows(!filters.category
       ? themedRows(recommendations.products, profile, recommendations.currency) : [], hasProfile);
     renderGrid(items.map((p) => productToCard(p, hasProfile)), "Produkt", "Produkte",
       filters.maxPrice || filters.category
@@ -120,7 +100,7 @@ async function load() {
 
 async function loadLooks(current) {
   looksBox.hidden = true;
-  if (filters.department !== "mode" || filters.category || filters.sort !== "match") return;
+  if (filters.department !== "mode" || filters.category) return;
   const found = await fetch("/api/looks").then((r) => (r.ok ? r.json() : [])).catch(() => []);
   if (current !== loadCounter || !found.length) return;   // inzwischen anderes gewählt
   renderLooks(found);
@@ -593,17 +573,6 @@ categorySelect.addEventListener("change", () => {
   load();
 });
 
-genderSelect.value = filters.gender;
-genderSelect.addEventListener("change", () => {
-  filters.gender = genderSelect.value;
-  try { localStorage.setItem("malipin-gender", filters.gender); } catch { /* privat */ }
-  load();
-});
-
-sortSelect.addEventListener("change", () => {
-  filters.sort = sortSelect.value;
-  load();
-});
 
 // Kategorien der aktuellen Welt in die Auswahlliste schreiben
 async function loadCategories() {
