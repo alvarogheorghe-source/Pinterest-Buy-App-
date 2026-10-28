@@ -47,7 +47,9 @@ def dominant_hex(image_bytes: bytes) -> str | None:
 
     buckets: Counter = Counter()
     members: dict[tuple, list] = {}
-    for pixel in image.getdata():
+    # Neuere Pillow-Versionen: get_flattened_data (getdata fällt 2027 weg), ältere: getdata
+    pixels = getattr(image, "get_flattened_data", image.getdata)()
+    for pixel in pixels:
         if is_background(*pixel):
             continue
         key = tuple(c // 32 for c in pixel)        # 8 Stufen pro Farbkanal
