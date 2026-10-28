@@ -17,6 +17,13 @@ if ! command -v caddy >/dev/null; then
   apt-get update -q && apt-get install -y -q caddy
 fi
 
+echo "== Auslagerungsdatei (4 GB) =="
+# Reserve, falls App und nächtliche Bilderkennung gleichzeitig viel Arbeitsspeicher brauchen
+if ! swapon --show | grep -q /swapfile; then
+  fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+  grep -q /swapfile /etc/fstab || echo "/swapfile none swap sw 0 0" >> /etc/fstab
+fi
+
 echo "== Firewall: nur SSH und Web =="
 ufw allow OpenSSH && ufw allow 80 && ufw allow 443 && ufw --force enable
 

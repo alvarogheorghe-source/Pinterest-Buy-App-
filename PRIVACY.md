@@ -68,9 +68,9 @@ There is no analytics, no tracking and no advertising cookie.
 ## Where the data is stored and for how long
 
 Your data (Pinterest access, board selection, pins, style profile, wish list and ratings) is
-stored on our server in the EU (Hetzner Online GmbH, Germany), separately for each person. If
-you connect Pinterest, we only store a one-way checksum of your Pinterest account ID so you see
-your data on all your devices.
+stored on our server in the EU (netcup GmbH, Germany, data centre in Austria or Germany),
+separately for each person. If you connect Pinterest, we only store a one-way checksum of your
+Pinterest account ID so you see your data on all your devices.
 
 Pins are replaced whenever you load them again. Everything stays until you delete it. The server
 keeps short technical logs (such as IP address and time of a request) to keep the service secure,

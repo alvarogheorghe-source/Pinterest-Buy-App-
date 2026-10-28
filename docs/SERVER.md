@@ -9,23 +9,22 @@ deiner Domain, deine `.env` vom Mac.
 
 ---
 
-## 1. Server mieten (Hetzner, ca. 9 €/Monat)
+## 1. Server mieten (Netcup, ca. 10 €/Monat)
 
-1. https://www.hetzner.com/cloud -> Konto anlegen
-2. Neues Projekt -> **Server hinzufügen**
-   - Standort: **Falkenstein oder Nürnberg** (Deutschland, gut für Datenschutz)
-   - Image: **Ubuntu 24.04**
-   - Typ: **Shared vCPU -> x86 (Intel/AMD) -> CX33** (4 vCPU, 8 GB RAM). Die Bilderkennung
-     braucht den Arbeitsspeicher, nachts laufen App und Bilderkennung gleichzeitig.
-     CX23 (4 GB) ist billiger, aber zu knapp. Kein ARM (CAX), keine Dedicated vCPU (CCX).
-   - Netzwerk: **IPv4 und IPv6** angehakt lassen (IPv4 kostet ca. 0,50 € extra, ist aber nötig)
-   - Backups: erst einmal aus, Volumes und Firewalls: nichts (macht setup.sh)
-   - **SSH-Schlüssel** hinzufügen (sicherer als Passwort). Auf dem Mac:
-     ```
-     ssh-keygen -t ed25519        # Enter, Enter, Enter
-     cat ~/.ssh/id_ed25519.pub    # diese Zeile bei Hetzner einfügen
-     ```
-3. Nach dem Erstellen steht die **IP-Adresse** des Servers da (z.B. `91.98.12.34`).
+Hetzner verkauft die günstigen Cloud-Server seit Sommer 2026 nicht mehr, deshalb Netcup.
+
+1. https://www.netcup.com -> vServer (x86) -> **VPS 500 G12.5** (2 vCore, 4 GB RAM, 64 GB)
+   - 1 Monat Vertragslaufzeit, Standort **Wien**, falls auswählbar
+   - Mit 8 GB (VPS 1000) läuft die Bilderkennung schneller, nötig ist es am Anfang nicht.
+     Netcup kann später hochstufen.
+2. Nach der Bestellung kommen per E-Mail die Zugangsdaten zum **Server Control Panel**
+   (SCP). Dort: Server -> Medien -> Images -> **Ubuntu 24.04** installieren und dabei deinen
+   **SSH-Schlüssel** hinterlegen. Auf dem Mac:
+   ```
+   ssh-keygen -t ed25519        # Enter, Enter, Enter
+   cat ~/.ssh/id_ed25519.pub    # diese Zeile im SCP einfügen
+   ```
+3. Im SCP steht die **IP-Adresse** des Servers (z.B. `91.98.12.34`).
 
 ## 2. Domain auf den Server zeigen lassen
 
@@ -107,8 +106,9 @@ bash /opt/malipin/deploy/update.sh
 
 Jede Nacht sichert der Server die Datenbank nach `/opt/malipin/backups/JJJJ-MM-TT/`, die
 letzten 14 Tage bleiben. Das schützt vor kaputten Daten, aber nicht, wenn der ganze Server
-weg ist. Dafür in der Hetzner Console beim Server **Backups** einschalten (ca. 20 % vom
-Serverpreis, 7 Kopien des ganzen Servers).
+weg ist. Dafür ab und zu im Netcup SCP einen **Snapshot** machen (Server -> Snapshots) oder
+den Ordner `backups/` auf den Mac kopieren:
+`scp -r root@DEINE-SERVER-IP:/opt/malipin/backups ~/Documents/malipin-backups`
 
 Zurückspielen, z.B. vom 27. Oktober:
 ```
@@ -131,7 +131,5 @@ systemctl start malipin
 
 ## Vor dem Start noch erledigen
 
-- **Datenschutzerklärung** (PRIVACY.md) an den Server anpassen: Hosting bei Hetzner,
-  Server-Logs, Bilderkennung, Affiliate-Netzwerke (Awin, eBay, Etsy). Am besten einmal
-  von jemandem prüfen lassen.
+- **Datenschutzerklärung** (PRIVACY.md) am besten einmal von jemandem prüfen lassen.
 - GitHub Pages abschalten (Repo -> Settings -> Pages), sobald die Domain auf den Server zeigt.
