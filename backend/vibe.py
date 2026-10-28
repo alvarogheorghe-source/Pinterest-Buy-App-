@@ -10,6 +10,7 @@ Neue Vibes oder Sprüche? Einfach unten in VIBES ergänzen.
 """
 
 import random
+import re
 from dataclasses import dataclass
 
 from backend.i18n import tr
@@ -190,6 +191,12 @@ NO_PINS = Vibe("Noch ein Geheimnis", "🥕", {}, [
 ])
 
 
+def slug(text: str) -> str:
+    """"Goth Baddie" -> "goth-baddie" (für Links ins Stil-Lexikon, style_guide.py)."""
+    text = text.lower().translate(str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}))
+    return re.sub(r"[^a-z0-9]+", "-", text).strip("-")
+
+
 def score(vibe: Vibe, profile: StyleProfile) -> float:
     return sum(weight * profile.weight(term) for term, weight in vibe.terms.items())
 
@@ -225,6 +232,8 @@ def vibe_check(pins: list[dict], rng: random.Random | None = None, avoid: str | 
         "second": f"{second.emoji} {tr(second.title)}".strip() if second else None,
         "second_title": tr(second.title) if second else None,    # ohne Emoji, für die Karte
         "look": LOOKS.get(best.title, "rosa"),
+        # Link ins Stil-Lexikon (/stile.html#vibe-goth-baddie) – nicht für "Noch ein Geheimnis"
+        "slug": None if best is NO_PINS else "vibe-" + slug(best.title),
         "terms": [tr(term) for term in top_terms],
         "colors": [{"name": tr(name), "hex": SWATCHES[name]}
                    for name, _ in profile.colors.most_common(4) if name in SWATCHES],

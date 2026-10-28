@@ -1954,3 +1954,346 @@ section + section {
   -webkit-line-clamp: 1;
   line-clamp: 1;
 }
+
+/* Nur am Computer zeigen (z.B. "Stile" in der Kopfzeile – am Handy zu eng) */
+@media (max-width: 640px) {
+  .hide-mobile {
+    display: none;
+  }
+}
+
+/* --- Stil-Lexikon (stile.html) ---------------------------------------------------------------- */
+.styles-page {
+  max-width: 1080px;
+}
+
+.styles-hero {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin: 12px 0 28px;
+}
+
+.styles-mali svg {
+  width: 112px;
+  height: auto;
+  image-rendering: pixelated;
+  animation: mali-bob 2.4s ease-in-out infinite;
+}
+
+@keyframes mali-bob {
+  50% { transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .styles-mali svg { animation: none; }
+}
+
+.styles-kicker {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.styles-intro .page-title {
+  margin: 0 0 12px;
+}
+
+/* Sprechblase von Mali */
+.styles-bubble {
+  position: relative;
+  max-width: 560px;
+  margin: 0;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  line-height: 1.5;
+}
+
+.styles-bubble::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: -8px;
+  width: 14px;
+  height: 14px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+
+.your-vibe {
+  margin: 0 0 24px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fff, #fbd3df);
+}
+
+.your-vibe p {
+  margin: 0 0 6px;
+}
+
+.your-vibe-kicker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.your-vibe-title {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+}
+
+.your-vibe .button {
+  margin-top: 8px;
+}
+
+/* Sprungmarken zu allen Vibes */
+.vibe-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 30px;
+}
+
+.vibe-chip {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.vibe-chip:hover {
+  border-color: var(--muted);
+}
+
+.styles-heading {
+  margin: 0 0 14px;
+  font-family: var(--serif);
+  font-size: 1.6rem;
+}
+
+.styles-sub {
+  margin: -6px 0 16px;
+}
+
+/* Vibe-Karten, je Look eigene Farbwelt (wie die teilbaren Karten, vibecard.js) */
+.vibe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  margin-bottom: 44px;
+}
+
+.vibe-card {
+  --v-bg1: #fff8fa; --v-bg2: #fbd3df; --v-text: #3a2a30; --v-muted: #7a606a; --v-accent: #c93a69;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, var(--v-bg1), var(--v-bg2));
+  color: var(--v-text);
+  scroll-margin-top: 80px;
+  transition: box-shadow 0.3s;
+}
+
+.vibe-card.look-dunkel { --v-bg1: #3d2836; --v-bg2: #120d12; --v-text: #fbe3ea; --v-muted: #cdb0bc; --v-accent: #ff8fb4; }
+.vibe-card.look-erde { --v-bg1: #f5eee2; --v-bg2: #c9d1b4; --v-text: #3b2f26; --v-muted: #66574a; --v-accent: #8f5431; }
+.vibe-card.look-clean { --v-bg1: #ffffff; --v-bg2: #ece3d7; --v-text: #3a3330; --v-muted: #6f655f; --v-accent: #7d6a59; }
+.vibe-card.look-street { --v-bg1: #eef0ff; --v-bg2: #b9bdf3; --v-text: #22203a; --v-muted: #4f4c75; --v-accent: #4b45b8; }
+.vibe-card.look-romantisch { --v-bg1: #fff5f3; --v-bg2: #f6c3cd; }
+
+/* Angesprungen (z.B. aus dem Shop): kurz hervorheben */
+.vibe-card.is-target,
+.style-item.is-target {
+  box-shadow: 0 0 0 3px var(--accent), 0 12px 30px rgba(201, 58, 105, 0.25);
+}
+
+.vibe-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vibe-emoji {
+  font-size: 1.6rem;
+}
+
+.vibe-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.45rem;
+  color: var(--v-accent);
+}
+
+.vibe-mali {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  font-style: italic;
+  font-size: 0.92rem;
+}
+
+.look-dunkel .vibe-mali {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.vibe-mali-label {
+  font-style: normal;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--v-accent);
+}
+
+.vibe-about {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.vibe-sub {
+  margin: 4px 0 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--v-muted);
+}
+
+.vibe-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vibe-pieces li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 0.82rem;
+}
+
+.look-dunkel .vibe-pieces li {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.vibe-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.vibe-swatches {
+  display: flex;
+  gap: 4px;
+}
+
+.vibe-swatches .swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.vibe-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.vibe-tag {
+  color: var(--v-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.vibe-tag:hover {
+  text-decoration: underline;
+}
+
+/* Stil-ABC */
+.style-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.style-item {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  scroll-margin-top: 80px;
+}
+
+.style-name {
+  margin: 0 0 4px;
+  font-family: var(--serif);
+  font-size: 1.1rem;
+}
+
+.style-about,
+.style-vibes {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.style-vibes {
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.style-vibes a,
+.style-line .style-terms a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.style-vibes a:hover,
+.style-line .style-terms a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .styles-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .styles-mali svg {
+    width: 72px;
+  }
+
+  .styles-bubble::before {
+    display: none;
+  }
+
+  .vibe-grid {
+    grid-template-columns: 1fr;
+  }
+}

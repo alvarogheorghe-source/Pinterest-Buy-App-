@@ -62,6 +62,7 @@ def static_index(source: str) -> str:
     page = re.sub(r'\s*<a href="/shop\.html" class="header-link">.*?</a>', "", page)
     page = re.sub(r'\s*<a href="/merkliste\.html"[^>]*>.*?</a>', "", page, flags=re.DOTALL)
     page = re.sub(r'\s*<a href="/foto\.html"[^>]*>.*?</a>', "", page, flags=re.DOTALL)
+    page = re.sub(r'\s*<a href="/stile\.html"[^>]*>.*?</a>', "", page, flags=re.DOTALL)
     # Welten-Karten: keine Links mehr, Pfeil-Text -> "Bald verfügbar"
     page = re.sub(r'<a href="/shop\.html#(mode|wohnen)" class="world', r'<a class="world', page)
     page = re.sub(r'<span class="world-link">.*?</span>\s*(?=</a>)',

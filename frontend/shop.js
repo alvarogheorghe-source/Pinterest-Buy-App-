@@ -301,7 +301,14 @@ function renderBanner(profile) {
   banner.classList.add("style-line");
   title.textContent = "Dein Stil";
   text.className = "style-terms";
-  text.textContent = [...terms, ...profile.top_categories].slice(0, 6).map((x) => t(x)).join(" · ");
+  // Stile (goth, streetwear …) verlinken ins Stil-Lexikon, Farben/Teile bleiben Text
+  const styles = new Set(profile.top_styles);
+  [...terms, ...profile.top_categories].slice(0, 6).forEach((term, i) => {
+    if (i) text.append(" · ");
+    text.append(styles.has(term)
+      ? Object.assign(document.createElement("a"), { href: `/stile.html#stil-${term}`, textContent: t(term) })
+      : t(term));
+  });
   banner.appendChild(Object.assign(document.createElement("span"), {
     className: "muted style-count", textContent: t("aus {n} Pins", { n: profile.pin_count }) }));
 }

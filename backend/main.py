@@ -18,7 +18,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from backend import (analysis, currency, feedback, i18n, looks, matching, photo, pins, pinterest,
                      product_checks, products, quality, region,
-                     shop_links, shops, similar, skimlinks, storage, vibe, vision)
+                     shop_links, shops, similar, skimlinks, storage, style_guide, vibe,
+                     vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Malipin")
@@ -592,6 +593,12 @@ def get_looks():
 
 
 # --- Malis Vibe-Check -------------------------------------------------------------------
+
+@app.get("/api/styles")
+def get_styles():
+    """Stil-Lexikon: alle Vibes und Stil-Begriffe mit Erklärung (style_guide.py)."""
+    return style_guide.guide()
+
 
 @app.get("/api/vibe")
 def get_vibe(avoid: str | None = Query(None, max_length=300)):

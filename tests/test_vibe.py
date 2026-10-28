@@ -62,7 +62,9 @@ def test_api_vibe(fake, client):
     storage.save_pins({"fetched_at": 1, "board_ids": ["111"], "pins": pins("gothic", "goth")})
     result = client.get("/api/vibe").json()
     assert result["title"] == "Goth Baddie"
-    assert set(result) == {"title", "emoji", "text", "second", "terms", "colors", "pin_count", "second_title", "look"}
+    assert set(result) == {"title", "emoji", "text", "second", "terms", "colors", "pin_count", "second_title", "look",
+                           "slug"}
+    assert result["slug"] == "vibe-goth-baddie"                     # Link ins Stil-Lexikon
 
 
 def test_vibe_has_color_swatches_for_the_share_card():

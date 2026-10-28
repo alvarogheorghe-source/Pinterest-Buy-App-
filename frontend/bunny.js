@@ -466,6 +466,11 @@
       ? [{ text: t("Pinterest verbinden", "Connect Pinterest"), primary: true, onClick: () => { location.href = "/konto.html"; } }]
       : [{ text: t("📸 Vibe teilen", "📸 Share vibe"), primary: true, onClick: () => shareVibe(vibe) },
         { text: t("Anderer Spruch 🎲", "Another one 🎲"), onClick: showVibe }];
+    // Ins Stil-Lexikon: was steckt hinter dem Vibe, welche Teile gehören dazu?
+    if (vibe.slug) {
+      buttons.splice(1, 0, { text: t("Was heißt das? 📖", "What does that mean? 📖"),
+        onClick: () => { location.href = `/stile.html#${vibe.slug}`; } });
+    }
     buttons.push({ text: `${NAME} verstecken`, onClick: hideMali });
 
     say(parts, { buttons });
