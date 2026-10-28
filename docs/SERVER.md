@@ -9,14 +9,17 @@ deiner Domain, deine `.env` vom Mac.
 
 ---
 
-## 1. Server mieten (Hetzner, ca. 7 €/Monat)
+## 1. Server mieten (Hetzner, ca. 9 €/Monat)
 
 1. https://www.hetzner.com/cloud -> Konto anlegen
 2. Neues Projekt -> **Server hinzufügen**
    - Standort: **Falkenstein oder Nürnberg** (Deutschland, gut für Datenschutz)
    - Image: **Ubuntu 24.04**
-   - Typ: **CX32** (4 vCPU, 8 GB RAM) – die Bilderkennung braucht den Arbeitsspeicher.
-     CX22 (4 GB) geht zur Not auch, ist aber knapp.
+   - Typ: **Shared vCPU -> x86 (Intel/AMD) -> CX33** (4 vCPU, 8 GB RAM). Die Bilderkennung
+     braucht den Arbeitsspeicher, nachts laufen App und Bilderkennung gleichzeitig.
+     CX23 (4 GB) ist billiger, aber zu knapp. Kein ARM (CAX), keine Dedicated vCPU (CCX).
+   - Netzwerk: **IPv4 und IPv6** angehakt lassen (IPv4 kostet ca. 0,50 € extra, ist aber nötig)
+   - Backups: erst einmal aus, Volumes und Firewalls: nichts (macht setup.sh)
    - **SSH-Schlüssel** hinzufügen (sicherer als Passwort). Auf dem Mac:
      ```
      ssh-keygen -t ed25519        # Enter, Enter, Enter
