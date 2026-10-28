@@ -481,6 +481,7 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     selection = [p if p.gender or not product_checks.image_gender(p.id)
                  else p.model_copy(update={"gender": product_checks.image_gender(p.id)})
                  for p in selection if not product_checks.is_ai(p.id)]
+    vision.embed_in_background(selection)   # neue Fotos still anschauen (fürs nächste Laden)
     wanted = for_whom(gender, pins_list) if department == "mode" else None
     selection = [p for p in selection if not (wanted and p.gender and p.gender != wanted)]
     ranked = shops.apply_bonus(matching.rank_products(selection, profile))
@@ -525,6 +526,8 @@ def fits_pins(item: dict, profile: matching.StyleProfile, wanted: str | None = N
               checked: dict | None = None) -> bool:
     """Streng – lieber weniger, dafür wirklich Passendes:
     - Widerspruch zu den Pins (Schnitt, Typ: Skinny statt Baggy, Shorts statt Jeans) -> nie
+    - Bilderkennung aktiv: Foto muss grob passen (VISUAL_GATE); noch nicht angeschaut ->
+      nur sehr sichere Text-Treffer (Art von Teil + zwei Merkmale)
     - sieht aus wie die Pins (Bilderkennung) -> passt
     - sonst: unklar für wen (Damen/Herren), obwohl Bilderkennung UND Pins es hätten zeigen
       können -> nein (ohne Bildprüfung wissen wir es schlicht nicht – dann nicht bestrafen)
@@ -532,12 +535,17 @@ def fits_pins(item: dict, profile: matching.StyleProfile, wanted: str | None = N
       (Farbe, Stil, Schnitt, Marke); erkennt man in den Pins keine Teile: zwei Merkmale"""
     if item.get("clashes"):            # Skinny, obwohl du Baggy pinnst -> nie
         return False
+    matched = item.get("matched") or []
+    features = [m for m in matched if m != item["category"]]
+    if "visual" in item:               # Bilderkennung aktiv (Pins haben Bild-Vektoren)
+        if item["visual"] is None:     # Foto noch nicht angeschaut -> nur sehr sichere Treffer
+            return item["category"] in matched and len(features) >= 2
+        if item["visual"] < VISUAL_GATE:
+            return False               # sieht ganz anders aus als die Pins
     if item.get("looks_like_pins"):
         return True
     if wanted and not item.get("gender") and item["id"] in (checked or {}):
         return False
-    matched = item.get("matched") or []
-    features = [m for m in matched if m != item["category"]]
     if profile.categories:
         return item["category"] in matched and len(features) >= 1
     return len(features) >= 2
@@ -545,6 +553,8 @@ def fits_pins(item: dict, profile: matching.StyleProfile, wanted: str | None = N
 
 
 GENDER_BONUS = 0.3   # wie ein Begriff in knapp jedem dritten Pin
+# Mindest-Ähnlichkeit des Fotos zu den Pins (0..1, "sieht aus wie" ab 0.6) – darunter nie
+VISUAL_GATE = 0.35
 SOURCE_BONUS = {"ebay": 0.2, "etsy": -0.1}   # Vorrang für eBay, Etsy etwas zurück
 
 

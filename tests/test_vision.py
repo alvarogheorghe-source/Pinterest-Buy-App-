@@ -220,3 +220,33 @@ def test_progress_line_and_intermediate_saves(capsys):
     out = capsys.readouterr().out
     assert "Produkte: 4 / 4 Bilder (100%) – fertig" in out and out.endswith("\n")
     assert Store.saves == 2
+
+
+# --- Neue Produkte im Hintergrund anschauen ---------------------------------------------------
+
+class FakeEmbedderWithText(FakeEmbedder):
+    def embed_texts(self, texts):
+        return [vision.normalize([len(t) % 7 - 3, 1, -1]) for t in texts]
+
+
+def test_new_products_are_looked_at_in_the_background(fake, monkeypatch):
+    import time
+    from backend import product_checks
+    embedder = FakeEmbedderWithText()
+    monkeypatch.setattr(vision, "get_embedder", lambda: embedder)
+    store = vision.EmbeddingStore(embedder.name)
+    store.put("pin:1", img("d8c3a5"), vision.normalize([1, 1, 1]))
+    store.save()
+    new = [make_product(id="ebay-9", colors=["beige"], image_url=img("d8c3a5"))]
+    assert vision.embed_in_background(new)
+    for _ in range(50):                       # Hintergrund-Thread abwarten
+        if not vision._auto_lock.locked():
+            break
+        time.sleep(0.05)
+    assert vision.EmbeddingStore(embedder.name).get("product:ebay-9") is not None
+    assert "ebay-9" in product_checks.load()
+    assert not vision.embed_in_background(new)        # schon angeschaut -> nichts zu tun
+
+
+def test_without_vision_setup_nothing_starts(fake):
+    assert not vision.embed_in_background([make_product(id="ebay-9")])

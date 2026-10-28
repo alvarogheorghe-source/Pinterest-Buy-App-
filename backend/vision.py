@@ -17,6 +17,7 @@ Ohne sie (oder ohne data/embeddings.json) funktioniert die App wie bisher.
 """
 
 import hashlib
+import logging
 import io
 import threading
 import time
@@ -29,6 +30,8 @@ from typing import Protocol
 import httpx
 
 from backend import storage
+
+logger = logging.getLogger(__name__)
 
 # Modell austauschbar per .env: FashionCLIP ist auf Mode spezialisiert. Für Wohnen &
 # Deko könnte "openai/clip-vit-base-patch32" besser sein – das zeigt die Messung.
@@ -324,6 +327,45 @@ def index_all(embedder: Embedder, show_progress: bool = False) -> dict:
     return result
 
 
+# --- Neue Produkte im Hintergrund anschauen ------------------------------------------------------
+# eBay-Treffer ändern sich stündlich – ohne das hätte die Bilderkennung sie nie gesehen.
+# Nach dem Laden des Shops werden neue Produktbilder still berechnet und geprüft (KI-Bild?
+# Damen/Herren?). Beim nächsten Laden zählt dann auch das Foto. Ausschalten: VISION_AUTO=0
+AUTO_LIMIT = 300                 # höchstens so viele Bilder pro Durchgang
+_auto_lock = threading.Lock()
+
+
+def embed_in_background(products) -> bool:
+    """Startet die Prüfung neuer Produktbilder (nur, wenn die Bilderkennung eingerichtet ist).
+    Gibt True zurück, wenn etwas gestartet wurde."""
+    if os.getenv("VISION_AUTO", "1").strip() == "0":
+        return False
+    store = EmbeddingStore.load_existing()
+    if store is None:            # Bilderkennung nie eingerichtet -> nichts tun
+        return False
+    todo = [p for p in products
+            if p.image_url and store.get(f"product:{p.id}", p.image_url) is None][:AUTO_LIMIT]
+    if not todo or not _auto_lock.acquire(blocking=False):
+        return False
+
+    def run():
+        try:
+            embedder = get_embedder()
+            fresh = EmbeddingStore(embedder.name)
+            index(fresh, embedder, [(f"product:{p.id}", p.image_url) for p in todo])
+            fresh.save()
+            from backend import product_checks
+            product_checks.run(embedder, fresh, todo, merge=True)
+        except VisionUnavailable:
+            pass                  # KI-Pakete fehlen – App läuft ohne Bilderkennung weiter
+        except Exception as err:  # Hintergrund: nie die App stören
+            logger.warning("Bildprüfung im Hintergrund fehlgeschlagen: %s", err)
+        finally:
+            _auto_lock.release()
+    threading.Thread(target=run, daemon=True).start()
+    return True
+
+
 # --- Wie sehr ähnelt ein Produkt den Pins? ------------------------------------------------------
 
 def pin_affinity(product_vector: list[float], pin_vectors: list[list[float]],
@@ -427,6 +469,8 @@ def apply_visual(ranked: list[dict], pins: list[dict], department: str,
             **item,
             "score": round(item["score"] + VISUAL_WEIGHT * affinity, 3),
             "looks_like_pins": affinity >= VISUAL_HINT_THRESHOLD,
+            # 0..1, wie sehr das Foto den Pins ähnelt – None: Foto noch nicht angeschaut
+            "visual": round(affinity, 3) if vector else None,
         })
     results.sort(key=lambda r: (-r["score"], r["price"]))
     return results

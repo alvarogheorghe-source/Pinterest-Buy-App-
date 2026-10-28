@@ -52,12 +52,13 @@ def check(vector: list[float], photo: dict, gender: dict) -> dict:
     return {"ai": round(ai, 3), "gender": best if genders[best] >= GENDER_MIN else None}
 
 
-def run(embedder, store, products) -> dict:
-    """Alle Produkte mit Bild-Vektor prüfen und speichern."""
+def run(embedder, store, products, merge: bool = False) -> dict:
+    """Alle Produkte mit Bild-Vektor prüfen und speichern. merge=True: bisherige Ergebnisse
+    behalten und nur diese Produkte ergänzen (Hintergrund-Prüfung neuer eBay-Treffer)."""
     labels = label_vectors(embedder, store)
     gender = {"herren": labels["gender:herren"], "damen": labels["gender:damen"]}
     photo = photo_vectors(embedder, store)
-    results = {}
+    results = dict(storage.read_json(CHECKS_FILE, default={}) or {}) if merge else {}
     for product in products:
         vector = store.get(f"product:{product.id}", product.image_url)
         if vector:

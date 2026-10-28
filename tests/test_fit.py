@@ -221,3 +221,21 @@ def test_cut_or_type_against_the_pins_is_never_shown(client, monkeypatch):
     ids = [p["id"] for p in data["products"]]
     assert "ebay-2" not in ids and "ebay-3" not in ids       # Skinny / Shorts: Widerspruch
     assert ids[0] == "ebay-1" and "ebay-4" in ids             # Baggy zuerst, ohne Angabe ok
+
+
+def test_photo_must_roughly_match_the_pins():
+    from backend.main import fits_pins
+    from backend.matching import StyleProfile
+    from collections import Counter
+    profile = StyleProfile(pin_count=4, colors=Counter({"schwarz": 4}), categories=Counter({"Hosen": 4}))
+
+    def item(visual, matched, looks=False):
+        return {"id": "ebay-1", "category": "Hosen", "matched": matched, "visual": visual,
+                "looks_like_pins": looks, "gender": None, "clashes": []}
+
+    assert not fits_pins(item(0.1, ["Hosen", "schwarz"]), profile)        # sieht ganz anders aus
+    assert fits_pins(item(0.5, ["Hosen", "schwarz"]), profile)
+    assert fits_pins(item(0.7, [], looks=True), profile)                  # sieht aus wie die Pins
+    # Foto noch nicht angeschaut: nur sehr sichere Text-Treffer
+    assert not fits_pins(item(None, ["Hosen", "schwarz"]), profile)
+    assert fits_pins(item(None, ["Hosen", "schwarz", "Baggy"]), profile)
