@@ -237,8 +237,10 @@ def test_photo_must_roughly_match_the_pins():
     assert fits_pins(item(0.5, ["Hosen", "schwarz"]), profile)
     assert fits_pins(item(0.7, ["Hosen"], looks=True), profile)           # sieht aus wie die Pins
     assert not fits_pins(item(0.7, ["Hosen"]), profile)                   # ähnlich, aber kein Merkmal
-    # Foto noch nicht angeschaut: streng -> nie (kommt nach der Bildprüfung)
-    assert not fits_pins(item(None, ["Hosen", "schwarz", "Baggy"]), profile)
+    # Foto noch nicht angeschaut: nur ganz sichere Text-Treffer (Art + zwei typische Merkmale)
+    assert not fits_pins(item(None, ["Hosen", "schwarz"]), profile)
+    profile.details[("Hosen", "Baggy")] = 4
+    assert fits_pins(item(None, ["Hosen", "schwarz", "Baggy"]), profile)
 
 
 def test_rare_categories_and_one_off_colors_do_not_count():

@@ -331,7 +331,8 @@ def index_all(embedder: Embedder, show_progress: bool = False) -> dict:
 # eBay-Treffer ändern sich stündlich – ohne das hätte die Bilderkennung sie nie gesehen.
 # Nach dem Laden des Shops werden neue Produktbilder still berechnet und geprüft (KI-Bild?
 # Damen/Herren?). Beim nächsten Laden zählt dann auch das Foto. Ausschalten: VISION_AUTO=0
-AUTO_LIMIT = 300                 # höchstens so viele Bilder pro Durchgang
+AUTO_LIMIT = 200                 # Bilder pro Paket (danach wird gespeichert)
+AUTO_MAX = 5000                  # höchstens so viele pro Durchgang
 _auto_lock = threading.Lock()
 
 
@@ -344,18 +345,22 @@ def embed_in_background(products) -> bool:
     if store is None:            # Bilderkennung nie eingerichtet -> nichts tun
         return False
     todo = [p for p in products
-            if p.image_url and store.get(f"product:{p.id}", p.image_url) is None][:AUTO_LIMIT]
+            if p.image_url and store.get(f"product:{p.id}", p.image_url) is None][:AUTO_MAX]
     if not todo or not _auto_lock.acquire(blocking=False):
         return False
 
     def run():
         try:
             embedder = get_embedder()
-            fresh = EmbeddingStore(embedder.name)
-            index(fresh, embedder, [(f"product:{p.id}", p.image_url) for p in todo])
-            fresh.save()
             from backend import product_checks
-            product_checks.run(embedder, fresh, todo, merge=True)
+            # In Paketen bis alles geprüft ist – nach jedem Paket speichern, damit der Shop
+            # die fertigen Fotos schon beim nächsten Laden nutzt
+            for start in range(0, len(todo), AUTO_LIMIT):
+                batch = todo[start:start + AUTO_LIMIT]
+                fresh = EmbeddingStore(embedder.name)
+                index(fresh, embedder, [(f"product:{p.id}", p.image_url) for p in batch])
+                fresh.save()
+                product_checks.run(embedder, fresh, batch, merge=True)
         except VisionUnavailable:
             pass                  # KI-Pakete fehlen – App läuft ohne Bilderkennung weiter
         except Exception as err:  # Hintergrund: nie die App stören

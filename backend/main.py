@@ -575,7 +575,9 @@ def fit_check(item: dict, profile: matching.StyleProfile, wanted: str | None = N
     if wanted and not item.get("gender") and item["id"] in (checked or {}):
         return False, "unklar, ob Damen oder Herren"
     if "visual" in item:               # Bilderkennung aktiv (Pins haben Bild-Vektoren)
-        if item["visual"] is None:
+        if item["visual"] is None:     # Foto noch nicht geprüft -> nur ganz sichere Text-Treffer
+            if category in matched and len(features) >= 2:
+                return True, "noch ohne Fotoprüfung, aber " + ", ".join(features)
             return False, "Foto noch nicht angeschaut"
         if item["visual"] < VISUAL_GATE:
             return False, f"Foto sieht anders aus als deine Pins ({item['visual']:.2f})"
