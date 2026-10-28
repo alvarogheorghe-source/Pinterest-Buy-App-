@@ -726,6 +726,7 @@ def impressum():
 
 
 @app.get("/datenschutz.html", response_class=HTMLResponse)
+@app.get("/privacy.html", response_class=HTMLResponse)     # englische Adresse, gleiche Seite
 def datenschutz():
     from scripts import build_site
     privacy = build_site.markdown_to_html((build_site.ROOT / "PRIVACY.md").read_text("utf-8"))

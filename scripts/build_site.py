@@ -311,6 +311,10 @@ def build() -> None:
     (OUT / "datenschutz.html").write_text(subpage(   # PRIVACY.md ist (noch) Englisch
         "Privacy Policy", privacy, "How Malipin handles your data: read-only Pinterest access, "
         "no sharing, delete any time.", "/datenschutz.html", lang="en"), "utf-8")
+    # Gleiche Seite unter englischer Adresse (z.B. für die Pinterest-Bewerbung)
+    (OUT / "privacy.html").write_text(subpage(
+        "Privacy Policy", privacy, "How Malipin handles your data: read-only Pinterest access, "
+        "no sharing, delete any time.", "/privacy.html", lang="en"), "utf-8")
     (OUT / "impressum.html").write_text(impressum_page(), "utf-8")
     (OUT / "404.html").write_text(subpage("Nicht gefunden / Not found", "    <h1>Hoppla! / Oops!</h1>\n"
         "    <p>Diese Seite gibt es nicht. Mali hat überall geschnuppert – nichts.</p>\n"
