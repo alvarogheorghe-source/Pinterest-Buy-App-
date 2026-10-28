@@ -179,7 +179,7 @@ class CombinedSource(ProductSource):
 
 
 PHOTO_RESULTS_FILE = "photo_results.json"
-MAX_PHOTO_RESULTS = 200
+MAX_PHOTO_RESULTS = 24   # die Treffer der letzten paar Foto-Suchen
 
 
 class PhotoResultsSource(ProductSource):

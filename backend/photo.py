@@ -18,7 +18,8 @@ from backend.products import (DEPARTMENTS, JsonProductSource, Product, online_so
                               remember_photo_results)
 
 MAX_BYTES = 8 * 1024 * 1024
-RESULTS = 24          # so viele Produkte zeigen
+RESULTS = 8           # höchstens so viele Produkte zeigen (Qualität statt Menge)
+PHOTO_MIN = 0.3       # so ähnlich muss ein Produktbild dem Foto mindestens sehen (0..1)
 VISUAL_CHECK = 36     # so viele der Text-Besten vergleicht das Modell direkt mit dem Foto
 VISUAL_WEIGHT = 3.0   # beim Foto zählt "sieht genauso aus" mehr als bei vielen Pins
 BRAND_BONUS = 1.5
@@ -74,7 +75,6 @@ def candidates(pin: dict) -> list[Product]:
             found += source.fetch_for([pin], departments, keep=keep)
         except Exception:  # eine Quelle fällt aus -> die anderen reichen
             continue
-    remember_photo_results(found)
     return found
 
 
@@ -92,7 +92,11 @@ def recommend(data: bytes, force: bool = False) -> dict:
     if not pin["image_relevant"]:
         # Bildschirm, Essen, Text … -> keine Suche; Mali sagt freundlich, was er stattdessen sieht
         return {"relevant": False, "seen": pin["image_seen"], "found": None, "products": []}
-    ranked = rank_products(candidates(pin), build_style_profile([pin]))
+    found = candidates(pin)
+    ranked = rank_products(found, build_style_profile([pin]))
+    # Nur die Kategorie, die auf dem Foto ist (z.B. Jeans), wenn Mali sie erkannt hat
+    if pin["image_categories"]:
+        ranked = [r for r in ranked if r["category"] in pin["image_categories"]] or ranked
 
     # Die besten Text-Treffer direkt mit dem Foto vergleichen (fehlende Bilder berechnen)
     top = ranked[:VISUAL_CHECK]
@@ -103,11 +107,17 @@ def recommend(data: bytes, force: bool = False) -> dict:
         product_vector = store.get(f"product:{item['id']}")
         similarity = (vision.visual_score(vision.cosine(vector, product_vector))
                       if product_vector else 0.0)
+        item["similarity"] = similarity
         item["looks_like_photo"] = similarity >= vision.VISUAL_HINT_THRESHOLD
         item["score"] = round(item["score"] + VISUAL_WEIGHT * similarity, 3)
         if any(brand.split()[0] in item["name"].lower() for brand in brands):
             item["score"] += BRAND_BONUS
+    # Nur Teile, die dem Foto wirklich ähnlich sehen – lieber wenige als viele
+    top = [item for item in top if item.pop("similarity") >= PHOTO_MIN]
     top.sort(key=lambda r: (-r["score"], r["price"]))
+    top = top[:RESULTS]
+    shown = {item["id"] for item in top}
+    remember_photo_results([p for p in found if p.id in shown])
 
     color = color_from_hex(pin["dominant_color"])
     return {
@@ -122,5 +132,5 @@ def recommend(data: bytes, force: bool = False) -> dict:
             "gender": pin["image_gender"],
             "department": pin["image_department"],
         },
-        "products": top[:RESULTS],
+        "products": top,
     }

@@ -52,6 +52,7 @@ def test_photo_finds_what_is_on_it(fake, client, model):
     assert products[0]["id"] == "prod-006"                  # sieht genauso aus + Jacke + schwarz
     assert products[0]["looks_like_photo"] is True
     assert all(p["department"] == "mode" for p in products)  # keine Vasen zur Jacke
+    assert [p["id"] for p in products] == ["prod-006"]      # nur was dem Foto wirklich ähnlich sieht
 
 
 def test_photo_is_never_stored(fake, client, model):
@@ -91,7 +92,8 @@ def test_online_search_only_for_what_is_on_the_photo(fake, client, model, monkey
     monkeypatch.setattr(ebay, "_http", lambda: httpx.Client(transport=transport))
 
     products = upload(client, jpeg()).json()["products"]
-    assert products[0]["id"] == "ebay-match"
+    assert [p["id"] for p in products] == ["ebay-match"]     # die braune Jacke sieht anders aus
+    assert [p["id"] for p in client.get("/api/recommendations").json()["products"]] == ["ebay-match"]
     assert all("Jacke" in q for q in fake_ebay.searches())   # keine Suche nach Hosen, Schuhen …
     # Gemerkt -> ♡ und Detailseite funktionieren auch für Foto-Ergebnisse
     assert client.post("/api/feedback", json={"product_id": "ebay-match", "vote": "like"}).status_code == 200
