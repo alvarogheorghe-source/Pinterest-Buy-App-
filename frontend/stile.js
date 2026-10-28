@@ -49,7 +49,7 @@ function setupMali() {
     if (logo) stage.append(logo.cloneNode(true));
     return;
   }
-  const sprite = make("canvas", "mali-sprite");
+  const sprite = make("canvas", "stage-sprite");
   stage.prepend(sprite);
   const show = (name) => malipixels(sprite, pixels.frames[name], pixels.palette);
   show("idle");
@@ -62,7 +62,7 @@ function setupMali() {
   };
   function hearts(count = 4) {
     for (let i = 0; i < count; i++) {
-      const heart = make("canvas", "mali-heart");
+      const heart = make("canvas", "stage-heart");
       malipixels(heart, pixels.heart, pixels.palette);
       heart.style.left = `${20 + Math.random() * 60}%`;
       heart.style.animationDelay = `${i * 140}ms`;
@@ -101,7 +101,7 @@ function setupMali() {
   }
   // Klick: Freude + neuer Spruch
   stage.addEventListener("click", () => {
-    bubble.textContent = t(pick(MALI_LINES));
+    bubble.textContent = noEmoji(t(pick(MALI_LINES)));
     bubble.classList.remove("pop");
     void bubble.offsetWidth;          // Animation neu starten
     bubble.classList.add("pop");
@@ -146,6 +146,39 @@ function shareButton(onClick) {
   return button;
 }
 
+// --- Icons statt Emojis ---------------------------------------------------------------------------
+// Schlanke Linien-Icons (24×24, stroke = Textfarbe) – passend zu den übrigen Icons der Seite.
+// Feste SVG-Pfade, keine Daten von außen -> innerHTML ist hier unbedenklich.
+const ICONS = {
+  "vibe-goth-baddie": '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/>',          // Mond
+  "vibe-clean-girl": '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8Z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7Z"/>', // Glanz
+  "vibe-streetwear-icon": '<path d="M4 15c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="M2 15h17.5c1 0 1.5 1.5.5 2H4"/><path d="M12 7V5"/>',     // Cap
+  "vibe-cozy-era": '<path d="M7 18h10a4 4 0 0 0 .5-8A5.5 5.5 0 0 0 7 9.5 4.3 4.3 0 0 0 7 18Z"/>',       // Wolke
+  "vibe-quiet-luxury": '<path d="M6 4h12l3 5-9 11L3 9Z"/><path d="M3 9h18M9 4l3 16 3-16"/>',          // Diamant
+  "vibe-thrift-legend": '<path d="M12 6a2 2 0 1 1 2 2c-1 .5-2 1-2 2"/><path d="M12 10 3 17h18Z"/>',      // Kleiderbügel
+  "vibe-y2k-baby": '<path d="M12 12c-2-5-7-7-8-4s3 6 8 4Zm0 0c2-5 7-7 8-4s-3 6-8 4Zm0 0c-3 3-5 7-3 8s3-3 3-8Zm0 0c3 3 5 7 3 8s-3-3-3-8Z"/>', // Schmetterling
+  "vibe-festival-boho": '<circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>', // Sonne
+  "vibe-coquette-era": '<path d="M12 11c-3-4-8-5-8-1.5S9 14 12 11Zm0 0c3-4 8-5 8-1.5S15 14 12 11Z"/><path d="M11 12l-3 8M13 12l3 8"/>', // Schleife
+  "vibe-cottagecore": '<circle cx="12" cy="9" r="2"/><path d="M12 7c0-3 4-3 3 0M14 9c3 0 3 4 0 3M12 11c0 3-4 3-3 0M10 9c-3 0-3-4 0-3"/><path d="M12 11v10M12 17c-2-2-4-2-5-1M12 15c2-2 4-2 5-1"/>', // Blume
+  "vibe-japandi-zen": '<path d="M4 10h13v3a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 4c0 1 1 1 1 2s-1 1-1 2M12 4c0 1 1 1 1 2s-1 1-1 2"/>', // Tasse
+  "vibe-athleisure-era": '<path d="M13 2 4 14h7l-1 8 9-12h-7Z"/>',                                    // Blitz
+  "vibe-gorpcore": '<path d="M3 20 9.5 8l4 7 2.5-4 5 9Z"/><path d="M8 11l1.5 1.5L11 11"/>',             // Berg
+  "vibe-effortless-cool": '<path d="M3 16v-5l4-1 3 3 4-1 3 2 4 1v3H3Z"/><path d="M3 19h18"/>',       // Sneaker
+  "vibe-clean-fit": '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 12h16"/>',       // Minimal
+  "vibe-main-character": '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9Z"/>', // Stern
+};
+const CAMERA = '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/>';
+
+function icon(paths, className) {
+  const box = make("span", className);
+  box.setAttribute("aria-hidden", "true");
+  box.innerHTML = `<svg viewBox="0 0 24 24">${paths || ICONS["vibe-main-character"]}</svg>`;
+  return box;
+}
+
+// Emojis aus Malis Sätzen entfernen (auf dieser Seite sprechen die Icons)
+const noEmoji = (text) => text.replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, "").replace(/\s+/g, " ").trim();
+
 // --- Inhalte -----------------------------------------------------------------------------------
 
 function vibeCard(vibe) {
@@ -153,7 +186,7 @@ function vibeCard(vibe) {
   card.id = vibe.slug;
   card.dataset.vibe = vibe.slug;      // eigene Farben pro Vibe (style.css)
   const head = make("header", "vibe-card-head");
-  head.append(make("span", "vibe-emoji", vibe.emoji || "🖤"), make("h3", "vibe-title", vibe.title),
+  head.append(icon(ICONS[vibe.slug], "vibe-icon"), make("h3", "vibe-title", vibe.title),
     shareButton(() => share({
       title: `${vibe.title} – Malipin`,
       text: t("Das ist der {title}-Vibe – schau mal, ob er zu dir passt! 🐰", { title: vibe.title }),
@@ -163,7 +196,7 @@ function vibeCard(vibe) {
 
   if (vibe.mali) {
     const quote = make("blockquote", "vibe-mali");
-    quote.append(make("span", "vibe-mali-label", t("Mali sagt")), make("span", "", vibe.mali));
+    quote.append(make("span", "vibe-mali-label", t("Mali sagt")), make("span", "", noEmoji(vibe.mali)));
     card.append(quote);
   }
   card.append(make("p", "vibe-about", vibe.about));
@@ -216,15 +249,18 @@ async function showYourVibe(vibes) {
   const actions = make("div", "your-vibe-actions");
   actions.append(Object.assign(make("a", "button", t("Mehr dazu")), { href: `#${vibe.slug}` }));
   if (window.mali && window.mali.teilen) {
-    const card = make("button", "button secondary", `📸 ${t("Vibe-Karte teilen")}`);
+    const card = make("button", "button secondary", t("Vibe-Karte teilen"));
+    card.prepend(icon(CAMERA, "button-icon"));
     card.type = "button";
     card.addEventListener("click", () => window.mali.teilen(vibe));
     actions.append(card);
   }
+  const title = make("p", "your-vibe-title", vibe.title);
+  title.prepend(icon(ICONS[vibe.slug]).firstChild);
   yourVibe.replaceChildren(
     make("p", "your-vibe-kicker", t("Dein Vibe laut Mali")),
-    make("p", "your-vibe-title", `${vibe.emoji ? `${vibe.emoji} ` : ""}${vibe.title}`),
-    make("p", "your-vibe-text", vibe.text),
+    title,
+    make("p", "your-vibe-text", noEmoji(vibe.text)),
     actions,
   );
   yourVibe.hidden = false;
@@ -248,8 +284,9 @@ async function load() {
   const data = await fetch("/api/styles").then((r) => r.json());
   for (const vibe of data.vibes) {
     vibeGrid.append(vibeCard(vibe));
-    vibeIndex.append(Object.assign(make("a", "vibe-chip", `${vibe.emoji || "🖤"} ${vibe.title}`),
-      { href: `#${vibe.slug}` }));
+    const chip = Object.assign(make("a", "vibe-chip", vibe.title), { href: `#${vibe.slug}` });
+    chip.prepend(icon(ICONS[vibe.slug], "chip-icon"));
+    vibeIndex.append(chip);
   }
   for (const style of data.styles) styleList.append(styleItem(style));
   // Mit Adresse aufgerufen (z.B. aus dem Shop: #stil-goth)? Inhalt ist erst jetzt da ->

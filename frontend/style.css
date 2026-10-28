@@ -2298,7 +2298,7 @@ section + section {
   image-rendering: pixelated;
 }
 
-.mali-sprite {
+.stage-sprite {
   position: absolute;
   left: 4px;
   bottom: 14px;
@@ -2309,7 +2309,7 @@ section + section {
   animation: mali-breathe 2.6s ease-in-out infinite;
 }
 
-.mali-shadow {
+.stage-shadow {
   position: absolute;
   left: 50%;
   bottom: 4px;
@@ -2327,8 +2327,8 @@ section + section {
 }
 
 /* Hüpfen mit Stauchen (wie ein echter Hase) */
-.styles-mali.hop .mali-sprite { animation: mali-hop 0.7s cubic-bezier(0.3, 0.7, 0.4, 1); }
-.styles-mali.hop .mali-shadow { animation: mali-shadow 0.7s ease; }
+.styles-mali.hop .stage-sprite { animation: mali-hop 0.7s cubic-bezier(0.3, 0.7, 0.4, 1); }
+.styles-mali.hop .stage-shadow { animation: stage-shadow 0.7s ease; }
 
 @keyframes mali-hop {
   0% { transform: scale(1, 1); }
@@ -2338,12 +2338,12 @@ section + section {
   100% { transform: scale(1, 1); }
 }
 
-@keyframes mali-shadow {
+@keyframes stage-shadow {
   45% { transform: scale(0.55); opacity: 0.5; }
 }
 
 /* Freudiges Wackeln */
-.styles-mali.wiggle .mali-sprite { animation: mali-wiggle 0.9s ease-in-out; }
+.styles-mali.wiggle .stage-sprite { animation: mali-wiggle 0.9s ease-in-out; }
 
 @keyframes mali-wiggle {
   0%, 100% { transform: rotate(0); }
@@ -2354,7 +2354,7 @@ section + section {
 }
 
 /* Pirouette */
-.styles-mali.twirl .mali-sprite { animation: mali-twirl 0.9s ease-in-out; }
+.styles-mali.twirl .stage-sprite { animation: mali-twirl 0.9s ease-in-out; }
 
 @keyframes mali-twirl {
   0% { transform: rotateY(0) translateY(0); }
@@ -2363,7 +2363,7 @@ section + section {
 }
 
 /* Ohren-Wackler: kurzes Kopfnicken */
-.styles-mali.ears .mali-sprite { animation: mali-nod 0.8s ease-in-out; }
+.styles-mali.ears .stage-sprite { animation: mali-nod 0.8s ease-in-out; }
 
 @keyframes mali-nod {
   25% { transform: rotate(-3deg) scale(1.02, 0.98); }
@@ -2372,7 +2372,7 @@ section + section {
 }
 
 /* Herzchen steigen auf */
-.mali-heart {
+.stage-heart {
   position: absolute;
   bottom: 110px;
   width: 21px;
@@ -2380,21 +2380,21 @@ section + section {
   image-rendering: pixelated;
   opacity: 0;
   pointer-events: none;
-  animation: mali-heart 1.8s ease-out forwards;
+  animation: stage-heart 1.8s ease-out forwards;
 }
 
-@keyframes mali-heart {
+@keyframes stage-heart {
   0% { opacity: 0; transform: translateY(0) scale(0.6); }
   15% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-70px) translateX(10px) scale(1.15); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mali-sprite,
-  .styles-mali.hop .mali-sprite,
-  .styles-mali.wiggle .mali-sprite,
-  .styles-mali.twirl .mali-sprite,
-  .styles-mali.ears .mali-sprite { animation: none; }
+  .stage-sprite,
+  .styles-mali.hop .stage-sprite,
+  .styles-mali.wiggle .stage-sprite,
+  .styles-mali.twirl .stage-sprite,
+  .styles-mali.ears .stage-sprite { animation: none; }
 }
 
 /* Sprechblase "ploppt" bei neuem Spruch */
@@ -2489,3 +2489,66 @@ section + section {
 .vibe-card[data-vibe="vibe-main-character"] { --v-accent: #c93a69; background: linear-gradient(150deg, #fff3c4, #ffd1e8 55%, #cfe2ff); }
 .vibe-card[data-vibe="vibe-goth-baddie"] .vibe-mali,
 .vibe-card[data-vibe="vibe-goth-baddie"] .vibe-pieces li { background: rgba(255, 255, 255, 0.1); }
+
+/* Stil-Lexikon: die große Mali ist da -> kleine Mali unten ausblenden */
+body[data-big-mali] .mali,
+body[data-big-mali] .mali-return {
+  display: none !important;
+}
+
+/* Linien-Icons statt Emojis (stile.js: ICONS) */
+.vibe-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--v-accent);
+}
+
+.look-dunkel .vibe-icon,
+.vibe-card[data-vibe="vibe-goth-baddie"] .vibe-icon {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.vibe-icon svg,
+.chip-icon svg,
+.your-vibe-title svg,
+.button-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chip-icon,
+.button-icon {
+  display: inline-flex;
+  vertical-align: -4px;
+  margin-right: 6px;
+  color: var(--accent);
+}
+
+.chip-icon svg,
+.button-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.your-vibe-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.your-vibe-title svg {
+  width: 26px;
+  height: 26px;
+  color: var(--accent);
+}
