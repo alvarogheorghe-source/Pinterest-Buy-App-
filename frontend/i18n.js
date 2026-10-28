@@ -112,6 +112,12 @@
     });
     window.CURRENCY = data.currency;
     line.append(" · ", select);
+    // Beispielpreise (Startseite) mit dem Währungszeichen der Person: "$34.99", "£34.99" …
+    // (gleiche Zahl – es sind nur Beispiele, keine echten Angebote)
+    for (const el of document.querySelectorAll("[data-price]")) {
+      el.textContent = new Intl.NumberFormat(window.LOCALE, { style: "currency", currency: data.currency })
+        .format(Number(el.dataset.price));
+    }
   }
 
   if (lang !== "en") return;
