@@ -476,6 +476,10 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     gender: "auto" = wie deine Pins (pinnst du Damenmode, keine Herrenteile)."""
     pins_list = storage.load_pins()["pins"]
     profile = matching.build_style_profile(pins_list, department)
+    if not pins_list:
+        # Weder Pins noch Stil bekannt: keine Zufallsware zeigen (und nichts bei eBay suchen).
+        # Nur, was die eigene Foto-Suche gefunden hat – sonst Einladung im Shop (needs_input).
+        return guest_recommendations(profile, department, min_price, max_price, category)
     source = products.get_product_source()
     all_products = source.load()
     here = region.current()   # Budget in der eigenen Währung, nur Lieferbares
@@ -548,6 +552,18 @@ def why_shown(department: products.Department = "mode"):
     lines += [f"  ✗ {r['name'][:60]:<60} {r['shop'][:18]:<18} {r['reason']}"
               for r in rows if not r["shown"]][:80]
     return "\n".join(lines)
+
+
+def guest_recommendations(profile, department, min_price, max_price, category) -> dict:
+    """Ohne Pins: nur Treffer der eigenen Foto-Suche (products.PhotoResultsSource)."""
+    here = region.current()
+    found = products.PhotoResultsSource().load() if storage.exists(products.PHOTO_RESULTS_FILE) else []
+    found = products.filter_products(found, min_price, max_price, category, department,
+                                     currency=here.currency, country=here.code)
+    ranked = [{**p.model_dump(), "score": 0, "matched": [], "reason": ""} for p in found]
+    return {"profile": profile.to_dict(), "sources": ["photo"] if found else [], "warnings": [],
+            "products": local(ranked), "currency": here.currency, "gender": None, "unfitting": 0,
+            "pending_photos": 0, "needs_input": not found}
 
 
 def has_taste(profile: matching.StyleProfile) -> bool:

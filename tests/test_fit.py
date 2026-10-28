@@ -302,3 +302,19 @@ def test_why_page_explains_every_item(client, monkeypatch):
     text = client.get("/api/why").text
     assert "1 von 2 Teilen werden gezeigt" in text
     assert "✓ Schwarze Baggy Jeans" in text and "Widerspruch zu den Pins: Skinny" in text
+
+
+def test_without_pins_no_random_products_only_own_photo_results(fake, client, monkeypatch):
+    from backend import products
+
+    def boom():
+        raise AssertionError("ohne Pins darf nicht bei eBay & Co. gesucht werden")
+
+    monkeypatch.setattr(products, "get_product_source", boom)
+    data = client.get("/api/recommendations").json()
+    assert data["products"] == [] and data["needs_input"] is True
+    products.remember_photo_results([products.Product(
+        id="ebay-f1", name="Schwarze Baggy Jeans", shop="eBay", price=30, category="Hosen",
+        image_url="https://i/x.jpg", affiliate_url="https://a/x")])
+    data = client.get("/api/recommendations").json()
+    assert [p["id"] for p in data["products"]] == ["ebay-f1"] and not data["needs_input"]

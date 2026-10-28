@@ -2718,3 +2718,36 @@ body[data-big-mali] .mali-return {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+/* Einladung ohne Pins und Foto (shop.js: renderNeedsInput) */
+.needs-input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 16px 56px;
+}
+
+.needs-input .needs-input-mali {
+  width: 72px;
+  height: auto;
+  margin-bottom: 14px;
+  image-rendering: pixelated;
+}
+
+.needs-input .muted {
+  max-width: 440px;
+}
+
+.needs-input {
+  grid-column: 1 / -1;     /* über die ganze Breite, nicht in einer Rasterspalte */
+}
+
+.profile-banner:empty {
+  display: none;
+}
+
+/* Noch kein Stil bekannt: Tabs und Filter haben nichts zu filtern */
+body.needs-input-mode .tabs,
+body.needs-input-mode .filters {
+  display: none;
+}

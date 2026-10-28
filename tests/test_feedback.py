@@ -79,6 +79,8 @@ def test_api_rejects_bad_votes(fake, client):
 
 
 def test_api_recommendations_and_detail_respect_feedback(fake, client):
+    from backend import storage
+    storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [{"id": "1", "title": "x"}]})
     client.post("/api/feedback", json={"product_id": "prod-001", "vote": "dislike"})
     client.post("/api/feedback", json={"product_id": "prod-023", "vote": "like"})
 

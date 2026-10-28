@@ -163,6 +163,7 @@ def test_one_source_down_the_other_still_shows(both, client):
 
 def test_all_sources_down_gives_a_clear_message(both, client):
     fake_ebay, fake_etsy = both
+    save_pins("beige oversized hoodie")
     fake_ebay.token_ok = False
     fake_etsy.key_ok = False
     response = client.get("/api/recommendations")

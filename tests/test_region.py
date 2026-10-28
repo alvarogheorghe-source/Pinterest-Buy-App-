@@ -39,7 +39,10 @@ def test_convert_and_ecb_rates(fake, monkeypatch):
     assert currency.rates()["USD"] == 1.10                               # gespeichert
 
 
-def test_prices_and_budget_in_the_persons_currency(fake):
+def test_prices_and_budget_in_the_persons_currency(fake, monkeypatch):
+    from backend import storage
+    monkeypatch.setattr(storage, "load_pins",              # jede Person hat Pins (ohne Stil)
+                        lambda: {"fetched_at": 1, "board_ids": ["x"], "pins": [{"id": "1", "title": "x"}]})
     us = TestClient(app, cookies={"country": "US"})
     data = us.get("/api/recommendations?department=mode&max_price=25").json()
     assert data["currency"] == "USD" and data["products"]

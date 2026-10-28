@@ -87,7 +87,10 @@ async function load() {
         ? "Keine Produkte in diesem Budget. Probier einen höheren Betrag."
         : "");
     // Gar nichts in dieser Welt (noch kein passender Partner-Shop) – ehrlich sagen statt "Budget"
-    if (!items.length && !filters.maxPrice && !filters.category) {
+    document.body.classList.toggle("needs-input-mode", Boolean(recommendations.needs_input));
+    if (recommendations.needs_input) {
+      renderNeedsInput();                // weder Pins noch Foto: Einladung statt Zufallsware
+    } else if (!items.length && !filters.maxPrice && !filters.category) {
       renderNoShopsYet(pinItems.length, recommendations.unfitting > 0, recommendations.pending_photos);
     } else {
       showSources(recommendations.sources || ["demo"]);
@@ -204,6 +207,27 @@ function renderRows(list, hasProfile) {
   }
 }
 
+// Noch kein Stil bekannt: Mali lädt ein, ein Foto hochzuladen (oder bald Pinterest zu verbinden)
+function renderNeedsInput() {
+  const box = Object.assign(document.createElement("div"), { className: "empty needs-input" });
+  const mali = document.querySelector(".logo-pin");
+  if (mali) box.append(Object.assign(mali.cloneNode(true), { classList: "needs-input-mali" }));
+  box.append(
+    Object.assign(document.createElement("p"), { className: "no-shops-title",
+      textContent: "Zeig Mali deinen Stil" }),
+    Object.assign(document.createElement("p"), { className: "muted",
+      textContent: "Lade ein Foto von einem Outfit oder Teil hoch, das dir gefällt. Mali sucht dir dann passende Teile, neu und Second Hand." }),
+  );
+  const actions = Object.assign(document.createElement("div"), { className: "no-shops-actions" });
+  actions.append(Object.assign(document.createElement("a"),
+    { className: "button", href: "/foto.html", textContent: t("Foto hochladen") }), connectButton());
+  box.appendChild(actions);
+  grid.replaceChildren(box);
+  rows.replaceChildren();
+  looksBox.hidden = true;
+  resultCount.textContent = "";
+}
+
 function renderNoShopsYet(pinCount, onlyUnfitting = false, pendingPhotos = 0) {
   const box = Object.assign(document.createElement("div"), { className: "empty no-shops" });
   // onlyUnfitting: Es gibt Produkte, aber keins passt zu deinen Pins -> lieber nichts zeigen
@@ -290,11 +314,7 @@ function renderBanner(profile) {
     return;
   }
   if (profile.pin_count === 0) {
-    title.textContent = filters.department === "wohnen"
-      ? "Deko und Möbel, die zu deinem Pinterest passen"
-      : "Mode, die zu deinem Pinterest passt";
-    text.textContent = "Verbinde dein Pinterest-Konto, dann sortieren wir alles nach deinem Stil.";
-    banner.appendChild(connectButton());
+    banner.innerHTML = "";               // die Einladung unten (renderNeedsInput) sagt alles
     return;
   }
 

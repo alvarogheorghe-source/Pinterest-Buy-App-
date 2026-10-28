@@ -191,6 +191,7 @@ def test_ebay_products_in_the_shop_and_cache(fake_ebay, client):
 
 
 def test_wrong_keys_give_a_clear_message(fake_ebay, client):
+    save_pins("schwarze baggy jeans")             # ohne Pins wird gar nicht gesucht
     fake_ebay.token_ok = False
     response = client.get("/api/recommendations")
     assert response.status_code == 500
@@ -209,6 +210,7 @@ def test_marketplace_and_affiliate_headers(fake_ebay, monkeypatch):
 
 
 def test_sandbox_keys_and_ebay_reason(fake_ebay, client, monkeypatch):
+    save_pins("schwarze baggy jeans")
     fake_ebay.token_ok = False
     assert "invalid_client" in client.get("/api/recommendations").json()["detail"]
     # Sandbox-Keys -> eBays Test-Server
@@ -233,6 +235,7 @@ def test_failed_source_is_shown_not_silent(fake_ebay, client):
         id="ebay-alt", name="Alte Jacke", shop="eBay", price=20, department="mode",
         category="Jacken", image_url="https://i.ebayimg.com/a.jpg",
         affiliate_url="https://www.ebay.de/itm/a")])
+    save_pins("schwarze jacke")
     fake_ebay.token_ok = False
     data = client.get("/api/recommendations?department=mode").json()
     assert data["warnings"][0]["source"] == "ebay"
