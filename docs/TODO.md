@@ -4,11 +4,11 @@
 
 ## 1. Shop fertig machen (vor dem Hosten)
 
-- [ ] **Claude:** Stil-Box oben schlanker (eine Zeile: "Dein Stil: Baggy · Schwarz · Streetwear")
-- [ ] **Claude:** Foto-Suche als kleiner Kamera-Knopf in der Filterzeile statt großem Kasten
-- [ ] **Claude:** Begründung unter den Karten kürzer ("Wie deine Pins: Sneaker · Weiß")
-- [ ] **Claude:** Mali-Fenster "Fertig!" verschwindet von selbst
-- [ ] **Claude:** Footer aufräumen (kein "Prototyp mit Beispielprodukten", kein "Link zu …")
+- [x] **Claude:** Stil-Box oben schlanker (eine Zeile: "Dein Stil: Baggy · Schwarz · Streetwear")
+- [x] **Claude:** Foto-Suche als kleiner Kamera-Knopf in der Filterzeile statt großem Kasten
+- [x] **Claude:** Begründung unter den Karten kürzer ("Wie deine Pins: Sneaker · Weiß")
+- [x] **Claude:** Mali-Fenster "Fertig!" verschwindet von selbst
+- [x] **Claude:** Footer aufräumen (kein "Prototyp mit Beispielprodukten", kein "Link zu …")
 - [ ] **Claude:** Bewertungs-Werkzeug: 30–50 Teile mit "passt / passt nicht" markieren -> Trefferquote messen
 - [ ] **Du:** Bewertung durchklicken, **Claude:** Regeln danach nachstellen
 - [ ] **Claude:** Datenschutzerklärung anpassen (Server, Cookies, Bilderkennung, Awin/eBay/Etsy),
@@ -20,7 +20,7 @@
 - [ ] **Du:** Awin -> "Uniqlo DE" suchen und beitreten
 - [ ] **Du:** Awin -> nach "H&M" suchen
 - [ ] **Du:** Amazon PartnerNet anmelden (partnernet.amazon.de)
-- [ ] **Du:** Skimlinks anmelden (skimlinks.com)
+- [x] **Du:** Skimlinks anmelden (skimlinks.com) -> SKIMLINKS_ID in .env eintragen
 - [ ] **Du:** Auf zalando.de und aboutyou.de ganz unten nach "Partnerprogramm" schauen
 - [ ] **Du:** Bei Direct-Running nachsehen, ob sie nach Österreich liefern -> Claude schaltet EU frei
 - [ ] **Du:** Weiter deutsche/österreichische Shops mit Produkt-Feed auf Awin

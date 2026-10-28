@@ -93,6 +93,8 @@
   let talkIndex = 0;
   let lastStep = null;
   let chewing = false;
+  let autoHide = null;                  // Fertig-Fenster im Shop schließt sich nach ein paar Sekunden
+  const AUTO_HIDE_MS = 6000;
   let timers = [];
 
   function percent(s) {
@@ -160,6 +162,7 @@
         const look = el("button", "button", "Ergebnisse ansehen");
         look.addEventListener("click", hide);
         actions.append(look);
+        if (!autoHide) autoHide = setTimeout(hide, AUTO_HIDE_MS);   // nicht über den Produkten stehen bleiben
       } else {
         const shop = Object.assign(el("a", "button", "Zum Shop"), { href: "/shop.html" });
         const ok = el("button", "button secondary", "Schließen");

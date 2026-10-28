@@ -40,10 +40,6 @@
     <!-- Stilprofil oder Hinweis zum Verbinden (wird von shop.js gefüllt) -->
     <section id="profile-banner" class="profile-banner"></section>
 
-    <a href="/foto.html" class="photo-teaser">
-      <svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/></svg>
-      <span>Irgendwo ein cooles Teil gesehen? <strong>Foto hochladen – Mali findet's</strong></span>
-    </a>
 
     <!-- Tabs: Empfehlungen aus dem Katalog vs. Teile direkt aus den Pins -->
     <nav class="tabs" role="tablist">
@@ -65,6 +61,11 @@
       <select id="category-select" class="filter-pill" aria-label="Kategorie">
         <option value="">Alle Kategorien</option>
       </select>
+      <!-- Foto-Suche: klein in der Filterzeile statt eigenem Kasten -->
+      <a href="/foto.html" class="filter-pill photo-pill">
+        <svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/></svg>
+        Per Foto suchen
+      </a>
     </section>
 
     <!-- Shop the Look: Outfit-Pins mit den passenden Teilen (shop.js: renderLooks) -->
@@ -80,7 +81,7 @@
     <p>
       <strong>Werbehinweis:</strong> Links mit dem Hinweis „Werbung“ sind Affiliate-Links. Wenn du
       darüber etwas kaufst, erhalten wir eine Provision vom Shop. Für dich ändert sich der Preis
-      nicht. Links mit „Link zu …“ und Links im Tab „Aus meinen Pins“ sind keine Werbung.
+      nicht. Teile aus deinen Pins ohne diesen Hinweis sind keine Werbung.
     </p>
     <p id="etsy-attribution" hidden>
       The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API but is not

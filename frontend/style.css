@@ -1899,3 +1899,58 @@ section + section {
   text-transform: uppercase;
   color: var(--muted);
 }
+
+/* --- Stil-Zeile statt Kasten (shop.js: renderBanner) ------------------------------------------ */
+.profile-banner.style-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 4px 0 14px;
+  border: none;
+  background: none;
+}
+
+.style-line h1 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.style-line .style-terms {
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.style-line .style-count {
+  font-size: 0.8rem;
+}
+
+/* Foto-Suche als Pille in der Filterzeile (rechts) */
+.photo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding-right: 14px;
+  background-image: none;
+  text-decoration: none;
+}
+
+.photo-pill .line-icon {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 640px) {
+  .photo-pill {
+    margin-left: 0;
+  }
+}
+
+/* Kurze Begründung unter der Kachel ("Wie deine Pins: Baggy · Schwarz") */
+.card .card-reason {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}

@@ -392,7 +392,6 @@
     "Produkt – Malipin": "Product – Malipin",
     "← Zurück zum Shop": "← Back to the shop",
     "Mehr wie das": "More like this",
-    "Links mit dem Hinweis „Werbung“ sind Affiliate-Links. Wenn du darüber etwas kaufst, erhalten wir eine Provision vom Shop. Für dich ändert sich der Preis nicht. Links mit „Link zu …“ sind keine Werbung.": "Links marked “Ad” are affiliate links. If you buy something through them, the shop pays us a commission. Your price doesn't change. Links marked “Link to …” are not ads.",
     "Zum Shop": "Go to shop",
     "Werbung": "Ad",
     "Geprüfter Shop – diesen Verkäufer haben wir uns angeschaut": "Verified shop – we've checked this seller",
@@ -494,7 +493,12 @@
     "Für: Herren": "For: men",
     "Für: alle": "For: everyone",
     "Filter": "Filters",
-    "Aus deinem Pin": "From your pin"
+    "Aus deinem Pin": "From your pin",
+    "Dein Stil": "Your style",
+    "aus {n} Pins": "from {n} pins",
+    "Per Foto suchen": "Search by photo",
+    "Wie deine Pins: {terms}": "Like your pins: {terms}",
+    "Links mit dem Hinweis „Werbung“ sind Affiliate-Links. Wenn du darüber etwas kaufst, erhalten wir eine Provision vom Shop. Für dich ändert sich der Preis nicht. Teile aus deinen Pins ohne diesen Hinweis sind keine Werbung.": "Links marked “Ad” are affiliate links. If you buy something through them, we earn a commission from the shop. The price stays the same for you. Items from your pins without this label are not ads."
   },
   "same": [
     "mal",

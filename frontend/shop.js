@@ -273,6 +273,7 @@ function showWarnings(warnings) {
 
 function renderBanner(profile) {
   banner.innerHTML = "";
+  banner.classList.remove("style-line");
   const title = document.createElement("h1");
   const text = document.createElement("p");
   banner.append(title, text);
@@ -296,18 +297,13 @@ function renderBanner(profile) {
     return;
   }
 
-  title.textContent = t("Dein Stil · {world}", { world: t(worldName) });
-  text.className = "muted";
-  text.textContent = t("Aus {n} Pins erkannt:", { n: profile.pin_count });
-  banner.appendChild(tagList(terms));
-
-  // Welche Arten von Teilen zeigen die Pins? (z.B. "Deko", "Leuchten")
-  if (profile.top_categories.length) {
-    const label = document.createElement("p");
-    label.className = "muted banner-sub";
-    label.textContent = "Du pinnst oft:";
-    banner.append(label, tagList(profile.top_categories, "tag outline"));
-  }
+  // Eine ruhige Zeile: "Dein Stil  Baggy · Schwarz · Streetwear · Jeans   aus 26 Pins"
+  banner.classList.add("style-line");
+  title.textContent = "Dein Stil";
+  text.className = "style-terms";
+  text.textContent = [...terms, ...profile.top_categories].slice(0, 6).map((x) => t(x)).join(" · ");
+  banner.appendChild(Object.assign(document.createElement("span"), {
+    className: "muted style-count", textContent: t("aus {n} Pins", { n: profile.pin_count }) }));
 }
 
 // Button "Mit Pinterest verbinden" mit Link-Icon (gleich wie auf der Startseite).
@@ -390,7 +386,7 @@ function productToCard(product, hasProfile) {
     title: product.name,
     price: money(product),
     sale: sale(product),
-    note: hasProfile ? product.reason : "",
+    note: hasProfile ? shortReason(product) : "",
     // Klick auf Bild oder Name -> Detailseite mit "Mehr wie das"
     detailUrl: `/produkt.html?id=${encodeURIComponent(product.id)}`,
     // 👍/👎 (nur bei Katalog-Produkten)
@@ -430,6 +426,14 @@ function pinItemToCard(item) {
     isPinItem: true,
     labelClass: item.sponsored ? "ad-label" : "source-label",
   };
+}
+
+// Kurz statt technisch: "Wie deine Pins: Baggy · Schwarz" bzw. "Sieht aus wie deine Pins"
+function shortReason(product) {
+  if (product.looks_like_pins) return t("Sieht aus wie deine Pins");
+  const terms = (product.matched || []).filter((x) => x !== product.category)  // steht schon oben
+    .slice(0, 3).map((x) => t(x));
+  return terms.length ? t("Wie deine Pins: {terms}", { terms: terms.join(" · ") }) : "";
 }
 
 // Baut EINE Kachel. Alle Texte über textContent -> kein HTML aus den Daten wird ausgeführt.
