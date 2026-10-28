@@ -173,6 +173,16 @@ function showResult(data) {
   }
   for (const product of data.products) grid.appendChild(card(product));
   addAgainButton();
+  if (data.amazon_url) actions.appendChild(amazonLink(data.amazon_url, "Mehr bei Amazon suchen"));
+}
+
+// Suche bei Amazon mit den erkannten Begriffen (Partnerlink -> "Werbung", backend/amazon.py)
+function amazonLink(url, label) {
+  const box = el("span", "amazon-link");
+  const link = Object.assign(el("a", "button secondary", label),
+    { href: url, target: "_blank", rel: "sponsored noopener" });
+  box.append(link, el("span", "ad-label", "Werbung"));
+  return box;
 }
 
 function showError(text) {

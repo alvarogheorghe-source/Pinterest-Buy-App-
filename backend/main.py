@@ -18,8 +18,8 @@ from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import (analysis, currency, feedback, i18n, looks, matching, photo, pins, pinterest,
-                     product_checks, products, quality, rate_limit, region,
+from backend import (amazon, analysis, currency, feedback, i18n, looks, matching, photo, pins,
+                     pinterest, product_checks, products, quality, rate_limit, region,
                      shop_links, shops, similar, skimlinks, stats, storage, style_guide, vibe,
                      vibe_pages, vision)
 from backend.config import FRONTEND_DIR, ConfigError
@@ -111,8 +111,8 @@ def local(items: list[dict]) -> list[dict]:
             if item.get("original_price"):        # Sale: "statt 49,90 €"
                 item["local_original_price"] = currency.convert(item["original_price"],
                                                                 item["currency"], target, table)
-    for item in items:                            # Shop-Links ohne Partnerprogramm -> Skimlinks
-        skimlinks.apply(item)
+    for item in items:                            # amazon.de -> Partner-ID, sonst Skimlinks
+        skimlinks.apply(amazon.apply(item))
     return items
 
 
@@ -395,6 +395,11 @@ async def analyse_photo(request: Request, force: bool) -> dict:
         # Rechnen im Hintergrund-Thread, damit die App währenddessen erreichbar bleibt
         result = await run_in_threadpool(photo.recommend, data, force)
         local(result.get("products", []))
+        found = result.get("found")
+        if found:
+            result["amazon_url"] = amazon.search_url([
+                *found.get("colors", [])[:1], *found.get("brands", [])[:1],
+                *found.get("categories", [])[:1], found.get("gender") or ""])
         return result
     except photo.PhotoError as err:
         raise HTTPException(400, str(err))
@@ -475,6 +480,7 @@ def get_product_detail(product_id: str, limit: int = Query(12, ge=1, le=48)):
         item["vote"] = votes.get(item["id"], {}).get("vote")
     return {
         "product": local([detail])[0],
+        "amazon_url": amazon.search_url(amazon.terms_for(detail)),
         "has_profile": profile.pin_count > 0,
         "similar": local(similar_items),
     }

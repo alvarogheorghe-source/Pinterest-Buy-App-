@@ -42,7 +42,7 @@ function shopButton(product) {
   return actions;
 }
 
-function renderDetail(product, hasProfile) {
+function renderDetail(product, hasProfile, amazonUrl) {
   document.title = `${product.name} | Malipin`;
   // Zurück in die richtige Welt des Shops
   backLink.href = `/shop.html#${product.department}`;
@@ -72,6 +72,13 @@ function renderDetail(product, hasProfile) {
     tags.appendChild(el("span", "tag", term));
   }
   info.append(tags, shopButton(product));
+  // Ähnliches bei Amazon suchen (Partnerlink, backend/amazon.py) – nur in AT/DE/CH
+  if (amazonUrl) {
+    const more = el("p", "amazon-link");
+    more.append(Object.assign(el("a", "", "Ähnliches bei Amazon suchen"),
+      { href: amazonUrl, target: "_blank", rel: "sponsored noopener" }), el("span", "ad-label", "Werbung"));
+    info.append(more);
+  }
 
   detail.replaceChildren(imageBox, info);
 }
@@ -130,7 +137,7 @@ async function init() {
     return;
   }
   const data = await response.json();
-  renderDetail(data.product, data.has_profile);
+  renderDetail(data.product, data.has_profile, data.amazon_url);
   renderSimilar(data.similar);
   showEtsyAttribution([data.product, ...data.similar.map((item) => item.product || item)]);
 }

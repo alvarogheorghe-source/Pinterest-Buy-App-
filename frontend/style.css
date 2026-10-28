@@ -2777,3 +2777,9 @@ body.needs-input-mode .filters {
 .vibe-others { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 40px; }
 a.chip { text-decoration: none; color: inherit; }
 .vibe-card a.chip { color: var(--text); }
+
+/* "Bei Amazon suchen" (Partnerlink) */
+.amazon-link { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+p.amazon-link { margin-top: 12px; font-size: .92rem; }
+p.amazon-link a { color: var(--text); text-underline-offset: 3px; }
+.amazon-note { font-size: .85rem; color: var(--muted); }

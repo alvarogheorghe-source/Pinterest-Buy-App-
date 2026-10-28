@@ -78,3 +78,11 @@ def test_every_page_links_privacy_and_imprint():
             continue
         html = page.read_text(encoding="utf-8")
         assert "/impressum.html" in html and "/datenschutz.html" in html, page.name
+
+
+def test_every_public_page_has_amazon_disclosure():
+    """Pflicht im Amazon-Partnerprogramm: der Hinweis muss auf der Seite stehen."""
+    from backend.config import FRONTEND_DIR
+    for page in FRONTEND_DIR.glob("*.html"):
+        if page.name != "admin.html":
+            assert "Als Amazon-Partner verdienen wir an qualifizierten Verkäufen." in page.read_text("utf-8"), page.name
