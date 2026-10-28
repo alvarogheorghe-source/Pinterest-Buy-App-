@@ -103,9 +103,7 @@ def app_token() -> str:
             reason = None
         detail = (tr("eBay sagt: {reason}", reason=str(reason)[:150]) if reason
                   else f"Status {response.status_code}")
-        raise ProductSourceError(tr("eBay-Anmeldung fehlgeschlagen – stimmen EBAY_CLIENT_ID und "
-                                    "EBAY_CLIENT_SECRET in .env? (Production-Keys, Keyset nicht "
-                                    "gesperrt?) {detail}", detail=detail))
+        raise ProductSourceError(tr("eBay-Anmeldung fehlgeschlagen. Stimmen EBAY_CLIENT_ID und EBAY_CLIENT_SECRET in .env? (Production-Keys, Keyset nicht gesperrt?) {detail}", detail=detail))
     data = response.json()
     _token.update(value=data["access_token"], expires_at=time.time() + data.get("expires_in", 7200))
     return _token["value"]

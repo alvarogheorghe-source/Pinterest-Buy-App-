@@ -40,7 +40,7 @@ function createVoteButtons(productId, currentVote, card) {
   const dislike = document.createElement("button");
   dislike.className = "vote-button";
   dislike.innerHTML = THUMB_DOWN;
-  dislike.setAttribute("aria-label", "Nicht mein Stil – ausblenden");
+  dislike.setAttribute("aria-label", "Nicht mein Stil, ausblenden");
 
   function showState() {
     like.classList.toggle("active", vote === "like");

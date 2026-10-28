@@ -38,7 +38,7 @@ function render(items) {
     const empty = el("div", "empty saved-empty");
     empty.append(
       el("p", "", department ? "In diesem Bereich hast du noch nichts gemerkt."
-        : "Noch nichts gemerkt. Tipp aufs ♡ bei einem Teil, das dir gefällt – dann landet es hier."),
+        : "Noch nichts gemerkt. Tipp aufs ♡ bei einem Teil, das dir gefällt, dann landet es hier."),
       Object.assign(el("a", "button", "Zum Shop"), { href: "/shop.html" }),
     );
     savedGrid.appendChild(empty);

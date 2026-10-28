@@ -2709,3 +2709,12 @@ body[data-big-mali] .mali-return {
     border-left: none;      /* Startseite: links sind am Handy keine Links -> kein Trennstrich */
   }
 }
+
+/* Footer: "Werbehinweis" als kleine Zeile über dem Text statt "Werbehinweis:" */
+.footer-label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

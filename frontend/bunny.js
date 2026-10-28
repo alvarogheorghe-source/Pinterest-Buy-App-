@@ -110,7 +110,7 @@
   el.className = "mali";
   el.setAttribute("role", "button");
   el.tabIndex = 0;
-  el.setAttribute("aria-label", t(`${NAME} – klick mich für deinen Pinterest-Vibe`, `${NAME} – click me for your Pinterest vibe`));
+  el.setAttribute("aria-label", t(`Klick auf ${NAME} für deinen Pinterest-Vibe`, `Click ${NAME} for your Pinterest vibe`));
   const body = document.createElement("div");
   body.className = "mali-body";
   const sprite = document.createElement("canvas");
@@ -314,12 +314,12 @@
   // Mali klein an seinen Platz unten. Geht von selbst weg (Antippen überspringt).
 
   const WELCOME = [
-    t(`Hi, ich bin ${NAME} – klein, flauschig und voller Stil-Ideen! 🐰`,
-      `Hi, I'm ${NAME} – small, fluffy and full of style ideas! 🐰`),
+    t(`Hi, ich bin ${NAME}! Klein, flauschig und voller Stil-Ideen. 🐰`,
+      `Hi, I'm ${NAME}! Small, fluffy and full of style ideas. 🐰`),
     t("Ich schnupper durch deine Pinterest-Boards und finde Mode & Deko, die zu dir passt. 💕",
       "I sniff through your Pinterest boards and find fashion & decor that suits you. 💕"),
-    t("Und ich pass auf dein Budget auf – Karotten-Ehrenwort! 🥕",
-      "And I keep an eye on your budget – carrot promise! 🥕"),
+    t("Und ich pass auf dein Budget auf. Karotten-Ehrenwort! 🥕",
+      "And I keep an eye on your budget. Carrot promise! 🥕"),
   ];
   const TYPE_SPEED = 30;      // ms pro Buchstabe – ruhig genug zum Mitlesen
   const LINE_PAUSE = 1300;    // Lesezeit nach jeder Zeile ...
@@ -426,9 +426,9 @@
     busy = true;
     // Vorstellungsseite (malipin.com, ohne Server): noch kein Vibe-Check möglich
     if (document.body.hasAttribute("data-static")) {
-      say(t(["Bald lese ich deinen Vibe aus deinen Pinterest-Boards – Goth Baddie? Clean Girl? 🔮",
+      say(t(["Bald lese ich deinen Vibe aus deinen Pinterest-Boards. Goth Baddie? Clean Girl? 🔮",
         "Ich hoppel schon los, versprochen! 🥕"],
-      ["Soon I'll read your vibe from your Pinterest boards – Goth Baddie? Clean Girl? 🔮",
+      ["Soon I'll read your vibe from your Pinterest boards. Goth Baddie? Clean Girl? 🔮",
         "I'm hopping as fast as I can, promise! 🥕"]),
       { buttons: [{ text: t(`${NAME} verstecken`, `Hide ${NAME}`), onClick: hideMali }] });
       await happyJump();
@@ -515,15 +515,15 @@
   // Reaktion auf 👍 / 👎 (feedback.js meldet das)
   window.addEventListener("mali:like", () => {
     if (el.hidden) return;
-    say([pick(t(["Gemerkt! 💖", "Ooh, das passt sooo zu dir!", "Gute Wahl – iconic! 💅",
+    say([pick(t(["Gemerkt! 💖", "Ooh, das passt sooo zu dir!", "Gute Wahl, iconic! 💅",
       "Ich hätte es auch gewählt. Ehrlich! 🐰"], ["Saved! 💖", "Ooh, that's sooo you!",
-      "Good choice – iconic! 💅", "I would have picked it too. Honestly! 🐰"]))], { autoClose: 2200 });
+      "Good choice, iconic! 💅", "I would have picked it too. Honestly! 🐰"]))], { autoClose: 2200 });
     happyJump();
   });
   window.addEventListener("mali:dislike", () => {
     if (el.hidden) return;
-    say([pick(t(["Verstanden – weg damit! 🫡", "Okay, sowas zeig ich dir seltener.",
-      "Nicht dein Vibe? Kein Ding! ✌️"], ["Got it – gone! 🫡", "Okay, I'll show you less of that.",
+    say([pick(t(["Verstanden, weg damit! 🫡", "Okay, sowas zeig ich dir seltener.",
+      "Nicht dein Vibe? Kein Ding! ✌️"], ["Got it, gone! 🫡", "Okay, I'll show you less of that.",
       "Not your vibe? No worries! ✌️"]))], { autoClose: 2200 });
   });
 

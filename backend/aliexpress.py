@@ -75,8 +75,7 @@ def search(query: str) -> list[dict]:
         raise ProductSourceError(tr("AliExpress-Suche fehlgeschlagen ({code}).", code=response.status_code))
     data = response.json()
     if "error_response" in data:
-        raise ProductSourceError("AliExpress-Anmeldung fehlgeschlagen – stimmen ALIEXPRESS_APP_KEY, "
-                                 "ALIEXPRESS_APP_SECRET und ALIEXPRESS_TRACKING_ID in .env?")
+        raise ProductSourceError("AliExpress-Anmeldung fehlgeschlagen. Stimmen ALIEXPRESS_APP_KEY, ALIEXPRESS_APP_SECRET und ALIEXPRESS_TRACKING_ID in .env?")
     try:
         result = data["aliexpress_affiliate_product_query_response"]["resp_result"]
         if str(result.get("resp_code")) != "200":

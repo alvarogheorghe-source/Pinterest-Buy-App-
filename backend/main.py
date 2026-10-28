@@ -176,7 +176,7 @@ def callback(request: Request, code: str | None = None, state: str | None = None
 
     expected_state = request.session.pop("oauth_state", None)
     if not state or state != expected_state:
-        raise HTTPException(400, "Ungültiger state – bitte Login neu starten.")
+        raise HTTPException(400, "Da ist beim Login etwas schiefgelaufen. Bitte starte ihn neu.")
     if not code:
         raise HTTPException(400, "Kein Code von Pinterest erhalten.")
 

@@ -110,7 +110,7 @@ def refresh_access_token() -> dict:
     refresh_expires = tokens.get("refresh_expires_at")
     if refresh_expires and refresh_expires < time.time():
         storage.delete_tokens()
-        raise NotConnectedError("Refresh Token abgelaufen – bitte neu verbinden.")
+        raise NotConnectedError("Deine Pinterest-Verbindung ist abgelaufen. Bitte verbinde dich neu.")
 
     try:
         data = _request_token({
@@ -120,7 +120,7 @@ def refresh_access_token() -> dict:
     except httpx.HTTPStatusError as err:
         # Pinterest lehnt den Refresh Token ab (z.B. Zugriff entzogen)
         storage.delete_tokens()
-        raise NotConnectedError("Refresh fehlgeschlagen – bitte neu verbinden.") from err
+        raise NotConnectedError("Die Verbindung zu Pinterest hat nicht geklappt. Bitte verbinde dich neu.") from err
     return _save_token_response(data, old_tokens=tokens)
 
 

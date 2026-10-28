@@ -108,7 +108,7 @@ async function showSavedPins() {
     if (terms.length) lines.push(`${t(name)}: ${terms.map((x) => t(x)).join(" · ")}`);
   }
   document.getElementById("profile-text").textContent = lines.length
-    ? t("Dein Stil – {lines}", { lines: lines.join("  |  ") })
+    ? t("Dein Stil {lines}", { lines: lines.join("  |  ") })
     : "In deinen Pins wurden noch keine Farb- oder Stilwörter gefunden.";
   document.getElementById("shop-link").hidden = false;
 
@@ -173,7 +173,7 @@ document.getElementById("delete-data-button").addEventListener("click", async ()
   const message = document.getElementById("delete-data-message");
   const response = await fetch("/api/me", { method: "DELETE" });
   message.textContent = response.ok
-    ? "Erledigt – alles gelöscht. Mali vergisst dich nur ungern, aber er hat's getan."
+    ? "Erledigt, alles gelöscht. Mali vergisst dich nur ungern, aber er hat's getan."
     : "Das hat leider nicht geklappt. Bitte versuch es nochmal.";
   if (response.ok) setTimeout(() => { location.href = "/"; }, 2500);
 });

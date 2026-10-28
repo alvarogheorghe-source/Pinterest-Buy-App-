@@ -21,9 +21,9 @@ const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").match
 
 const MALI_LINES = [
   "Psst … eigentlich bin ich ein Goth Baddie. Nur flauschiger. 🖤",
-  "Klick auf einen Vibe – ich erklär dir alles! 🔎",
+  "Klick auf einen Vibe und ich erklär dir alles! 🔎",
   "Mein Lieblings-Vibe? Cozy Era. Wegen der Decken. ☁️",
-  "Teil die Seite mit deinen Freunden – wer ist welcher Vibe? 💬",
+  "Teil die Seite mit deinen Freunden. Wer ist welcher Vibe? 💬",
   "Hihi, das kitzelt! 🐰",
   "Karotten sind übrigens immer Quiet Luxury. 🥕",
 ];
@@ -188,8 +188,8 @@ function vibeCard(vibe) {
   const head = make("header", "vibe-card-head");
   head.append(icon(ICONS[vibe.slug], "vibe-icon"), make("h3", "vibe-title", vibe.title),
     shareButton(() => share({
-      title: `${vibe.title} – Malipin`,
-      text: t("Das ist der {title}-Vibe – schau mal, ob er zu dir passt! 🐰", { title: vibe.title }),
+      title: `${vibe.title} | Malipin`,
+      text: t("Das ist der {title}-Vibe. Schau mal, ob er zu dir passt! 🐰", { title: vibe.title }),
       url: pageUrl(`#${vibe.slug}`),
     })));
   card.append(head);
@@ -228,9 +228,9 @@ function styleItem(style) {
   item.append(make("h3", "style-name", style.name), make("p", "style-about", style.about));
   if (style.vibes.length) {
     const line = make("p", "style-vibes");
-    line.append(`${t("Gehört zu")}: `);
+    line.append(`${t("Gehört zu")} `);
     style.vibes.forEach((vibe, i) => {
-      if (i) line.append(" · ");
+      if (i) line.append(i === style.vibes.length - 1 ? ` ${t("und")} ` : ", ");
       line.append(Object.assign(make("a", "", vibe.title), { href: `#${vibe.slug}` }));
     });
     item.append(line);
@@ -277,7 +277,7 @@ function highlight() {
 async function load() {
   setupMali();
   document.getElementById("share-page").addEventListener("click", () => share({
-    title: t("Stil-Lexikon – Malipin"),
+    title: t("Stil-Lexikon | Malipin"),
     text: t("Welcher Vibe bist du? Mali erklärt alle Pinterest-Stile 🐰"),
     url: pageUrl(),
   }));

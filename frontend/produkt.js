@@ -43,7 +43,7 @@ function shopButton(product) {
 }
 
 function renderDetail(product, hasProfile) {
-  document.title = `${product.name} – Malipin`;
+  document.title = `${product.name} | Malipin`;
   // Zurück in die richtige Welt des Shops
   backLink.href = `/shop.html#${product.department}`;
 
@@ -62,7 +62,7 @@ function renderDetail(product, hasProfile) {
   if (hasProfile) info.appendChild(el("p", "detail-reason", product.reason));
   if (product.trusted) {
     const box = el("div", "trusted-note");
-    box.append(el("strong", "", "Geprüfter Shop – diesen Verkäufer haben wir uns angeschaut"));
+    box.append(el("strong", "", "Geprüfter Shop, diesen Verkäufer haben wir uns angeschaut"));
     if (product.trusted_note) box.append(el("p", "", product.trusted_note));
     info.appendChild(box);
   }

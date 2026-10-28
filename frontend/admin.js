@@ -103,7 +103,7 @@ form.addEventListener("submit", async (event) => {
     formMessage.textContent = `Nicht gespeichert: ${detail}`;
     return;
   }
-  formMessage.textContent = `${result.name} ist jetzt geprüft – alle Angebote bekommen das Abzeichen.`;
+  formMessage.textContent = `${result.name} ist jetzt geprüft. Alle Angebote bekommen das Abzeichen.`;
   form.reset();
   showPlatform();
   renderList(await fetch("/api/admin/shops").then((r) => r.json()));
@@ -114,7 +114,7 @@ form.addEventListener("submit", async (event) => {
 function renderList(shops) {
   shopCount.textContent = `(${shops.length})`;
   list.replaceChildren();
-  if (!shops.length) list.appendChild(el("p", "muted", "Noch keine Shops – trag oben den ersten ein."));
+  if (!shops.length) list.appendChild(el("p", "muted", "Noch keine Shops. Trag oben den ersten ein."));
   for (const shop of shops.slice().reverse()) {
     const row = el("article", "admin-card shop-row");
     const text = el("div");

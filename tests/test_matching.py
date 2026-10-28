@@ -87,7 +87,7 @@ def test_reason_sentences():
     assert two["reason"] == ("Passt zu dir, weil beige (2 Pins) und oversized (1 Pin) "
                              "oft in deinen Pins vorkommen.")
     assert one["reason"] == "Passt zu dir, weil beige (2 Pins) oft in deinen Pins vorkommt."
-    assert none["reason"].startswith("Kein direkter Treffer")
+    assert none["reason"].startswith("Passt nicht direkt")
 
 
 # --- API ---------------------------------------------------------------------------------------

@@ -65,8 +65,7 @@ def _get(path: str, params: dict) -> dict:
     with _http() as client:
         response = client.get(f"{API_URL}{path}", params=params, headers=_headers())
     if response.status_code in (401, 403):
-        raise ProductSourceError("Etsy-Anmeldung fehlgeschlagen – stimmen ETSY_API_KEY und "
-                                 "ETSY_SHARED_SECRET in .env, und hat Etsy die App freigegeben?")
+        raise ProductSourceError("Etsy-Anmeldung fehlgeschlagen. Stimmen ETSY_API_KEY und ETSY_SHARED_SECRET in .env, und hat Etsy die App freigegeben?")
     if response.status_code != 200:
         raise ProductSourceError(tr("Etsy-Suche fehlgeschlagen ({code}).", code=response.status_code))
     return response.json()

@@ -292,7 +292,7 @@
         await navigator.share({
           files: [file],
           title: "Mein Malipin-Vibe",
-          text: t("Mein Pinterest-Vibe: {title} – finde deinen auf {site}", { title: vibe.title, site: SITE }),
+          text: t("Mein Pinterest-Vibe ist {title}. Finde deinen auf {site}", { title: vibe.title, site: SITE }),
         });
       } catch (error) {
         // Abgebrochen ist okay; bei anderen Fehlern einfach herunterladen

@@ -18,7 +18,7 @@ window.addEventListener("merkliste:changed", updateSavedCount);
 updateSavedCount();
 
 
-// "Mit Pinterest verbinden" -> "Pinterest – bald verfügbar", solange der Server Pinterest
+// "Mit Pinterest verbinden" -> "Pinterest bald verfügbar", solange der Server Pinterest
 // noch nicht für alle freigibt (/api/features, PINTEREST_OPEN=0). Gilt auch für Buttons,
 // die andere Skripte später einfügen (z.B. im Shop).
 (async () => {
@@ -32,7 +32,7 @@ updateSavedCount();
     el.removeAttribute("href");
     el.setAttribute("aria-disabled", "true");
     const icon = el.querySelector("svg");
-    el.textContent = t("Pinterest – bald verfügbar");
+    el.textContent = t("Pinterest bald verfügbar");
     if (icon) el.prepend(icon);
   };
   const scan = (root) => {

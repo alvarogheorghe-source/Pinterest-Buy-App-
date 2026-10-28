@@ -55,139 +55,133 @@ VIBES = [
     Vibe("Goth Baddie", "", {"goth": 3, "grunge": 2, "schwarz": 1.2}, [
         "Dark, mysteriös und trotzdem die süßeste Aura im Raum. "
         "Sogar meine Karotte trägt jetzt Schwarz.",
-        "It's giving Wednesday Addams – nur mit besserem Outfit. Slay in Schwarz.",
+        "It's giving Wednesday Addams, nur mit besserem Outfit. Slay in Schwarz.",
         "Deine Aura: +1000. Mein Mut, dich anzusprechen: −3. Iconic.",
-        "Du trägst Schwarz nicht – Schwarz trägt dich. Ich bin ein bisschen eingeschüchtert. "
-        "Und Fan.",
+        "Du trägst nicht Schwarz, Schwarz trägt dich. Ich bin ein bisschen eingeschüchtert. Und Fan.",
         "Mondlicht, Silberschmuck, Main-Character-Energy. Ich hoppel ab heute nur noch nachts.",
     ]),
     Vibe("Clean Girl", "🤍", {"clean": 2, "minimalistisch": 1.5, "weiß": 0.8, "beige": 0.6}, [
         "Slicked Bun, Glow und null Chaos. Dein Pinterest riecht nach Vanille und guten "
         "Entscheidungen.",
-        "That-Girl-Energy: Du stehst um 6 auf und trinkst Matcha. Ich schlaf bis 11 im Bau. "
-        "Respekt.",
-        "Gold Hoops, Lip Oil, Leinenhose – du siehst aus wie ein Sonntagmorgen in Kopenhagen.",
+        "That-Girl-Energy. Du stehst um 6 auf und trinkst Matcha, ich schlaf bis 11 im Bau. Respekt.",
+        "Gold Hoops, Lip Oil, Leinenhose. Du siehst aus wie ein Sonntagmorgen in Kopenhagen.",
         "So effortless, dass es fast unfair ist. Ich hab mir gerade auch die Ohren gegelt. 🤍",
-        "Dein Feed ist so clean, ich will darin meditieren. Glow-Level: unbezahlbar.",
+        "Dein Feed ist so clean, ich will darin meditieren. Dein Glow ist unbezahlbar.",
     ], audience="damen"),
     Vibe("Streetwear Icon", "🧢",
          {"streetwear": 2, "oversized": 1.5, "sportlich": 0.5, "utility": 0.5}, [
         "Certified Drip. Du würdest sogar in einer Karottentüte aussehen wie ein Limited Drop.",
         "Dein Sneaker-Game? Unbesiegbar. Ich hüpf ab jetzt nur noch in Chunky Sneakers.",
-        "Du stehst nicht in der Drop-Schlange – du BIST der Drop. 🔥",
+        "Du stehst nicht in der Drop-Schlange, du BIST der Drop. 🔥",
         "Hoodie, Cap, Attitude. Ich trag meine Ohren ab heute nur noch backwards.",
         "Fit Check bestanden mit 11 von 10. Die Straße ist offiziell dein Laufsteg.",
     ]),
     Vibe("Cozy Era", "☁️", {"cozy": 2, "beige": 0.5, "natur": 0.4}, [
         "Du bist eine warme Decke in Menschenform. Lowkey will ich mich dazukuscheln.",
-        "Strick, Tee, Kerzenlicht – it's giving Sonntag im Herbst. Für immer.",
-        "Oversized Strick und ein Buch im Bett – du hast das Geheimnis des Lebens gelöst.",
-        "Hygge-Level: maximal. Ich roll mich jetzt in deinem Feed zusammen und schlaf ein. ☁️",
+        "Strick, Tee, Kerzenlicht. It's giving Sonntag im Herbst, für immer.",
+        "Oversized Strick und ein Buch im Bett. Du hast das Geheimnis des Lebens gelöst.",
+        "Maximal hygge. Ich roll mich jetzt in deinem Feed zusammen und schlaf ein. ☁️",
         "Du bist das Gefühl von frischen Socken aus dem Trockner. Ganz großes Kino.",
     ]),
     Vibe("Quiet Luxury", "💸", {"klassisch": 2, "elegant": 1.5, "braun": 0.3}, [
         "Kein Logo, aber alle wissen Bescheid. Du siehst aus, als hättest du ein Pferd "
         "namens Sir Reginald.",
         "Old-Money-Aura, Smart-Shopping-Budget. Wir verraten's niemandem. 🤫",
-        "Kaschmir, Loafers, leise Eleganz. Du redest nicht über Stil – du hast ihn einfach.",
+        "Kaschmir, Loafers, leise Eleganz. Du redest nicht über Stil, du hast ihn einfach.",
         "Du siehst aus, als würdest du im Sommer „nur kurz“ nach Capri fliegen. Mit Handgepäck.",
         "Zeitlos und edel. Ich trag ab heute nur noch Kaschmir-Ohrenwärmer. Diskret natürlich.",
     ]),
     Vibe("Thrift Legend", "📼", {"vintage": 2, "braun": 0.3}, [
-        "Du warst schon vintage, bevor es cool war. Jedes Teil hat eine Story – deine ist "
-        "die beste.",
+        "Du warst schon vintage, bevor es cool war. Jedes Teil hat eine Story und deine ist die beste.",
         "Second-Hand-Schatzsuche auf Profi-Level. Ich buddel ab jetzt nur noch nach "
         "Vintage-Karotten.",
         "Andere gehen shoppen, du gehst auf Schatzsuche. Und gewinnst jedes Mal. 📼",
         "Dein Kleiderschrank hat mehr Geschichte als mein Bau. Und mein Bau ist SEHR alt.",
-        "Nachhaltig, einzigartig, unbezahlbar – aber für 8 € vom Flohmarkt. Legendär.",
+        "Nachhaltig, einzigartig, unbezahlbar. Und trotzdem für 8 € vom Flohmarkt. Legendär.",
     ]),
     Vibe("Y2K Baby", "💿", {"y2k": 2.5, "rosa": 0.5}, [
         "Glitzer, Low-Rise und Klapphandy-Energie. Du bist der Grund, warum die 2000er "
         "zurück sind.",
         "So Y2K, dass mein Pixel-Fell gerade Glitzer bekommt. That's hot. 💿",
-        "Butterfly-Clips, Baby Tee, Low-Rise – du machst die 2000er besser als die 2000er.",
+        "Butterfly-Clips, Baby Tee, Low-Rise. Du machst die 2000er besser als die 2000er.",
         "Wäre dein Feed ein Klingelton, wäre er ein absoluter Ohrwurm. Iconic.",
         "Pink, Glitzer und null Kompromisse. Dein Feed ist offiziell ein Throwback-Hit.",
     ]),
     Vibe("Festival Boho", "🌿", {"boho": 2, "natur": 1, "orange": 0.3}, [
-        "Sonnenuntergang, Festival, Blumen im Haar – du bist der Vibe, den alle filmen.",
+        "Sonnenuntergang, Festival, Blumen im Haar. Du bist der Vibe, den alle filmen.",
         "Free Spirit, warmes Herz, viele Pflanzen. Ich zieh bei dir ein, okay? Karotten "
         "bring ich mit.",
         "Fransen, Leinen und Good Vibes only. Du riechst bestimmt nach Sonnencreme und Freiheit.",
-        "Barfuß im Gras, Blumen im Haar – du bist der Golden-Hour-Filter in Menschenform.",
+        "Barfuß im Gras, Blumen im Haar. Du bist der Golden-Hour-Filter in Menschenform.",
         "So free, dass mein Hasenherz mitschwingt. Nimmst du mich mit aufs nächste Festival? 🌿",
     ]),
     Vibe("Coquette Era", "🎀", {"coquette": 3, "romantisch": 1.5, "rosa": 1}, [
         "Schleifen überall und Herzchen in den Augen. So süß, dass ich Konkurrenz bekomme.",
-        "Ballerinas, Rosa, Spitze – du lebst in einem Liebesbrief. Delulu? Nein: dreamy.",
+        "Ballerinas, Rosa, Spitze. Du lebst in einem Liebesbrief. Delulu? Nein, dreamy.",
         "Du hast mehr Schleifen als ich Karotten. Und ich hab SEHR viele Karotten. 🎀",
-        "Lana Del Rey auf Repeat und Herzchen in den Augen. Romantik-Level: filmreif.",
-        "So soft und so süß – mein Pixel-Herz macht gerade Purzelbäume.",
+        "Lana Del Rey auf Repeat und Herzchen in den Augen. So romantisch, das ist filmreif.",
+        "So soft und so süß, mein Pixel-Herz macht gerade Purzelbäume.",
     ], audience="damen"),
     Vibe("Cottagecore", "🍓", {"cottagecore": 3, "romantisch": 0.5, "natur": 0.5}, [
         "Du backst bestimmt Sauerteigbrot und pflückst Erdbeeren. Ich bring die Karotten "
         "fürs Picknick!",
-        "Main Character in einem Ghibli-Film – und ich wäre dein kleiner Hasen-Sidekick. 🍓",
-        "Leinenkleid, Weidenkorb, Wildblumen – dein Feed ist ein Sonntag auf dem Land.",
+        "Main Character in einem Ghibli-Film, und ich wäre dein kleiner Hasen-Sidekick. 🍓",
+        "Leinenkleid, Weidenkorb, Wildblumen. Dein Feed ist ein Sonntag auf dem Land.",
         "Du gibst bestimmt jeder Pflanze einen Namen. Meine heißt übrigens Karotte.",
         "Slow Living, aber make it aesthetic. Ich bleib noch zum Teetrinken, okay?",
     ]),
     Vibe("Japandi Zen", "🍵", {"japandi": 2, "skandinavisch": 1.5, "natur": 0.5}, [
-        "Holz, Leinen, Ruhe. Schon beim Anschauen sinkt mein Puls – im besten Sinne.",
-        "Zen-Level: Meister. Sogar mein Hoppeln wird bei dir leiser.",
+        "Holz, Leinen, Ruhe. Schon beim Anschauen sinkt mein Puls, im besten Sinne.",
+        "Zen auf Meister-Level. Sogar mein Hoppeln wird bei dir leiser.",
         "Weniger Zeug, mehr Ruhe. Dein Zuhause sieht aus wie tiefes Durchatmen.",
-        "Clean Lines, warme Hölzer – so ruhig, dass ich mein Hoppeln auf Flüstern stelle.",
-        "Wabi-Sabi-Energy: Du findest Schönheit im Unperfekten. Ich bin offiziell inspiriert. 🍵",
+        "Clean Lines, warme Hölzer. So ruhig, dass ich mein Hoppeln auf Flüstern stelle.",
+        "Wabi-Sabi-Energy. Du findest Schönheit im Unperfekten, ich bin offiziell inspiriert. 🍵",
     ]),
     Vibe("Athleisure Era", "⚡", {"sportlich": 2, "outdoor": 0.3}, [
-        "Pilates um 7, Matcha um 8, Slay den ganzen Tag. Du bist schneller als ich – und "
-        "ich bin ein Hase.",
+        "Pilates um 7, Matcha um 8, Slay den ganzen Tag. Du bist schneller als ich, und ich bin ein Hase.",
         "Leggings, Sneaker, Energie für drei. Gym-Fit, aber make it fashion.",
         "Vom Gym direkt ins Café und trotzdem die best-dressed Person im Raum. Wie?!",
         "Deine Workout-Fits haben mehr Stil als manche Hochzeitsoutfits. Respekt.",
         "Hoodie, Leggings, Sneaker, Glow. Sogar meine Ohren machen jetzt Stretching. ⚡",
     ]),
     Vibe("Gorpcore", "🏔️", {"outdoor": 2, "utility": 0.8}, [
-        "Du siehst aus, als würdest du gleich einen Berg besteigen – und danach in den "
-        "Coffee Shop. Gorpcore Royalty.",
+        "Du siehst aus, als würdest du gleich einen Berg besteigen und danach in den Coffee Shop gehen. Gorpcore Royalty.",
         "Funktionsjacke, aber fashion. Ich hab nur mein Fell, bin aber trotzdem inspiriert.",
-        "Wasserdicht, winddicht, stylisch. Du bist bereit für jedes Wetter – und jedes Foto.",
+        "Wasserdicht, winddicht, stylisch. Du bist bereit für jedes Wetter und jedes Foto.",
         "Trail-Sneaker an den Füßen, Abenteuer im Herzen. Ich pack schon mal Karotten-Snacks ein.",
-        "Outdoor-Look, Großstadt-Energy. Ob Gipfel oder Montagmorgen: Du rockst beides. 🏔️",
+        "Outdoor-Look, Großstadt-Energy. Ob Gipfel oder Montagmorgen, du rockst beides. 🏔️",
     ]),
 ]
 
 # Neutral – passen zu jedem Board, z.B. lässige Herrenmode mit Baggy Jeans
 VIBES += [
     Vibe("Effortless Cool", "👟", {"casual": 2, "oversized": 0.8, "utility": 0.4}, [
-        "Baggy Jeans, gute Laune, null Stress. Du siehst zufällig so cool aus – und genau "
-        "das ist die Kunst.",
-        "Model-off-Duty-Energy: Fünf Minuten angezogen und trotzdem wie aus dem Lookbook.",
+        "Baggy Jeans, gute Laune, null Stress. Du siehst zufällig so cool aus, und genau das ist die Kunst.",
+        "Model-off-Duty-Energy. Fünf Minuten angezogen und trotzdem wie aus dem Lookbook.",
         "Zwei Minuten anziehen und besser aussehen als ich nach einer Stunde Fellpflege. Wie?!",
-        "Nonchalant, entspannt, unbothered. Deine Aura sagt: Ich hab's einfach drauf.",
-        "Weite Jeans, weißes Tee, null Stress – die einfachste Formel, perfekt umgesetzt. 👟",
+        "Nonchalant, entspannt, unbothered. Deine Aura sagt einfach „ich hab's drauf“.",
+        "Weite Jeans, weißes Tee, null Stress. Die einfachste Formel, perfekt umgesetzt. 👟",
     ]),
     Vibe("Clean Fit", "🤍", {"minimalistisch": 2, "clean": 1, "klassisch": 0.5,
                              "schwarz": 0.4, "weiß": 0.4, "grau": 0.4}, [
         "Wenige Teile, alle perfekt. Dein Kleiderschrank ist aufgeräumter als mein Bau.",
-        "Basics auf Level 100. Schlicht ist das neue Laut – you understood the assignment.",
-        "Schwarz, Weiß, Grau – und trotzdem drehen sich alle um. Das ist Kunst.",
+        "Basics auf Level 100. Schlicht ist das neue Laut, you understood the assignment.",
+        "Schwarz, Weiß, Grau, und trotzdem drehen sich alle um. Das ist Kunst.",
         "Kein Chaos, nur Qualität. Dein Outfit sieht aus wie ein perfekt sortierter Feed.",
         "Minimal, aber nie basic. Ich hab sofort meinen Bau entrümpelt. 🤍",
     ]),
 ]
 
 UNIQUE = Vibe("Main Character", "✨", {}, [
-    "Dein Stil passt in keine Schublade – Main-Character-Energy, ganz klar.",
-    "Ich hab alle Hasen-Detektiv-Tricks probiert: Du bist dein eigener Trend. ✨",
-    "Kein Trend kann dich einfangen – du erfindest einfach deinen eigenen.",
-    "Ich hab in meinem Vibe-Buch nachgeschaut: Für dich gibt's noch keinen Namen. Iconic.",
+    "Dein Stil passt in keine Schublade. Main-Character-Energy, ganz klar.",
+    "Ich hab alle Hasen-Detektiv-Tricks probiert. Du bist dein eigener Trend. ✨",
+    "Kein Trend kann dich einfangen, du erfindest einfach deinen eigenen.",
+    "Ich hab in meinem Vibe-Buch nachgeschaut. Für dich gibt's noch keinen Namen. Iconic.",
     "Ein bisschen von allem, ganz viel von dir. Genau so geht persönlicher Stil.",
 ])
 
 NO_PINS = Vibe("Noch ein Geheimnis", "🥕", {}, [
-    "Verbinde Pinterest und lade ein paar Pins – dann verrate ich dir deinen Vibe!",
+    "Verbinde Pinterest und lade ein paar Pins, dann verrate ich dir deinen Vibe!",
 ])
 
 

@@ -22,9 +22,9 @@
       "Beim ersten Mal brauch ich etwas länger zum Aufwachen. 😴"],
     bilder: ["Ich schau mir jedes Bild ganz genau an. 👀", "Oh, das gefällt mir! Weiter geht's …",
       "Karottenpause? Nein, weiterarbeiten! 🥕", "Du hast echt einen guten Geschmack, weißt du das?",
-      "Ich merk mir alles – Schnitte, Farben, Sneaker …"],
-    stil: ["Jetzt sortiere ich: Stil, Teile, Marken … 🗂️", "Hmm, ich glaub, ich kenn deinen Vibe schon …"],
-    schwerpunkte: ["Fast fertig – ich bau dir deine Stil-Landkarte! 🗺️"],
+      "Ich merk mir alles, Schnitte, Farben, Sneaker …"],
+    stil: ["Jetzt sortiere ich Stil, Teile und Marken … 🗂️", "Hmm, ich glaub, ich kenn deinen Vibe schon …"],
+    schwerpunkte: ["Fast fertig, ich bau dir deine Stil-Landkarte! 🗺️"],
   };
   const POLL_MS = 1000;
   const TALK_MS = 3400;
@@ -123,7 +123,7 @@
     const lines = TALK[state.step] || TALK.bilder;
     // Ab und zu den echten Fortschritt erwähnen
     if (state.step === "bilder" && state.total && talkIndex % 3 === 2) {
-      say(t("Schon {done} von {total} Bildern – läuft! 🏃", { done: state.done, total: state.total }));
+      say(t("Schon {done} von {total} Bildern, läuft! 🏃", { done: state.done, total: state.total }));
     } else {
       say(lines[talkIndex % lines.length]);
     }

@@ -374,7 +374,7 @@ def explain(matched: list[str], profile: StyleProfile) -> str:
     """Ein Satz, warum ein Produkt passt."""
     from backend.i18n import tr   # Sprache der Person (Deutsch/Englisch)
     if not matched:
-        return tr("Kein direkter Treffer mit deinem Stilprofil – zum Entdecken.")
+        return tr("Passt nicht direkt zu deinem Stil, ist aber zum Entdecken.")
 
     def pins_text(term: str) -> str:
         n = profile.mentions(term)

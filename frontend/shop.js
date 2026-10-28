@@ -110,7 +110,7 @@ function renderLooks(found) {
   const title = Object.assign(document.createElement("h2"),
     { className: "shop-row-title", textContent: t("Shop the Look") });
   const hint = Object.assign(document.createElement("p"),
-    { className: "muted looks-hint", textContent: t("Outfits aus deinen Pins – Teil für Teil zum Nachshoppen.") });
+    { className: "muted looks-hint", textContent: t("Outfits aus deinen Pins, Teil für Teil zum Nachshoppen.") });
   const track = Object.assign(document.createElement("div"), { className: "looks-track" });
   for (const look of found) track.appendChild(lookCard(look));
   looksBox.replaceChildren(title, hint, track);
@@ -216,8 +216,8 @@ function renderNoShopsYet(pinCount, onlyUnfitting = false, pendingPhotos = 0) {
           : "Für Mode sind gerade noch keine Shops verbunden." }),
     Object.assign(document.createElement("p"), { className: "muted",
       textContent: pendingPhotos
-        ? t("Mali schaut sich gerade {n} neue Teile genauer an – lade die Seite in ein paar Minuten neu.", { n: pendingPhotos })
-        : "Wir holen laufend neue Partner-Shops dazu – schau bald wieder vorbei!" }),
+        ? t("Mali schaut sich gerade {n} neue Teile genauer an. Lade die Seite in ein paar Minuten neu.", { n: pendingPhotos })
+        : "Wir holen laufend neue Partner-Shops dazu. Schau bald wieder vorbei!" }),
   );
   const actions = Object.assign(document.createElement("div"), { className: "no-shops-actions" });
   if (pinCount) {     // Teile aus den eigenen Pins gibt es trotzdem
@@ -267,7 +267,7 @@ function showWarnings(warnings) {
   const box = document.getElementById("source-warning");
   box.hidden = !warnings.length;
   box.textContent = warnings.map((w) =>
-    t("{source} antwortet gerade nicht – du siehst nur einen Teil der Angebote.",
+    t("{source} antwortet gerade nicht, deshalb siehst du nur einen Teil der Angebote.",
       { source: t(SOURCE_NAMES[w.source] || w.source) }) + ` (${w.message})`).join(" ");
 }
 
@@ -286,8 +286,7 @@ function renderBanner(profile) {
     // Pins sind da, aber ohne erkennbare Wörter (z.B. nur "fit 🤍")
     title.textContent = t("Dein Stil · {world}", { world: t(worldName) });
     text.className = "muted";
-    text.textContent = t("{n} Pins geladen – sie haben kaum Text. Ich sortiere deshalb vor allem "
-      + "nach Bildern und Farben (falls die Bilderkennung eingerichtet ist).", { n: profile.pin_count });
+    text.textContent = t("{n} Pins geladen. Sie haben kaum Text, deshalb sortiere ich vor allem nach Bildern und Farben (falls die Bilderkennung eingerichtet ist).", { n: profile.pin_count });
     return;
   }
   if (profile.pin_count === 0) {
@@ -442,7 +441,7 @@ function shortReason(product) {
   if (product.looks_like_pins) return t("Sieht aus wie deine Pins");
   const terms = (product.matched || []).filter((x) => x !== product.category)  // steht schon oben
     .slice(0, 3).map((x) => t(x));
-  return terms.length ? t("Wie deine Pins: {terms}", { terms: terms.join(" · ") }) : "";
+  return terms.length ? t("{terms} wie in deinen Pins", { terms: terms.join(", ") }) : "";
 }
 
 // Baut EINE Kachel. Alle Texte über textContent -> kein HTML aus den Daten wird ausgeführt.

@@ -18,7 +18,7 @@ const LOOKING = [
   "Ooh, zeig mal her … 👀",
   "Ich schau mir Schnitt, Farbe und Details an …",
   "Ist das eine Marke, die ich kenne? 🤔",
-  "Ich such dir jetzt ähnliche Teile – Second Hand inklusive!",
+  "Ich such dir jetzt ähnliche Teile, Second Hand inklusive!",
   "Fast geschafft, ich hoppel so schnell ich kann! 🥕",
 ];
 const GENDER = { herren: "Herren", damen: "Damen" };
@@ -78,7 +78,7 @@ async function shrink(file) {
 
 async function handle(file) {
   if (!file || !file.type.startsWith("image/")) {
-    showError("Das ist kein Foto – probier's mit einem JPG, PNG oder Screenshot.");
+    showError("Das ist kein Foto. Probier's mit einem JPG, PNG oder Screenshot.");
     return;
   }
   let blob;
@@ -130,12 +130,12 @@ function chip(text) {
 // Kein Outfit, nichts fürs Zuhause: was Mali stattdessen sieht (Vorprüfung, image_tags.py)
 const NOT_FASHION = {
   desktop: "Hmm, ich seh da eher einen Bildschirm als ein Outfit.",
-  device: "Das sieht nach einem Gerät aus – Kleidung oder Deko find ich darauf nicht.",
-  text: "Da steht vor allem Text – ich such aber nach Teilen zum Anziehen oder Hinstellen.",
+  device: "Das sieht nach einem Gerät aus. Kleidung oder Deko find ich darauf nicht.",
+  text: "Da steht vor allem Text. Ich such aber nach Teilen zum Anziehen oder Hinstellen.",
   food: "Sieht lecker aus! Aber anziehen kann man das leider nicht.",
   landscape: "Schöne Aussicht! Nur ein Outfit find ich darauf nicht.",
   animal: "Süß! Ich such aber nach Fits, nicht nach Fell.",
-  vehicle: "Schickes Fahrzeug – ich such aber Kleidung und Deko.",
+  vehicle: "Schickes Fahrzeug! Ich such aber Kleidung und Deko.",
   meme: "Haha! Aber da ist kein Teil drauf, das ich suchen kann.",
   game: "Gutes Game? Ich such aber nur Fits und Deko.",
   sports: "Sportlich! Aber ein Outfit zum Nachshoppen seh ich da nicht.",
@@ -145,7 +145,7 @@ const NOT_FASHION = {
 const NOT_FASHION_UNSURE = [
   "Hmm, auf dem Bild find ich kein Outfit und nichts fürs Zuhause.",
   "Da seh ich leider kein Teil, das ich suchen könnte.",
-  "Ich hab genau hingeschaut – aber kein Fit entdeckt.",
+  "Ich hab genau hingeschaut, aber kein Fit entdeckt.",
 ];
 
 function showResult(data) {
@@ -166,7 +166,7 @@ function showResult(data) {
     foundBox.append(Object.assign(document.createElement("p"), { textContent: "Mali sieht:" }));
     for (const term of seen) foundBox.appendChild(chip(term));
   } else {
-    say("Hmm, das ist schwer zu erkennen – aber schau mal, was ich gefunden hab!");
+    say("Hmm, das ist schwer zu erkennen. Schau mal, was ich trotzdem gefunden hab!");
   }
   if (!data.products.length) {
     say("Dazu hab ich leider nichts Passendes gefunden. Probier ein anderes Foto!");
