@@ -115,7 +115,7 @@ def test_only_items_that_fit_the_pins_are_shown(client, monkeypatch):
 
     class Source:
         def load(self):
-            return [item(1, "Oberteile", ["beige"]),                 # Hoodie wie in den Pins
+            return [item(1, "Oberteile", ["beige"], ["oversized"]),  # Hoodie wie in den Pins
                     item(2, "Hosen", ["schwarz"]),                   # passt gar nicht
                     item(3, "Hosen", ["beige"]),                     # nur die Farbe -> zu wenig
                     item(4, "Jacken", ["beige"], ["oversized"])]     # Farbe + Stil
@@ -235,10 +235,24 @@ def test_photo_must_roughly_match_the_pins():
 
     assert not fits_pins(item(0.1, ["Hosen", "schwarz"]), profile)        # sieht ganz anders aus
     assert fits_pins(item(0.5, ["Hosen", "schwarz"]), profile)
-    assert fits_pins(item(0.7, [], looks=True), profile)                  # sieht aus wie die Pins
-    # Foto noch nicht angeschaut: nur sehr sichere Text-Treffer
-    assert not fits_pins(item(None, ["Hosen", "schwarz"]), profile)
-    assert fits_pins(item(None, ["Hosen", "schwarz", "Baggy"]), profile)
+    assert fits_pins(item(0.7, ["Hosen"], looks=True), profile)           # sieht aus wie die Pins
+    assert not fits_pins(item(0.7, ["Hosen"]), profile)                   # ähnlich, aber kein Merkmal
+    # Foto noch nicht angeschaut: streng -> nie (kommt nach der Bildprüfung)
+    assert not fits_pins(item(None, ["Hosen", "schwarz", "Baggy"]), profile)
+
+
+def test_rare_categories_and_one_off_colors_do_not_count():
+    from collections import Counter
+    from backend.main import fit_check
+    from backend.matching import StyleProfile
+    profile = StyleProfile(pin_count=30, colors=Counter({"schwarz": 20, "gelb": 1}),
+                           styles=Counter({"streetwear": 12}), categories=Counter({"Hosen": 25, "Schuhe": 1}))
+    shoe = {"id": "e1", "category": "Schuhe", "matched": ["Schuhe", "schwarz", "streetwear"], "clashes": []}
+    assert fit_check(shoe, profile) == (False, "Schuhe kommt in deinen Pins kaum vor")   # 1 von 30
+    yellow = {"id": "e2", "category": "Hosen", "matched": ["Hosen", "gelb", "streetwear"], "clashes": []}
+    assert not fit_check(yellow, profile)[0]                            # Gelb nur in 1 Pin
+    black = {"id": "e3", "category": "Hosen", "matched": ["Hosen", "schwarz", "streetwear"], "clashes": []}
+    assert fit_check(black, profile)[0]
 
 
 def test_luxury_brands_only_when_pinned(client, monkeypatch):
@@ -264,3 +278,25 @@ def test_luxury_brands_only_when_pinned(client, monkeypatch):
     assert [p["id"] for p in client.get("/api/recommendations?gender=alle").json()["products"]] == ["ebay-2"]
     storage.save_pins({"fetched_at": 2, "board_ids": ["x"], "pins": [{"id": "1", "title": "gucci weiße sneaker"}]})
     assert "ebay-1" in [p["id"] for p in client.get("/api/recommendations?gender=alle").json()["products"]]
+
+
+def test_why_page_explains_every_item(client, monkeypatch):
+    from backend import products, storage
+    from backend.products import Product
+
+    class Source:
+        def load(self):
+            return [Product(id="e-1", name="Schwarze Baggy Jeans", shop="eBay", price=30, category="Hosen",
+                            colors=["schwarz"], image_url="https://i/x.jpg", affiliate_url="https://a/x"),
+                    Product(id="e-2", name="Schwarze Skinny Jeans", shop="eBay", price=30, category="Hosen",
+                            colors=["schwarz"], image_url="https://i/x.jpg", affiliate_url="https://a/x")]
+
+        def warnings(self):
+            return []
+
+    monkeypatch.setattr(products, "get_product_source", lambda: Source())
+    storage.save_pins({"fetched_at": 1, "board_ids": ["x"], "pins": [
+        {"id": str(n), "title": "schwarze baggy jeans"} for n in range(3)]})
+    text = client.get("/api/why").text
+    assert "1 von 2 Teilen werden gezeigt" in text
+    assert "✓ Schwarze Baggy Jeans" in text and "Widerspruch zu den Pins: Skinny" in text

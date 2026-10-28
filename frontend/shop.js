@@ -88,7 +88,7 @@ async function load() {
         : "");
     // Gar nichts in dieser Welt (noch kein passender Partner-Shop) – ehrlich sagen statt "Budget"
     if (!items.length && !filters.maxPrice && !filters.category) {
-      renderNoShopsYet(pinItems.length, recommendations.unfitting > 0);
+      renderNoShopsYet(pinItems.length, recommendations.unfitting > 0, recommendations.pending_photos);
     } else {
       showSources(recommendations.sources || ["demo"]);
     }
@@ -204,7 +204,7 @@ function renderRows(list, hasProfile) {
   }
 }
 
-function renderNoShopsYet(pinCount, onlyUnfitting = false) {
+function renderNoShopsYet(pinCount, onlyUnfitting = false, pendingPhotos = 0) {
   const box = Object.assign(document.createElement("div"), { className: "empty no-shops" });
   // onlyUnfitting: Es gibt Produkte, aber keins passt zu deinen Pins -> lieber nichts zeigen
   box.append(
@@ -215,7 +215,9 @@ function renderNoShopsYet(pinCount, onlyUnfitting = false) {
           ? "Für Wohnen & Deko sind gerade noch keine Shops verbunden."
           : "Für Mode sind gerade noch keine Shops verbunden." }),
     Object.assign(document.createElement("p"), { className: "muted",
-      textContent: "Wir holen laufend neue Partner-Shops dazu – schau bald wieder vorbei!" }),
+      textContent: pendingPhotos
+        ? t("Mali schaut sich gerade {n} neue Teile genauer an – lade die Seite in ein paar Minuten neu.", { n: pendingPhotos })
+        : "Wir holen laufend neue Partner-Shops dazu – schau bald wieder vorbei!" }),
   );
   const actions = Object.assign(document.createElement("div"), { className: "no-shops-actions" });
   if (pinCount) {     // Teile aus den eigenen Pins gibt es trotzdem

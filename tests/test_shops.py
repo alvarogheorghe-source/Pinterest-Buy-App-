@@ -57,7 +57,7 @@ def test_all_offers_of_a_trusted_shop_get_badge_bonus_and_filter(admin, fake_eba
     fake_ebay.results["beige oversized Pullover"] = [
         ebay_item("10", "Beige Oversized Hoodie Damen", "irgendwer", price="19.90"),
         ebay_item("11", "Beige Oversized Hoodie Damen", "VINTAGE_WIEN", price="29.90"),
-        ebay_item("12", "Beiger Rollkragen Pullover Damen", "Vintage_Wien"),
+        ebay_item("12", "Beiger Oversized Rollkragen Pullover Damen", "Vintage_Wien"),
     ]
     products = admin.get("/api/recommendations?department=mode").json()["products"]
     assert products[0]["id"] == "ebay-11"          # gleich passend, teurer – aber geprüft

@@ -9,7 +9,8 @@ import time
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse, PlainTextResponse,
+                               RedirectResponse, Response)
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
@@ -469,7 +470,8 @@ def get_profile():
 def get_recommendations(min_price: float | None = None, max_price: float | None = None,
                         category: str | None = None,
                         department: products.Department = "mode", trusted_only: bool = False,
-                        gender: Literal["auto", "damen", "herren", "alle"] = "auto"):
+                        gender: Literal["auto", "damen", "herren", "alle"] = "auto",
+                        explain: bool = False):
     """Produkte einer Welt im Budget, sortiert nach Passung zum Stilprofil dieser Welt.
     gender: "auto" = wie deine Pins (pinnst du Damenmode, keine Herrenteile)."""
     pins_list = storage.load_pins()["pins"]
@@ -503,12 +505,18 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
     ranked = vision.apply_visual(ranked, pins_list, department,
                                  vision.EmbeddingStore.load_existing())
     # Nur, was wirklich zu den Pins passt – Rest gar nicht zeigen
+    why = []
     if has_taste(profile):
         checked = product_checks.load()
         # Qualität vor Menge: lieber eine halbleere Seite als Unpassendes
-        fitting = [r for r in ranked if fits_pins(r, profile, wanted, checked)]
+        verdicts = [(r, *fit_check(r, profile, wanted, checked)) for r in ranked]
+        fitting = [r for r, ok, _ in verdicts if ok]
+        why = [{"name": r["name"], "shop": r["shop"], "shown": ok, "reason": reason}
+               for r, ok, reason in verdicts]
     else:
         fitting = ranked
+    # Fotos, die Mali gerade noch anschaut (Hintergrund) -> ehrlicher Hinweis im Shop
+    pending_photos = sum(1 for r in ranked if "visual" in r and r["visual"] is None)
     unfitting, ranked = len(ranked) - len(fitting), fitting
     return {
         "profile": profile.to_dict(),
@@ -522,7 +530,24 @@ def get_recommendations(min_price: float | None = None, max_price: float | None 
         "currency": here.currency,
         "gender": wanted,
         "unfitting": unfitting,        # so viele ausgeblendet, weil sie nicht passen
+        "pending_photos": pending_photos,
+        **({"why": why} if explain else {}),
     }
+
+
+@app.get("/api/why", response_class=PlainTextResponse)
+def why_shown(department: products.Department = "mode"):
+    """Zum Nachschauen im Browser: Warum ist welches Teil im Shop – oder nicht?
+    http://localhost:8000/api/why  (bzw. ?department=wohnen)"""
+    data = get_recommendations(department=department, explain=True)
+    rows = data.get("why") or []
+    shown = [r for r in rows if r["shown"]]
+    lines = [f"{len(shown)} von {len(rows)} Teilen werden gezeigt.\n", "GEZEIGT:"]
+    lines += [f"  ✓ {r['name'][:60]:<60} {r['shop'][:18]:<18} {r['reason']}" for r in shown]
+    lines += ["", "AUSGEBLENDET (die ersten 80):"]
+    lines += [f"  ✗ {r['name'][:60]:<60} {r['shop'][:18]:<18} {r['reason']}"
+              for r in rows if not r["shown"]][:80]
+    return "\n".join(lines)
 
 
 def has_taste(profile: matching.StyleProfile) -> bool:
@@ -530,39 +555,66 @@ def has_taste(profile: matching.StyleProfile) -> bool:
     return bool(profile.categories or profile.colors or profile.styles)
 
 
+def fit_check(item: dict, profile: matching.StyleProfile, wanted: str | None = None,
+              checked: dict | None = None) -> tuple[bool, str]:
+    """Passt das Teil WIRKLICH zu den Pins? -> (ja/nein, Grund). Qualität vor Menge:
+    1. Widerspruch zu den Pins (Skinny statt Baggy, Shorts statt Jeans) -> nie
+    2. Die Art von Teil muss in den Pins deutlich vorkommen (nicht nur in einem von 50 Pins)
+    3. Bilderkennung aktiv: Foto muss angeschaut sein und den Pins ähneln (VISUAL_GATE);
+       "sieht aus wie deine Pins" reicht dann, sonst zusätzlich ein typisches Merkmal
+    4. Ohne Bilderkennung: mindestens zwei typische Merkmale (Farbe, Stil, Schnitt, Marke)
+    5. Pins zeigen Damen- bzw. Herrenmode, Teil laut Bild unklar -> nein
+    Typisch = kommt in mind. 10 % der Pins vor (eine Farbe aus einem einzigen Pin zählt nicht)."""
+    if item.get("clashes"):
+        return False, "Widerspruch zu den Pins: " + ", ".join(item["clashes"])
+    category = item["category"]
+    if profile.categories and profile.categories[category] < category_minimum(profile):
+        return False, f"{category} kommt in deinen Pins kaum vor"
+    matched = item.get("matched") or []
+    features = [m for m in matched if m != category and typical(m, category, profile)]
+    if wanted and not item.get("gender") and item["id"] in (checked or {}):
+        return False, "unklar, ob Damen oder Herren"
+    if "visual" in item:               # Bilderkennung aktiv (Pins haben Bild-Vektoren)
+        if item["visual"] is None:
+            return False, "Foto noch nicht angeschaut"
+        if item["visual"] < VISUAL_GATE:
+            return False, f"Foto sieht anders aus als deine Pins ({item['visual']:.2f})"
+        if item.get("looks_like_pins") and (category in matched or not profile.categories):
+            return True, "sieht aus wie deine Pins"
+        if category in matched and features:
+            return True, "Foto passt + " + ", ".join(features)
+        return False, "Foto ähnlich, aber kein typisches Merkmal"
+    if (category in matched or not profile.categories) and len(features) >= 2:
+        return True, ", ".join(features)
+    return False, "zu wenig typische Merkmale" + (f" (nur {', '.join(features)})" if features else "")
+
+
 def fits_pins(item: dict, profile: matching.StyleProfile, wanted: str | None = None,
               checked: dict | None = None) -> bool:
-    """Streng – lieber weniger, dafür wirklich Passendes:
-    - Widerspruch zu den Pins (Schnitt, Typ: Skinny statt Baggy, Shorts statt Jeans) -> nie
-    - Bilderkennung aktiv: Foto muss grob passen (VISUAL_GATE); noch nicht angeschaut ->
-      nur sehr sichere Text-Treffer (Art von Teil + zwei Merkmale)
-    - sieht aus wie die Pins (Bilderkennung) -> passt
-    - sonst: unklar für wen (Damen/Herren), obwohl Bilderkennung UND Pins es hätten zeigen
-      können -> nein (ohne Bildprüfung wissen wir es schlicht nicht – dann nicht bestrafen)
-    - die Art von Teil muss in den Pins vorkommen UND mind. ein weiteres Merkmal passen
-      (Farbe, Stil, Schnitt, Marke); erkennt man in den Pins keine Teile: zwei Merkmale"""
-    if item.get("clashes"):            # Skinny, obwohl du Baggy pinnst -> nie
-        return False
-    matched = item.get("matched") or []
-    features = [m for m in matched if m != item["category"]]
-    if "visual" in item:               # Bilderkennung aktiv (Pins haben Bild-Vektoren)
-        if item["visual"] is None:     # Foto noch nicht angeschaut -> nur sehr sichere Treffer
-            return item["category"] in matched and len(features) >= 2
-        if item["visual"] < VISUAL_GATE:
-            return False               # sieht ganz anders aus als die Pins
-    if item.get("looks_like_pins"):
-        return True
-    if wanted and not item.get("gender") and item["id"] in (checked or {}):
-        return False
-    if profile.categories:
-        return item["category"] in matched and len(features) >= 1
-    return len(features) >= 2
+    return fit_check(item, profile, wanted, checked)[0]
 
+
+TYPICAL_SHARE = 0.10        # Merkmal zählt ab 10 % der Pins
+DETAIL_TYPICAL_SHARE = 0.25  # Schnitt/Detail: ab 25 % der Pins dieser Art (z.B. 1 von 4 Jeans-Pins)
+
+
+def category_minimum(profile: matching.StyleProfile) -> int:
+    """Wie oft muss eine Art von Teil in den Pins vorkommen? Wenige Pins: 1, sonst 2 bzw. 10 %."""
+    if profile.pin_count < 5:
+        return 1
+    return max(2, round(profile.pin_count * TYPICAL_SHARE))
+
+
+def typical(term: str, category: str, profile: matching.StyleProfile) -> bool:
+    """Ist das Merkmal typisch für die Pins – oder nur ein Zufall aus einem einzelnen Pin?"""
+    if profile.detail_share(category, term) >= DETAIL_TYPICAL_SHARE:
+        return True
+    return profile.weight(term) >= TYPICAL_SHARE or (profile.pin_count < 5 and profile.mentions(term) > 0)
 
 
 GENDER_BONUS = 0.3   # wie ein Begriff in knapp jedem dritten Pin
 # Mindest-Ähnlichkeit des Fotos zu den Pins (0..1, "sieht aus wie" ab 0.6) – darunter nie
-VISUAL_GATE = 0.35
+VISUAL_GATE = 0.45
 SOURCE_BONUS = {"ebay": 0.2, "etsy": -0.1}   # Vorrang für eBay, Etsy etwas zurück
 
 
