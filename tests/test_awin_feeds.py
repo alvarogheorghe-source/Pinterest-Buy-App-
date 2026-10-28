@@ -125,3 +125,10 @@ def test_feed_without_currency_column_uses_the_shops_country(monkeypatch):
 def test_verified_eu_shipping_shops(monkeypatch):
     monkeypatch.setattr(feeds, "SHIPS_EU", ["direct-running"])
     assert "AT" in feeds.awin_countries("NL", "Direct-Running NL")
+
+
+def test_currency_we_cannot_convert_is_skipped():
+    feed = {"name": "awin-9", "preset": "awin", "currencies": [], "default_currency": "XYZ"}
+    row = {"aw_product_id": "1", "product_name": "Hoodie", "aw_deep_link": "https://a/1",
+           "merchant_image_url": "https://img/1.jpg", "search_price": "50", "merchant_name": "S"}
+    assert feeds.to_product(row, feed) is None

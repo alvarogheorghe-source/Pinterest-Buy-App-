@@ -421,6 +421,8 @@ def to_product(row: dict, feed: dict) -> Product | None:
     allowed = feed.get("currencies", ["EUR"])          # leer = jede Währung (wird umgerechnet)
     if price < MIN_PRICE or (allowed and currency not in allowed):
         return None
+    if currency not in quality._rates():               # nicht umrechenbar -> Preis wäre fremd
+        return None
     if feed.get("counterfeit_filter") and looks_like_fake(name):
         return None
 
