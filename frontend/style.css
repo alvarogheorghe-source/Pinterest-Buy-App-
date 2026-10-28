@@ -2751,3 +2751,4 @@ body.needs-input-mode .tabs,
 body.needs-input-mode .filters {
   display: none;
 }
+#source-note:empty + .source-sep { display: none; }

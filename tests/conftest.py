@@ -11,7 +11,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from backend import pinterest, storage
+from backend import pinterest, rate_limit, storage
 from backend.main import app
 
 
@@ -107,6 +107,7 @@ def no_image_downloads(monkeypatch):
 def fake(monkeypatch, tmp_path):
     """Richtet für jeden Test eine saubere Umgebung ein."""
     monkeypatch.setattr(storage, "DATA_DIR", tmp_path)  # Daten in Temp-Ordner
+    rate_limit.reset()
     monkeypatch.setenv("PINTEREST_CLIENT_ID", "test-client-id")
     monkeypatch.setenv("PINTEREST_CLIENT_SECRET", "test-secret")
     monkeypatch.setenv("PINTEREST_REDIRECT_URI", "http://localhost:8000/auth/callback")

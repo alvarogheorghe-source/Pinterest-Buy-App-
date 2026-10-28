@@ -281,7 +281,7 @@ function showSources(sources) {
   resultCount.textContent += ` · ${text}`;
   document.getElementById("source-note").textContent =
     online.length ? t("Produkte: {shops}", { shops: online.join(", ") })
-      : "Prototyp mit erfundenen Beispielprodukten";
+      : "";
   // Pflicht-Hinweis aus den Etsy-API-Bedingungen
   document.getElementById("etsy-attribution").hidden = !sources.includes("etsy");
 }

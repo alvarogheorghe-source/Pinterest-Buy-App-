@@ -1,4 +1,4 @@
-# Nachts: Feeds neu laden, dann neue Produktbilder berechnen (KI-Scanner, "sieht aus wie").
+# Nachts: Daten sichern (backups/, 14 Tage), Feeds neu laden, dann neue Produktbilder berechnen (KI-Scanner, "sieht aus wie").
 # Nutzer warten nie darauf – die App läuft währenddessen normal weiter.
 [Unit]
 Description=Malipin: Feeds + Bilderkennung (nachts)
@@ -7,6 +7,7 @@ Description=Malipin: Feeds + Bilderkennung (nachts)
 Type=oneshot
 User=malipin
 WorkingDirectory=/opt/malipin
+ExecStart=/opt/malipin/.venv/bin/python -m backend.backup
 ExecStart=/opt/malipin/.venv/bin/python -m backend.feeds
 ExecStart=/opt/malipin/.venv/bin/python -m backend.vision
 Nice=10

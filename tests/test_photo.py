@@ -9,7 +9,7 @@ import httpx
 import pytest
 from PIL import Image
 
-from backend import ebay, storage, vision
+from backend import ebay, rate_limit, storage, vision
 from tests.test_ebay import FakeEbay, item
 from tests.test_image_tags import FakeTextEmbedder, axis
 
@@ -118,3 +118,10 @@ def test_force_searches_anyway(fake, client, monkeypatch):
     response = client.post("/api/photo?force=true", content=jpeg("#3a6ea5"),
                            headers={"Content-Type": "image/jpeg"})
     assert response.json()["relevant"] is True
+
+
+def test_too_many_photos_are_slowed_down(fake, client, model):
+    for _ in range(rate_limit.LIMIT):
+        assert upload(client, jpeg()).status_code == 200
+    response = upload(client, jpeg())
+    assert response.status_code == 429 and "Minuten" in response.json()["detail"]

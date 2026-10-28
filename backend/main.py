@@ -3,6 +3,7 @@
 Starten mit:  uvicorn backend.main:app --reload
 """
 
+import asyncio
 import os
 import secrets
 import time
@@ -18,7 +19,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from backend import (analysis, currency, feedback, i18n, looks, matching, photo, pins, pinterest,
-                     product_checks, products, quality, region,
+                     product_checks, products, quality, rate_limit, region,
                      shop_links, shops, similar, skimlinks, storage, style_guide, vibe,
                      vision)
 from backend.config import FRONTEND_DIR, ConfigError
@@ -352,12 +353,22 @@ def admin_delete_shop(shop_id: str, request: Request):
     return {"ok": True}
 
 
+PHOTO_SLOTS = asyncio.Semaphore(2)
+
+
 @app.post("/api/photo")
 async def upload_photo(request: Request, force: bool = False):
     """Foto hochladen → ähnliche Teile. Das Bild kommt als Rohdaten (z.B. image/jpeg),
     wird nur im Arbeitsspeicher analysiert und NICHT gespeichert."""
     if not request.headers.get("content-type", "").startswith("image/"):
         raise HTTPException(415, "Bitte ein Foto schicken (JPG, PNG, WebP …).")
+    if not rate_limit.allow(request.client.host if request.client else "?"):
+        raise HTTPException(429, "Das waren gerade sehr viele Fotos. Probier es in ein paar Minuten nochmal.")
+    async with PHOTO_SLOTS:   # höchstens 2 Fotos gleichzeitig, der Rest wartet kurz
+        return await analyse_photo(request, force)
+
+
+async def analyse_photo(request: Request, force: bool) -> dict:
     data = await request.body()
     try:
         # Rechnen im Hintergrund-Thread, damit die App währenddessen erreichbar bleibt

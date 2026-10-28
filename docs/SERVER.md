@@ -100,6 +100,22 @@ Nach jedem `git push` vom Mac, auf dem Server:
 bash /opt/malipin/deploy/update.sh
 ```
 
+## Sicherungen
+
+Jede Nacht sichert der Server die Datenbank nach `/opt/malipin/backups/JJJJ-MM-TT/`, die
+letzten 14 Tage bleiben. Das schützt vor kaputten Daten, aber nicht, wenn der ganze Server
+weg ist. Dafür in der Hetzner Console beim Server **Backups** einschalten (ca. 20 % vom
+Serverpreis, 7 Kopien des ganzen Servers).
+
+Zurückspielen, z.B. vom 27. Oktober:
+```
+systemctl stop malipin
+cp /opt/malipin/backups/2026-10-27/malipin.db /opt/malipin/data/malipin.db
+rm -f /opt/malipin/data/malipin.db-wal /opt/malipin/data/malipin.db-shm
+chown malipin:malipin /opt/malipin/data/malipin.db
+systemctl start malipin
+```
+
 ## Wenn etwas nicht geht
 
 | Problem | Befehl |
@@ -108,6 +124,7 @@ bash /opt/malipin/deploy/update.sh
 | Fehlermeldungen der App | `journalctl -u malipin -n 50` |
 | HTTPS/Domain-Problem | `journalctl -u caddy -n 50` (meist: DNS zeigt noch nicht auf den Server) |
 | Nächtlicher Lauf | `journalctl -u malipin-nightly -n 50` |
+| Sicherungen da? | `ls /opt/malipin/backups` |
 
 ## Vor dem Start noch erledigen
 

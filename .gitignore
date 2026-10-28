@@ -35,3 +35,5 @@ ebay-support-report.txt
 data/search_cache.db
 data/exchange_rates.json
 data/product_checks.json
+# Tägliche Sicherungen (backend/backup.py)
+backups/
