@@ -90,6 +90,6 @@ Pinterest will sehen, dass alles so funktioniert wie beschrieben. Auf dem Mac: *
 4. Im Shop zeigen: dein Stil oben, passende Produkte, die kurze Begründung unter einem Produkt
 5. Ein Produkt öffnen, die Kennzeichnung "Werbung" zeigen
 6. Tab "Aus meinen Pins" zeigen
-7. Unter "Mein Pinterest" auf "Alles löschen" klicken und zeigen, dass die Daten weg sind
+7. Unter "Mein Pinterest" auf "Alle meine Daten löschen" klicken und zeigen, dass die Daten weg sind
 
 Video z.B. als "nicht gelistet" auf YouTube hochladen und den Link ins Formular einfügen.
