@@ -27,16 +27,21 @@
   </header>
 
   <main class="styles-page">
+    <p class="share-toast" id="share-toast" role="status" hidden>Link kopiert!</p>
     <!-- Mali stellt das Lexikon vor (Hase wird von stile.js aus dem Logo gezeichnet) -->
     <section class="styles-hero">
-      <div class="styles-mali" id="styles-mali" aria-hidden="true"></div>
+      <!-- Malis Bühne: große, animierte Mali (stile.js) – Klick macht ihr Freude -->
+      <button class="styles-mali" id="styles-mali" type="button" aria-label="Mali streicheln">
+        <span class="mali-shadow"></span>
+      </button>
       <div class="styles-intro">
         <p class="styles-kicker">Stil-Lexikon</p>
         <h1 class="page-title">Alle Vibes &amp; Stile</h1>
-        <p class="styles-bubble">
+        <p class="styles-bubble" id="styles-bubble">
           Hi, ich bin Mali, Stil-Detektiv! 🔎 Diese Vibes erkenne ich in Pinterest-Boards.
           Hier erkläre ich dir, was hinter jedem steckt – und welche Teile dazugehören.
         </p>
+        <button class="button share-page" id="share-page" type="button">Mit Freunden teilen</button>
       </div>
     </section>
 
@@ -57,9 +62,9 @@
     <p><a href="/shop.html">Zum Shop</a> · <a href="/datenschutz.html">Datenschutz</a> · <a href="/impressum.html">Impressum</a></p>
   </footer>
 
-  <script src="/stile.js"></script>
   <script src="/nav.js"></script>
   <!-- Mali, das Maskottchen -->
   <script src="/bunny.js"></script>
+  <script src="/stile.js"></script>
 </body>
 </html>

@@ -1974,20 +1974,6 @@ section + section {
   margin: 12px 0 28px;
 }
 
-.styles-mali svg {
-  width: 112px;
-  height: auto;
-  image-rendering: pixelated;
-  animation: mali-bob 2.4s ease-in-out infinite;
-}
-
-@keyframes mali-bob {
-  50% { transform: translateY(-6px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .styles-mali svg { animation: none; }
-}
 
 .styles-kicker {
   margin: 0 0 4px;
@@ -2285,9 +2271,6 @@ section + section {
     gap: 12px;
   }
 
-  .styles-mali svg {
-    width: 72px;
-  }
 
   .styles-bubble::before {
     display: none;
@@ -2297,3 +2280,212 @@ section + section {
     grid-template-columns: 1fr;
   }
 }
+
+/* --- Malis Bühne (stile.js: setupMali) -------------------------------------------------------- */
+.styles-mali {
+  position: relative;
+  flex: none;
+  width: 136px;
+  height: 150px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.styles-mali svg {                 /* Ersatz ohne bunny.js */
+  width: 112px;
+  image-rendering: pixelated;
+}
+
+.mali-sprite {
+  position: absolute;
+  left: 4px;
+  bottom: 14px;
+  width: 128px;
+  height: 128px;
+  image-rendering: pixelated;
+  transform-origin: 50% 100%;
+  animation: mali-breathe 2.6s ease-in-out infinite;
+}
+
+.mali-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 92px;
+  height: 14px;
+  margin-left: -46px;
+  border-radius: 50%;
+  background: rgba(107, 86, 86, 0.18);
+  transition: transform 0.3s;
+}
+
+@keyframes mali-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.025, 0.975); }
+}
+
+/* Hüpfen mit Stauchen (wie ein echter Hase) */
+.styles-mali.hop .mali-sprite { animation: mali-hop 0.7s cubic-bezier(0.3, 0.7, 0.4, 1); }
+.styles-mali.hop .mali-shadow { animation: mali-shadow 0.7s ease; }
+
+@keyframes mali-hop {
+  0% { transform: scale(1, 1); }
+  15% { transform: scale(1.12, 0.86); }
+  45% { transform: translateY(-40px) scale(0.94, 1.08); }
+  75% { transform: translateY(0) scale(1.1, 0.9); }
+  100% { transform: scale(1, 1); }
+}
+
+@keyframes mali-shadow {
+  45% { transform: scale(0.55); opacity: 0.5; }
+}
+
+/* Freudiges Wackeln */
+.styles-mali.wiggle .mali-sprite { animation: mali-wiggle 0.9s ease-in-out; }
+
+@keyframes mali-wiggle {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-7deg); }
+  40% { transform: rotate(6deg); }
+  60% { transform: rotate(-4deg); }
+  80% { transform: rotate(3deg); }
+}
+
+/* Pirouette */
+.styles-mali.twirl .mali-sprite { animation: mali-twirl 0.9s ease-in-out; }
+
+@keyframes mali-twirl {
+  0% { transform: rotateY(0) translateY(0); }
+  50% { transform: rotateY(180deg) translateY(-14px); }
+  100% { transform: rotateY(360deg) translateY(0); }
+}
+
+/* Ohren-Wackler: kurzes Kopfnicken */
+.styles-mali.ears .mali-sprite { animation: mali-nod 0.8s ease-in-out; }
+
+@keyframes mali-nod {
+  25% { transform: rotate(-3deg) scale(1.02, 0.98); }
+  50% { transform: rotate(3deg) scale(0.98, 1.02); }
+  75% { transform: rotate(-2deg); }
+}
+
+/* Herzchen steigen auf */
+.mali-heart {
+  position: absolute;
+  bottom: 110px;
+  width: 21px;
+  height: 18px;
+  image-rendering: pixelated;
+  opacity: 0;
+  pointer-events: none;
+  animation: mali-heart 1.8s ease-out forwards;
+}
+
+@keyframes mali-heart {
+  0% { opacity: 0; transform: translateY(0) scale(0.6); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-70px) translateX(10px) scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mali-sprite,
+  .styles-mali.hop .mali-sprite,
+  .styles-mali.wiggle .mali-sprite,
+  .styles-mali.twirl .mali-sprite,
+  .styles-mali.ears .mali-sprite { animation: none; }
+}
+
+/* Sprechblase "ploppt" bei neuem Spruch */
+.styles-bubble.pop { animation: bubble-pop 0.35s ease; }
+
+@keyframes bubble-pop {
+  0% { transform: scale(0.96); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.share-page {
+  margin-top: 14px;
+}
+
+/* --- Teilen ----------------------------------------------------------------------------------- */
+.share-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--v-accent, var(--accent));
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.share-button:hover {
+  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.share-button svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.look-dunkel .share-button {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.share-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 50;
+  margin: 0;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--text);
+  color: #fff;
+  font-size: 0.9rem;
+  transform: translateX(-50%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.your-vibe-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.your-vibe-actions .button {
+  margin-top: 0;
+}
+
+/* --- Jeder Vibe in seiner eigenen Farbwelt ---------------------------------------------------- */
+.vibe-card[data-vibe="vibe-goth-baddie"] { --v-bg1: #2e2033; --v-bg2: #0d090f; --v-text: #f6e6ef; --v-muted: #c9adbd; --v-accent: #ff8fb4; }
+.vibe-card[data-vibe="vibe-clean-girl"] { --v-bg1: #fffdf9; --v-bg2: #efe4d6; --v-accent: #a08068; }
+.vibe-card[data-vibe="vibe-streetwear-icon"] { --v-bg1: #e8edff; --v-bg2: #a4b2f4; --v-text: #1f1e3a; --v-muted: #4b4878; --v-accent: #3b35b0; }
+.vibe-card[data-vibe="vibe-cozy-era"] { --v-bg1: #fdf2e4; --v-bg2: #e6c8a4; --v-text: #3d2c20; --v-muted: #6d5643; --v-accent: #9a5728; }
+.vibe-card[data-vibe="vibe-quiet-luxury"] { --v-bg1: #f5f1e9; --v-bg2: #cbbfa6; --v-text: #2f2a22; --v-muted: #625848; --v-accent: #5b4730; }
+.vibe-card[data-vibe="vibe-thrift-legend"] { --v-bg1: #fdeed6; --v-bg2: #e0ad78; --v-text: #3a2616; --v-muted: #6e4f33; --v-accent: #8a4518; }
+.vibe-card[data-vibe="vibe-y2k-baby"] { --v-bg1: #ffe4f6; --v-bg2: #c6b5ff; --v-text: #3a1f3f; --v-muted: #6e4f78; --v-accent: #c22aae; }
+.vibe-card[data-vibe="vibe-festival-boho"] { --v-bg1: #fff2dd; --v-bg2: #f0ab80; --v-text: #3f2618; --v-muted: #73513b; --v-accent: #b14d24; }
+.vibe-card[data-vibe="vibe-coquette-era"] { --v-bg1: #fff3f6; --v-bg2: #f7c2d2; --v-accent: #d1457a; }
+.vibe-card[data-vibe="vibe-cottagecore"] { --v-bg1: #f7f9ea; --v-bg2: #d3e1ae; --v-text: #2e3318; --v-muted: #5c6537; --v-accent: #66792a; }
+.vibe-card[data-vibe="vibe-japandi-zen"] { --v-bg1: #f4f0e8; --v-bg2: #d3c9b8; --v-text: #312b24; --v-muted: #64594c; --v-accent: #6b5b47; }
+.vibe-card[data-vibe="vibe-athleisure-era"] { --v-bg1: #e9fff6; --v-bg2: #95dfca; --v-text: #12352c; --v-muted: #3d6b5e; --v-accent: #0f8467; }
+.vibe-card[data-vibe="vibe-gorpcore"] { --v-bg1: #eef2e6; --v-bg2: #a3b38d; --v-text: #252b18; --v-muted: #535d3d; --v-accent: #4a5c25; }
+.vibe-card[data-vibe="vibe-effortless-cool"] { --v-bg1: #edf3fb; --v-bg2: #bccfe5; --v-text: #1d2a38; --v-muted: #4a5d72; --v-accent: #2b5986; }
+.vibe-card[data-vibe="vibe-clean-fit"] { --v-bg1: #fbfbfb; --v-bg2: #d6d6d9; --v-text: #222224; --v-muted: #5c5c62; --v-accent: #2b2b2e; }
+.vibe-card[data-vibe="vibe-main-character"] { --v-accent: #c93a69; background: linear-gradient(150deg, #fff3c4, #ffd1e8 55%, #cfe2ff); }
+.vibe-card[data-vibe="vibe-goth-baddie"] .vibe-mali,
+.vibe-card[data-vibe="vibe-goth-baddie"] .vibe-pieces li { background: rgba(255, 255, 255, 0.1); }
