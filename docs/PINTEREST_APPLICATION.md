@@ -74,7 +74,7 @@ https://malipin.com/datenschutz.html
 
 ## Contact
 
-alvaro.gheorghe@schmelz.at
+company.malipin@gmail.com
 
 ---
 

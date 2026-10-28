@@ -1,109 +1,113 @@
-# Privacy Policy – Malipin (Prototype)
+# Privacy Policy
 
-*Last updated: 25 October 2026*
+*Last updated: 28 October 2026*
 
-Malipin is a prototype that connects to a user's Pinterest account, derives a personal
-style profile from selected boards and suggests matching clothing and home items. It is
-currently used only for development and testing by its author. Later it may earn
-commissions through affiliate links (always marked as advertising).
+Malipin (malipin.com) helps you shop your own style. You can connect your Pinterest account or
+upload a photo, and Malipin suggests matching fashion and home decor from partner shops. This
+page explains which data we use, why, and how you can delete it.
 
 ## Who is responsible
 
 Alvaro Gheorghe, Basler Gasse 50-66/33/14, 1230 Wien, Austria
 E-mail: company.malipin@gmail.com
 
-For questions or requests about your data, please write to this e-mail address.
+If you have any question about your data, just write to this address.
 
-## What data the app accesses
+## Data from Pinterest
 
-The app uses the official Pinterest API v5 with **read-only** permissions
-(`user_accounts:read`, `boards:read`, `pins:read`). After you log in and approve
-access on Pinterest, the app can read:
+Malipin uses the official Pinterest API with **read-only** permissions
+(`user_accounts:read`, `boards:read`, `pins:read`). After you log in on Pinterest and allow
+access, Malipin can read:
 
 - your Pinterest username
-- your boards (name, description, number of pins, cover image)
-- pins of the boards you select (image URL, title, description)
+- your boards (name, number of pins, cover image)
+- the pins on the boards you choose (image, title, description, link)
 
-The app **never** sees or stores your Pinterest password or cookies. It does not
-create, change or delete anything in your Pinterest account.
+Malipin never sees your Pinterest password. It never creates, changes or deletes anything in
+your Pinterest account. We use this data only to build your style profile and show you matching
+products. It is not shown to other people, not sold, not shared and not used for advertising
+profiles.
 
-## Why the data is used
+## Image recognition
 
-The data is used only to create a style profile (e.g. colors and style keywords) and
-to show product suggestions that match it. It is not used for advertising profiles,
-not sold, and not shared with third parties – except for the short search terms
-described in the next section.
+To recognise styles in pictures, Malipin turns each pin image (and each product image) into a
+list of numbers on our own server. These numbers are only used for your suggestions. Pinterest
+content is never used to train an AI model. Photos you upload to the photo search are analysed in
+memory and are **never stored**.
 
-## Product search with eBay and Etsy
+## Product search and partner shops
 
-To find real products, the app sends short search terms to the official APIs of eBay
-and Etsy, for example "beige oversized sweater". These terms only contain a color, a
-style word and a product type derived from your pins. They contain **no** username,
-no pin images, no pin texts and no other personal data. The search results are stored
-on the app's computer for up to one hour.
+To find products, Malipin sends short search terms such as "black baggy jeans" to eBay, Etsy
+and AliExpress, and reads product lists from partner shops (for example through the affiliate
+network Awin). These requests contain **no** personal data: no username, no pin images and no pin
+texts. Search results are kept for up to one hour.
 
-## Where the data is stored
+## Links to shops and advertising
 
-During the prototype phase, the app runs locally on the computer of the person using it.
-When the app is offered publicly, your data (access tokens, board selection, pins, saved
-items and ratings) is stored in a database on the app's server, kept separate for each
-person.
+Some product links are affiliate links. If you buy something through them, the shop pays us a
+small commission and the price stays the same for you. These links are always marked as
+advertising ("Werbung").
 
-To tell people apart, the app sets **one technically necessary cookie** with a random ID
-(no name, no e-mail, no tracking). It is kept for up to one year. After you connect Pinterest, your data is
-linked to your Pinterest account so you see it on all your devices; for this the app stores
-only a one-way checksum of your Pinterest account ID, not the ID or your username. Photos you upload for the
-photo search are analysed only in memory and are **never stored**.
+Some links are forwarded through **Skimlinks** (Skimbit Ltd., UK), which tells the shop that you
+came from Malipin. Only when you click such a link, Skimlinks and the shop learn which product
+you clicked, along with technical data such as your IP address, and may set their own cookies on
+their websites. Malipin itself loads no tracking scripts. After you leave Malipin, the privacy
+policy of the shop applies.
 
-You can delete everything at any time with **"Alle meine Daten löschen"** on the
-"Mein Pinterest" page – this removes all data linked to your ID immediately.
+## Cookies and local storage
 
-## The website malipin.com
+Malipin only uses what is needed for the site to work, so there is no cookie banner:
 
-The public website malipin.com is hosted on GitHub Pages (GitHub, Inc.). When you visit
-it, GitHub processes technical data such as your IP address to deliver the page and keep
-it secure; see GitHub's privacy statement (https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
-The presentation website malipin.com uses no cookies, no tracking and no external fonts. Mali, the mascot, only
-remembers in your own browser (local storage) whether you have already seen the welcome
-animation or hidden Mali – this never leaves your device.
+- a **session cookie** with a random ID, so your pins, wish list and ratings stay yours (up to
+  one year)
+- `lang` for your language and, only if you choose one, `country` for your country and currency
+- local storage in your browser for small settings, for example whether you have hidden Mali
 
-## How long data is kept and how to delete it
+There is no analytics, no tracking and no advertising cookie.
 
-- Click **"Verbindung trennen" (disconnect)** in the app to delete the stored access tokens.
-- Deleting the app's `data` folder removes all stored data.
-- You can revoke the app's access at any time in your Pinterest settings
-  (Settings → Security and logins / Apps).
+## Where the data is stored and for how long
 
-## Links to shops
+Your data (Pinterest access, board selection, pins, style profile, wish list and ratings) is
+stored on our server in the EU (Hetzner Online GmbH, Germany), separately for each person. If
+you connect Pinterest, we only store a one-way checksum of your Pinterest account ID so you see
+your data on all your devices.
 
-The app links to products on eBay, Etsy and other shops. Affiliate links (where we
-may earn a commission) are marked as advertising ("Werbung"); other links are marked
-"Link zu …". When you click a link, you leave the app, and the privacy policy of the
-respective shop applies.
+Pins are replaced whenever you load them again. Everything stays until you delete it. The server
+keeps short technical logs (such as IP address and time of a request) to keep the service secure,
+and they are deleted regularly.
+
+## Deleting your data
+
+- On the page **"Mein Pinterest"**, click **"Alle meine Daten löschen"**. This immediately deletes
+  your Pinterest access, pins, style profile, wish list and ratings.
+- You can also revoke Malipin's access at any time in your Pinterest settings (Settings,
+  Security and logins, Apps).
+- Or write to company.malipin@gmail.com and we will delete everything for you.
 
 ## Your rights
 
-Under the EU General Data Protection Regulation (GDPR) you have the right to access,
-correct and delete your data, to restrict processing and to complain to a data
-protection authority (in Austria: the Datenschutzbehörde, https://www.dsb.gv.at).
+Under the EU General Data Protection Regulation (GDPR) you have the right to access, correct and
+delete your data, to restrict or object to processing, and to receive your data. You can also
+complain to a data protection authority, in Austria the Datenschutzbehörde
+(https://www.dsb.gv.at).
 
 ## Changes
 
-This policy may be updated as the prototype develops. The current version is always
-available at this address.
+If Malipin changes, we update this page. The current version is always available at
+https://malipin.com/datenschutz.html.
 
 ---
 
 ### Kurzfassung auf Deutsch
 
-Malipin ist ein privater Prototyp. Die App liest über die offizielle Pinterest-API
-(nur Lese-Rechte) deinen Benutzernamen, deine Boards und die Pins ausgewählter Boards,
-um daraus dein Stilprofil zu erstellen und passende Kleidung und Wohnsachen
-vorzuschlagen. Passwörter und Cookies werden nie gespeichert. Alle Daten bleiben lokal
-auf dem Computer, auf dem die App läuft. Für die Produktsuche gehen nur kurze
-Suchbegriffe wie „beige oversized Pullover“ an eBay und Etsy – ohne Benutzername, Bilder
-oder sonstige persönliche Daten. Die Website malipin.com liegt bei GitHub Pages
-(GitHub verarbeitet dabei z.B. deine IP-Adresse); sie nutzt keine Cookies, kein Tracking und
-keine externen Schriften. Eine anonyme Zufalls-Kennung im Cookie trennt die Daten verschiedener Personen; mit „Alle meine Daten löschen“ ist alles sofort weg. Hochgeladene Fotos werden nie gespeichert. Mit „Verbindung trennen“ werden die
-Tokens gelöscht; den Zugriff kannst du jederzeit in deinen Pinterest-Einstellungen
-widerrufen.
+Malipin liest über die offizielle Pinterest-Schnittstelle nur mit Leserechten deinen
+Benutzernamen, deine Boards und die Pins der Boards, die du auswählst. Daraus entsteht dein
+Stilprofil, und Malipin zeigt dir passende Mode und Deko. Dein Passwort sieht Malipin nie, und
+in deinem Pinterest-Konto wird nichts verändert. Die Daten werden nicht verkauft, nicht
+weitergegeben und nicht für Werbeprofile genutzt. Bilder werden auf unserem eigenen Server in
+Zahlen umgewandelt, nur für deine Vorschläge. Hochgeladene Fotos werden nie gespeichert. An
+eBay, Etsy und AliExpress gehen nur kurze Suchbegriffe ohne persönliche Daten. Manche Links sind
+Affiliate-Links (als Werbung gekennzeichnet), einige laufen über Skimlinks. Erst beim Klick
+erfahren Skimlinks und der Shop davon. Malipin setzt nur notwendige Cookies, kein Tracking. Die
+Daten liegen auf unserem Server in der EU. Mit „Alle meine Daten löschen“ unter „Mein Pinterest“
+ist alles sofort weg. Fragen gerne an company.malipin@gmail.com.

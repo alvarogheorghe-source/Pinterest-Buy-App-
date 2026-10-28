@@ -33,7 +33,7 @@ def test_legal_pages(site):
     impressum = (site / "impressum.html").read_text()
     assert "Test Person" in impressum and "Teststraße 1<br>1010 Wien" in impressum
     privacy = (site / "datenschutz.html").read_text()
-    assert "<h1>Privacy Policy – Malipin (Prototype)</h1>" in privacy
+    assert "<h1>Privacy Policy</h1>" in privacy and "Prototype" not in privacy
     assert "<strong>read-only</strong>" in privacy and "<li>" in privacy
     assert '<a href="https://www.dsb.gv.at">' in privacy
     for name in ("style.css", "bunny.js", "img/favicon.svg", "404.html"):

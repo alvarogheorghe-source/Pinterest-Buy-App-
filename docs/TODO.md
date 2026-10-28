@@ -11,7 +11,7 @@
 - [x] **Claude:** Footer aufräumen (kein "Prototyp mit Beispielprodukten", kein "Link zu …")
 - [ ] **Claude:** Bewertungs-Werkzeug: 30–50 Teile mit "passt / passt nicht" markieren -> Trefferquote messen
 - [ ] **Du:** Bewertung durchklicken, **Claude:** Regeln danach nachstellen
-- [ ] **Claude:** Datenschutzerklärung anpassen (Server, Cookies, Bilderkennung, Awin/eBay/Etsy),
+- [x] **Claude:** Datenschutzerklärung anpassen (Server, Cookies, Bilderkennung, Awin/eBay/Etsy),
       "Prototype" raus
 - [ ] **Du:** Datenschutz kurz prüfen lassen (z.B. WKO-Beratung)
 
