@@ -5,7 +5,7 @@
 <canvas id="c" width="1080" height="1920"></canvas>
 <script src="mali-lib.js"></script>
 <script>
-// Herbstpark, filmischer Look (Kinobalken, Filmkorn, Untertitel): Mali friert ohne Jacke und
+// Herbstpark, filmischer Look (warme Farben, Filmkorn, Untertitel, volles 9:16-Bild): Mali friert ohne Jacke und
 // fragt Creator, wo die Jacke her ist. Nachrichten steigen als Blasen aus dem Handy. Kein Name,
 // keine Lösung. ?lang=en
 LEN = 15.5;
@@ -197,7 +197,7 @@ function grade(t) {
   ctx.save(); ctx.globalCompositeOperation = "soft-light";             // warme Farbgebung
   ctx.fillStyle = "rgba(255,150,80,.35)"; ctx.fillRect(0, 0, W, H); ctx.restore();
   const v = ctx.createRadialGradient(W / 2, 1000, 300, W / 2, 1000, 1150);   // Vignette
-  v.addColorStop(0, "rgba(30,12,8,0)"); v.addColorStop(1, "rgba(30,12,8,.55)");
+  v.addColorStop(0, "rgba(30,12,8,0)"); v.addColorStop(1, "rgba(30,12,8,.4)");
   ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
   const frame = Math.floor(t * 30);                                    // Filmkorn
   for (let i = 0; i < 900; i++) {
@@ -205,7 +205,6 @@ function grade(t) {
     const y = (Math.sin(i * 39.346 + frame * 11.135) * 23421.631 % 1 + 1) % 1 * H;
     ctx.fillStyle = i % 2 ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.08)"; ctx.fillRect(x, y, 3, 3);
   }
-  ctx.fillStyle = "#0b0706"; ctx.fillRect(0, 0, W, 200); ctx.fillRect(0, 1580, W, H - 1580);   // Kinobalken
 }
 
 // ---------- Ablauf ----------
