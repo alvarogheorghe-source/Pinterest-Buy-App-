@@ -219,7 +219,7 @@ function scene(t) {
   let face = "idle", push = 0, shiver = 1.5 + gust(t) * 4, leaf = false;
   if (t < 1.8) face = "tired";
   else if (t < 4.4) face = t < 2.9 ? "idle" : "tired";
-  else if (t < 6.8) { face = t < 5.2 ? "idle" : "tired"; leaf = between(t, 5.9, 6.7); }
+  else if (t < 6.8) face = t < 5.2 ? "idle" : "tired";
   else if (t < 9.4) { face = t < 8.0 ? "idle" : "shock"; push = Math.sin(prog(t, 7.8, 8.8) * Math.PI) * 50; }
   else if (t < 12.0) { face = t < 11.0 ? "idle" : "sad"; shiver += 2; }
   else if (t < 13.5) face = t < 12.9 ? "tired" : "sneeze";
