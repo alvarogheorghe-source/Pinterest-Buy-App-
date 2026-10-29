@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>html, body { margin: 0; background: #000; } canvas { display: block; }</style></head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="mali-lib.js"></script>
+<script src="../../../frontend/mali-big.js"></script>
+<script>
+// Herbstpark: Mali friert (Schal, keine Jacke) und fragt Creator, wo die Jacke her ist.
+// Niemand antwortet richtig. Keine Lösung, kein Name, nur der Struggle. ?lang=en
+LEN = 15.5;
+Object.assign(EN, {
+  "POV: es ist 4 grad": "POV: it's 4°C", "und du hast keine jacke": "and you don't own a jacket",
+  "wo ist die jacke her?? 🥺": "where is the jacket from?? 🥺", "danke 🥰": "thank u 🥰", "danke…???": "thank u…???",
+  "und der mantel?? 🙏": "and the coat?? 🙏", "vintage 💅": "vintage 💅", "vintage. natürlich.": "vintage. of course.",
+  "JACKE PLS 😭": "JACKET PLS 😭", "link in bio ✨": "link in bio ✨", "WELCHER LINK": "WHAT LINK",
+  "hey 🥺": "hey 🥺", "hallo?": "hello?", "die jacke 🥺": "the jacket 🥺", "mir ist kalt": "i'm cold",
+  "ich zahl dir 5 €": "i'll pay u €5", "Gesehen": "Seen", "*tippt…*": "*typing…*", "*tippt nicht mehr*": "*stopped typing*",
+  "warum fragt ihr eigentlich immer": "why do you guys always ask", "wo meine sachen her sind 🙄": "where my stuff is from 🙄",
+  "hatschi!": "achoo!", "*immer noch keine jacke*": "*still no jacket*", "du": "you",
+  "Kommentar schreiben…": "Add a comment…", "Nachricht…": "Message…", "living my best life 🍂": "living my best life 🍂",
+});
+
+const punch = (t, at, len = 0.22) => (t >= at && t < at + len) ? 1 - (t - at) / len : 0;
+function bigText(lines, cy, size, { scale = 1, rot = -0.03, fill = "#fff" } = {}) {
+  if (scale <= 0) return;
+  lines = lines.map(tr);
+  ctx.save(); ctx.translate(W / 2, cy); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.font = `900 ${size}px ${FONT}`;
+  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width)) + size * 0.2;
+  if (widest > 800) { size *= 800 / widest; ctx.font = `900 ${size}px ${FONT}`; }
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round";
+  ctx.lineWidth = size * 0.2; ctx.strokeStyle = "#2a1712";
+  lines.forEach((l, i) => { const y = (i - (lines.length - 1) / 2) * size * 1.08; ctx.strokeText(l, 0, y); ctx.fillStyle = Array.isArray(fill) ? fill[i] : fill; ctx.fillText(l, 0, y); });
+  ctx.restore();
+}
+function txt(str, x, y, size, color, weight = 600, align = "left") {
+  ctx.fillStyle = color; ctx.font = `${weight} ${size}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = "middle";
+  ctx.fillText(tr(str), x, y);
+}
+const typed = (t, s, from, to) => { const str = [...tr(s)]; return str.slice(0, Math.floor(str.length * prog(t, from, to))).join(""); };
+
+// ---------- Wind ----------
+const GUSTS = [[0.1, 1.0], [3.7, 0.5], [7.8, 1.2], [10.6, 0.6], [12.9, 0.9]];   // [Zeit, Stärke]
+const gust = (t) => GUSTS.reduce((a, [at, s]) => a + s * Math.exp(-((t - at - 0.35) ** 2) / 0.12), 0);
+const drift = (t) => t * 60 + GUSTS.reduce((a, [at, s]) => a + s * 700 * clamp((t - at) / 0.8), 0);   // aufsummierter Wind
+
+// ---------- Herbstpark (illustriert) ----------
+function tree(x, groundY, h, r, palette, sway) {
+  ctx.fillStyle = "#6b4433"; ctx.beginPath();
+  ctx.moveTo(x - r * 0.12, groundY); ctx.lineTo(x - r * 0.07, groundY - h); ctx.lineTo(x + r * 0.07, groundY - h); ctx.lineTo(x + r * 0.12, groundY); ctx.fill();
+  ctx.strokeStyle = "#6b4433"; ctx.lineWidth = r * 0.06;
+  ctx.beginPath(); ctx.moveTo(x, groundY - h * 0.6); ctx.lineTo(x - r * 0.45, groundY - h * 0.9); ctx.moveTo(x, groundY - h * 0.7); ctx.lineTo(x + r * 0.4, groundY - h); ctx.stroke();
+  const blobs = [[0, -1.05, 0.62], [-0.48, -0.85, 0.5], [0.5, -0.88, 0.5], [-0.25, -1.35, 0.48], [0.3, -1.3, 0.46], [0, -0.7, 0.5]];
+  blobs.forEach(([dx, dy, rr], i) => {
+    const bx = x + dx * r + sway * (1 + dy * -0.3), by = groundY - h * 0.45 + dy * r;
+    ctx.fillStyle = palette[i % palette.length]; ctx.beginPath(); ctx.arc(bx, by, rr * r, 0, 7); ctx.fill();
+    ctx.fillStyle = "rgba(255,240,200,.18)"; ctx.beginPath(); ctx.arc(bx - rr * r * 0.3, by - rr * r * 0.3, rr * r * 0.5, 0, 7); ctx.fill();
+  });
+}
+function park(t) {
+  const sky = ctx.createLinearGradient(0, 0, 0, 1200);
+  sky.addColorStop(0, "#ffcfa0"); sky.addColorStop(0.55, "#ffb594"); sky.addColorStop(1, "#f7a9a3");
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+  const sun = ctx.createRadialGradient(800, 640, 20, 800, 640, 260);
+  sun.addColorStop(0, "rgba(255,246,214,1)"); sun.addColorStop(0.25, "rgba(255,240,200,.9)"); sun.addColorStop(1, "rgba(255,230,190,0)");
+  ctx.fillStyle = sun; ctx.fillRect(500, 340, 600, 600);
+  for (let i = 0; i < 4; i++) {                                       // Wolken ziehen
+    const cx = ((i * 330 + t * (18 + gust(t) * 40)) % 1500) - 200, cy = 250 + i * 110;
+    ctx.fillStyle = "rgba(255,247,238,.55)";
+    for (const [dx, dy, r] of [[0, 0, 60], [55, -20, 50], [105, 5, 45], [-50, 8, 42]]) { ctx.beginPath(); ctx.arc(cx + dx, cy + dy, r, 0, 7); ctx.fill(); }
+  }
+  // ferne Bäume
+  for (let i = 0; i < 12; i++) {
+    ctx.fillStyle = ["#e59a74", "#de8a6a", "#e8a77c"][i % 3];
+    ctx.beginPath(); ctx.arc(i * 100 - 20, 1040 + (i % 3) * 14, 90 + (i % 2) * 25, 0, 7); ctx.fill();
+  }
+  // Wiese + Weg
+  const grass = ctx.createLinearGradient(0, 1060, 0, H);
+  grass.addColorStop(0, "#c8b06c"); grass.addColorStop(1, "#9c8a50");
+  ctx.fillStyle = grass; ctx.fillRect(0, 1060, W, H);
+  ctx.fillStyle = "#e8d3b0"; ctx.beginPath();
+  ctx.moveTo(470, 1070); ctx.lineTo(610, 1070); ctx.bezierCurveTo(700, 1300, 900, 1550, 1000, 1920); ctx.lineTo(160, 1920); ctx.bezierCurveTo(330, 1550, 440, 1300, 470, 1070); ctx.fill();
+  const sway = Math.sin(t * 2) * 6 + gust(t) * 22;
+  tree(130, 1120, 520, 300, ["#e8743b", "#f2a541", "#d9534f", "#f6c453", "#e2622f", "#f08a3c"], sway);
+  tree(980, 1110, 560, 320, ["#f6c453", "#e8743b", "#c94b3c", "#f2a541", "#e2622f", "#f08a3c"], sway * 1.1);
+  tree(760, 1080, 260, 130, ["#f2a541", "#e8743b", "#f6c453"], sway * 0.6);
+  // Laterne
+  ctx.fillStyle = "#3f4a43"; ctx.fillRect(296, 780, 14, 330); ctx.fillRect(270, 1100, 66, 16);
+  ctx.fillStyle = "#3f4a43"; round(272, 730, 62, 60, 10); ctx.fill();
+  ctx.fillStyle = "#ffe9a8"; round(282, 742, 42, 38, 6); ctx.fill();
+  // Bank
+  ctx.fillStyle = "#8a5a3b";
+  for (let i = 0; i < 3; i++) round(690, 1150 + i * 26, 250, 16, 6), ctx.fill();
+  ctx.fillStyle = "#5b3a28"; ctx.fillRect(705, 1220, 12, 70); ctx.fillRect(915, 1220, 12, 70);
+  // Laub am Boden
+  for (let i = 0; i < 70; i++) {
+    const x = (i * 157) % W, y = 1120 + ((i * 89) % 780);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(i);
+    ctx.fillStyle = ["#e8743b", "#d9534f", "#f2a541", "#b5482f", "#f6c453"][i % 5]; ctx.globalAlpha = 0.8;
+    ctx.beginPath(); ctx.ellipse(0, 0, 12, 6, 0, 0, 7); ctx.fill(); ctx.restore();
+  }
+}
+// fallende / wehende Blätter (vorne)
+function leaves(t, count = 26, front = false) {
+  const d = drift(t);
+  for (let i = 0; i < count; i++) {
+    const seed = i * 97.3 + (front ? 13 : 0);
+    const x = ((seed * 7 + d * (0.8 + (i % 5) * 0.12)) % 1300) - 110;
+    const y = ((seed * 5 + t * (70 + (i % 4) * 25)) % 1500) + 250 + Math.sin(t * 2 + i) * 30;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(t * (1.5 + (i % 3)) + i);
+    const s = front ? 1.7 : 1;
+    ctx.fillStyle = ["#e8743b", "#d9534f", "#f2a541", "#f6c453", "#c94b3c"][i % 5];
+    ctx.beginPath(); ctx.ellipse(0, 0, 16 * s, 8 * s, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = "rgba(90,50,30,.5)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-16 * s, 0); ctx.lineTo(18 * s, 0); ctx.stroke();
+    ctx.restore();
+  }
+}
+function windLines(t) {
+  const g = gust(t);
+  if (g < 0.15) return;
+  ctx.save(); ctx.strokeStyle = `rgba(255,255,255,${Math.min(0.75, g * 0.7)})`; ctx.lineWidth = 6; ctx.lineCap = "round";
+  for (let i = 0; i < 6; i++) {
+    const y = 980 + i * 90, x = ((t * 1400 + i * 300) % 1400) - 200;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.bezierCurveTo(x + 80, y - 20, x + 140, y + 20, x + 220, y); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ---------- Mali ----------
+const OUTFIT = { accessories: ["scarf"], accent: "#c8493c", shade: "#9e3328" };
+const CELL = 12;
+function maliAt(t, face, { cold = true, push = 0, shiver = 0, phone = true, leaf = false } = {}) {
+  const w = window.maliBig.W * CELL, h = window.maliBig.H * CELL;
+  const x = Math.round(W / 2 - w / 2 + push + Math.sin(t * 70) * shiver), y = 905;
+  ctx.fillStyle = "rgba(60,30,20,.18)"; ctx.beginPath(); ctx.ellipse(W / 2 + push, y + h - 22, 180, 24, 0, 0, 7); ctx.fill();
+  // flatternder Schal hinter Mali
+  const g = 0.4 + gust(t);
+  ctx.fillStyle = OUTFIT.accent;
+  for (let k = 0; k < 5; k++) {
+    const sx = x + 26 * CELL + k * 30 * g, sy = y + 30 * CELL + Math.sin(t * 10 + k) * 10 * g + k * 6;
+    ctx.fillRect(sx, sy, 34, 26);
+    if (k % 2) { ctx.fillStyle = OUTFIT.shade; ctx.fillRect(sx, sy + 8, 34, 6); ctx.fillStyle = OUTFIT.accent; }
+  }
+  ctx.save(); ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(window.maliBig.draw(OUTFIT, {}, { face, pose: phone ? "phone" : "stand", cold }), x, y, w, h);
+  ctx.restore();
+  if (phone) {                                                       // Handy in den Pfoten
+    const px = x + 20 * CELL, py = y + 35.5 * CELL;
+    ctx.fillStyle = "#231c20"; round(px - 34, py - 52, 68, 104, 12); ctx.fill();
+    ctx.fillStyle = "#dfe7ff"; round(px - 28, py - 46, 56, 92, 8); ctx.fill();
+    ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 6;
+    for (const dx of [-44, 44]) { ctx.beginPath(); ctx.arc(px + dx, py + 18, 22, 0, 7); ctx.fill(); ctx.stroke(); }
+  }
+  if (leaf) {                                                         // Blatt klebt im Gesicht
+    ctx.save(); ctx.translate(x + 15 * CELL, y + 22 * CELL); ctx.rotate(-0.5);
+    ctx.fillStyle = "#e8743b"; ctx.beginPath(); ctx.ellipse(0, 0, 70, 38, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = "rgba(90,50,30,.6)"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(80, 0); ctx.stroke(); ctx.restore();
+  }
+  return { phoneX: x + 20 * CELL, phoneY: y + 35.5 * CELL };
+}
+
+// ---------- Handy-Ansicht (Zoom aus Malis Handy) ----------
+const PX = 150, PY = 210, PW = 780, PH = 640;
+function panel(t, ph, draw, alpha = 1) {
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.fillStyle = "rgba(255,255,255,.55)";                            // Zoom-Spitze zum Handy
+  ctx.beginPath(); ctx.moveTo(W / 2 - 90, PY + PH - 4); ctx.lineTo(W / 2 + 90, PY + PH - 4); ctx.lineTo(ph.phoneX, ph.phoneY - 50); ctx.fill();
+  ctx.save(); ctx.shadowColor = "rgba(60,30,20,.35)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 12;
+  ctx.fillStyle = "#231c20"; round(PX, PY, PW, PH, 46); ctx.fill(); ctx.restore();
+  ctx.save(); round(PX + 12, PY + 12, PW - 24, PH - 24, 36); ctx.clip();
+  ctx.fillStyle = "#fff"; ctx.fillRect(PX, PY, PW, PH);
+  draw(PX + 12, PY + 12, PW - 24, PH - 24);
+  ctx.restore(); ctx.restore();
+}
+function avatar(look, cx, cy, r) {
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fillStyle = LOOKS[look].bg; ctx.fill(); ctx.clip();
+  bunny(look, cx, cy + r * 0.25, r / 7.5); ctx.restore();
+}
+function post(t, look, user, comments, input) {
+  return (x, y, w, h) => {
+    avatar(look, x + 48, y + 42, 26); txt(user, x + 88, y + 42, 28, "#1b1418", 800);
+    ctx.fillStyle = LOOKS[look].bg; ctx.fillRect(x, y + 82, w, 210);
+    bunny(look, x + w / 2, y + 190, 8.5);
+    heart(x + 38, y + 322, 4); txt("48,2k", x + 66, y + 322, 26, "#1b1418", 700);
+    let cy = y + 382;
+    for (const [u, lk, msg, at] of comments) {
+      if (t < at) continue;
+      if (!u) cy -= 52;
+      const pop = easeBack(prog(t, at, at + 0.18));
+      ctx.save(); ctx.translate(x + 28, cy); ctx.scale(pop, pop);
+      if (u) { avatar(lk, 22, 0, 22); txt(u, 60, -18, 26, "#1b1418", 800); }
+      txt(msg, 60, 18, 36, "#1b1418", 500); ctx.restore(); cy += 96;
+    }
+    if (input) {
+      const [msg, from, to, sent] = input;
+      ctx.fillStyle = "#f3eef1"; round(x + 18, y + h - 76, w - 36, 58, 29); ctx.fill();
+      const s = t < sent ? typed(t, msg, from, to) : "";
+      txt(s || tr("Kommentar schreiben…"), x + 48, y + h - 47, 34, s ? "#1b1418" : "#9a8b93", 500);
+      if (s && (t * 3) % 1 < 0.5) { ctx.font = `500 34px ${FONT}`; ctx.fillStyle = "#c93a69"; ctx.fillRect(x + 50 + ctx.measureText(s).width, y + h - 64, 3, 34); }
+    }
+  };
+}
+function bio(t) {
+  return (x, y, w) => {
+    avatar("street", x + w / 2, y + 110, 76);
+    txt("@bunny.fits", x + w / 2, y + 225, 40, "#1b1418", 800, "center");
+    txt("✨ manifesting ✨", x + w / 2, y + 292, 38, "#1b1418", 500, "center");
+    txt("living my best life 🍂", x + w / 2, y + 345, 34, "#6f5a63", 500, "center");
+    ["leather", "y2k", "trench"].forEach((lk, i) => { ctx.fillStyle = LOOKS[lk].bg; ctx.fillRect(x + 8 + i * (w - 16) / 3, y + 400, (w - 32) / 3, 230); bunny(lk, x + 8 + i * (w - 16) / 3 + (w - 32) / 6, y + 520, 6); });
+  };
+}
+function dms(t) {
+  return (x, y, w, h) => {
+    ctx.fillStyle = "#faf6f8"; ctx.fillRect(x, y, w, 84);
+    avatar("leather", x + 48, y + 42, 26); txt("@hasi.style", x + 88, y + 42, 30, "#1b1418", 800);
+    let my = y + 120;
+    for (const [m, at] of [["hey 🥺", 9.5], ["hallo?", 9.8], ["die jacke 🥺", 10.1], ["mir ist kalt", 10.4], ["ich zahl dir 5 €", 10.7]]) {
+      if (t < at) continue;
+      const pop = easeBack(prog(t, at, at + 0.15));
+      ctx.font = `500 34px ${FONT}`; const bw = ctx.measureText(tr(m)).width + 50;
+      ctx.save(); ctx.translate(x + w - 28 - bw / 2, my + 30); ctx.scale(pop, pop);
+      ctx.fillStyle = "#c93a69"; round(-bw / 2, -30, bw, 60, 30); ctx.fill(); txt(m, 0, 2, 34, "#fff", 500, "center"); ctx.restore();
+      my += 72;
+    }
+    if (t > 11.0) txt("Gesehen", x + w - 32, my + 2, 24, "#9a8b93", 600, "right");
+    if (between(t, 11.2, 11.7)) {
+      ctx.fillStyle = "#efe7eb"; round(x + 28, my + 30, 120, 58, 29); ctx.fill();
+      for (let i = 0; i < 3; i++) { ctx.fillStyle = "#9a8b93"; ctx.beginPath(); ctx.arc(x + 60 + i * 28, my + 59 - Math.abs(Math.sin(t * 9 + i)) * 8, 8, 0, 7); ctx.fill(); }
+    }
+    ctx.fillStyle = "#f3eef1"; round(x + 18, y + h - 76, w - 36, 58, 29); ctx.fill();
+    txt("Nachricht…", x + 48, y + h - 47, 30, "#9a8b93", 500);
+  };
+}
+
+// ---------- Ablauf ----------
+function scene(t) {
+  const shake = (punch(t, 8.0, 0.4) + punch(t, 12.9, 0.4)) * 14 * Math.sin(t * 90);
+  ctx.save(); ctx.translate(shake, 0);
+  park(t);
+  leaves(t, 22);
+  windLines(t);
+
+  let face = "open", push = 0, shiver = 1.5 + gust(t) * 4, leaf = false, content = null;
+  if (t < 1.8) face = "shock";
+  else if (t < 4.4) { face = t < 3.4 ? "open" : "tired"; content = post(t, "leather", "@hasi.style", [["du", "hoodie", "wo ist die jacke her?? 🥺", 2.9], ["@hasi.style", "leather", "danke 🥰", 3.4]], ["wo ist die jacke her?? 🥺", 2.0, 2.8, 2.9]); }
+  else if (t < 6.8) { face = t < 5.4 ? "open" : "tired"; leaf = between(t, 5.9, 6.7); content = post(t, "trench", "@hasi.style", [["du", "hoodie", "und der mantel?? 🙏", 5.0], ["@hasi.style", "trench", "vintage 💅", 5.4]], ["und der mantel?? 🙏", 4.5, 4.9, 5.0]); }
+  else if (t < 9.4) { face = t < 8.0 ? "open" : "shock"; push = Math.sin(prog(t, 7.8, 8.8) * Math.PI) * 70; content = t < 8.0 ? post(t, "street", "@bunny.fits", [["du", "hoodie", "JACKE PLS 😭", 7.3], ["@bunny.fits", "street", "link in bio ✨", 7.6]], ["JACKE PLS 😭", 6.9, 7.2, 7.3]) : bio(t); }
+  else if (t < 12.0) { face = t < 11.0 ? "open" : "sad"; content = dms(t); shiver += 2; }
+  else if (t < 13.4) { face = t < 12.6 ? "shock" : (t < 12.9 ? "tired" : "sneeze"); content = post(t, "y2k", "@hasi.style", [["@hasi.style", "y2k", "warum fragt ihr eigentlich immer", 12.1], ["", "y2k", "wo meine sachen her sind 🙄", 12.1]], null); }
+  else face = (t % 2) > 1.85 ? "tired" : "sad";
+
+  const ph = maliAt(t, face, { push, shiver, leaf });
+  leaves(t, 6, true);
+  if (content) panel(t, ph, content, Math.min(1, prog(t, 1.8, 2.0) * 2) * (1 - prog(t, 13.3, 13.5)));
+
+  // Texte
+  if (t < 1.8) bigText(["POV: es ist 4 grad", "und du hast keine jacke"], 470, 100, { scale: lerp(1.5, 1, easeOut(prog(t, 0, 0.18))), fill: ["#fff", "#ffe066"] });
+  if (between(t, 3.6, 4.4)) bigText(["danke…???"], 330, 120, { scale: easeBack(prog(t, 3.6, 3.85)) });
+  if (between(t, 5.6, 6.8)) bigText(["vintage. natürlich."], 330, 100, { scale: easeBack(prog(t, 5.6, 5.85)) });
+  if (between(t, 8.1, 9.4)) bigText(["WELCHER LINK"], 330, 130, { scale: lerp(1.6, 1, easeOut(prog(t, 8.1, 8.25))), fill: "#ffe066" });
+  if (between(t, 11.2, 11.7)) bigText(["*tippt…*"], 330, 100, { scale: easeBack(prog(t, 11.2, 11.4)) });
+  if (between(t, 11.7, 12.0)) bigText(["*tippt nicht mehr*"], 330, 100, { scale: easeBack(prog(t, 11.7, 11.85)) });
+  if (between(t, 12.9, 13.6)) bigText(["hatschi!"], 900, 110, { scale: lerp(1.8, 1, easeOut(prog(t, 12.9, 13.05))), rot: 0.08, fill: "#ffe066" });
+  if (t > 13.6) narrate(["*immer noch keine jacke*"], 470, { scale: easeBack(prog(t, 13.7, 14.0)), size: 80 });
+  ctx.restore();
+  const k = punch(t, 0, 0.2) * 0.9 + punch(t, 8.0, 0.2) * 0.4;     // Blitze
+  if (k > 0) { ctx.fillStyle = `rgba(255,255,255,${k})`; ctx.fillRect(0, 0, W, H); }
+  const out = prog(t, LEN - 0.5, LEN);
+  if (out > 0) { ctx.fillStyle = `rgba(40,20,15,${out})`; ctx.fillRect(0, 0, W, H); }
+}
+
+window.duration = LEN;
+window.draw = (t) => { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H); scene(t); };
+window.draw(0);
+</script>
+</body></html>

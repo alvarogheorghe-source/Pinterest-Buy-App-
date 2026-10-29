@@ -45,3 +45,13 @@ Reaction-Cam. Ohne Namen, ohne Lösung. Sneaky-Beat, Grillenzirpen, "dun dun duu
 python3 gatekeeping_sound.py <ausgabe>
 node render_page.js "$(pwd)" <ausgabe> gatekeeping.html gatekeeping.wav malipin-gatekeeping de   # oder en
 ```
+
+## Herbstpark (herbst.html, 15,5 s)
+
+Illustrierter Herbstpark, die große Mali (frontend/mali-big.js) mit Schal und ohne Jacke, Handy in
+den Pfoten, friert im Wind. Fragt Creator nach der Jacke: "danke", "vintage", "link in bio",
+DMs gesehen, "hatschi". Endet mit "*immer noch keine jacke*". Wind, Laub, Grillen, Spieluhr.
+```
+python3 herbst_sound.py <ausgabe>
+node render_page.js "$(pwd)" <ausgabe> herbst.html herbst.wav malipin-herbst de   # oder en
+```
