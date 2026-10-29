@@ -241,11 +241,19 @@ function snowball(t) {
   ctx.strokeStyle = "rgba(160,180,215,.7)"; ctx.lineWidth = 10; ctx.lineCap = "round";     // Roll-Spuren
   for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(0, 0, R * (0.35 + i * 0.15), i, i + 1.2); ctx.stroke(); }
   ctx.restore();
-  if (t > HIT) {                                     // Mali steckt drin: Ohren oben, Füßchen unten (Cartoon)
-    const wob = Math.sin(t * 14) * 6;
-    pixels(MALI.idle.slice(0, 6), x - 8 * S + wob, y - R - 4.6 * S, S, PAL);
+  if (t > HIT) {                                     // Mali steckt drin: Ohren und Füßchen rollen mit der Kugel
+    if (!snowball.ears) {                            // Ohren einmal als kleines Bild (dreht sich ohne Pixel-Streifen)
+      const c = document.createElement("canvas"); c.width = 16; c.height = 6;
+      const g = c.getContext("2d");
+      MALI.idle.slice(0, 6).forEach((row, r) => [...row].forEach((ch, col) => { if (PAL[ch]) { g.fillStyle = PAL[ch]; g.fillRect(col, r, 1, 1); } }));
+      snowball.ears = c;
+    }
+    ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(snowball.ears, -8 * S, -R - 4.6 * S, 16 * S, 6 * S);
     ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 6;
-    for (const dx of [-70, 70]) { ctx.beginPath(); ctx.ellipse(x + dx, y + R - 34 + Math.sin(t * 16 + dx) * 6, 30, 22, 0, 0, 7); ctx.fill(); ctx.stroke(); }
+    for (const dx of [-70, 70]) { ctx.beginPath(); ctx.ellipse(dx, R - 18 + Math.sin(t * 16 + dx) * 5, 30, 22, 0, 0, 7); ctx.fill(); ctx.stroke(); }
+    ctx.restore();
   }
   if (between(t, HIT - 0.05, HIT + 0.7)) for (let i = 0; i < 16; i++) {               // Schnee spritzt
     const k = prog(t, HIT - 0.05, HIT + 0.7), a = -Math.PI * (0.1 + 0.8 * (i / 15));
