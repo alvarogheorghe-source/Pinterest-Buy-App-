@@ -4,7 +4,7 @@
 <body>
 <canvas id="c" width="1080" height="1920"></canvas>
 <script>
-// "Ich jeden Abend auf Pinterest" – kleine Mali-Geschichte, kaum Werbung, sehr süß.
+// "3 uhr nachts. ich auf pinterest" – kleine Mali-Geschichte, kaum Werbung, sehr süß.
 // Bild für Bild nach Zeit t (Sekunden), 15 s. ?lang=en für Englisch. Musik: story_sound.py
 // Sicherer Bereich für TikTok: Inhalte zwischen y 180 und 1520, rechts nicht über x 940.
 const W = 1080, H = 1920, LEN = 15;
@@ -12,8 +12,8 @@ const ctx = document.getElementById("c").getContext("2d");
 const FONT = '"Inter Display", Inter, sans-serif';
 const LANG = new URLSearchParams(location.search).get("lang") || "de";
 const EN = {
-  "ich jeden abend": "me every night", "auf pinterest": "on pinterest",
-  "wo habt ihr alle diese": "where do you all get", "outfits her??": "these outfits??",
+  "3 uhr nachts.": "3am.", "ich auf pinterest": "me on pinterest",
+  "alle haben so": "everyone has", "schöne outfits…": "such cute outfits…", "wo habt ihr": "where do you", "die her??": "get them??",
   "*sucht 3 stunden*": "*searches for 3 hours*",
   "ausverkauft": "sold out", "nur in den USA": "US only", "189 €": "€189", "249 €": "€249",
   "bis mir eine idee kam": "until i had an idea",
@@ -105,62 +105,143 @@ function floatingHearts(t, start, cx, cy, n = 5, spread = 260) {
   }
 }
 
-// ---------- Szene: gemütliches Zimmer bei Nacht ----------
-function room(t, dim = 0) {
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "#ffe9f1"); g.addColorStop(0.62, "#f7d9ee"); g.addColorStop(1, "#e9d3f3");
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  // Fenster mit Mond und Sternen
-  ctx.save(); ctx.fillStyle = "#3b3260"; round(110, 560, 260, 330, 28); ctx.fill();
-  ctx.fillStyle = "#fff5d6"; ctx.beginPath(); ctx.arc(290, 650, 46, 0, 7); ctx.fill();
-  ctx.fillStyle = "#3b3260"; ctx.beginPath(); ctx.arc(270, 636, 42, 0, 7); ctx.fill();
+// ---------- Szene: Schlafzimmer (Nacht -> Lampe -> Sonnenaufgang) ----------
+const mix = (a, b, k) => {          // zwei Hex-Farben mischen
+  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+  const ch = (sh) => Math.round(lerp((pa >> sh) & 255, (pb >> sh) & 255, k));
+  return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
+};
+function windowFrame(t, x, y, w, h, sunrise) {
+  ctx.save(); ctx.fillStyle = mix("#2a2350", "#ffb88c", sunrise); round(x, y, w, h, 28); ctx.fill();
+  if (sunrise > 0) {                                          // Sonne geht auf
+    ctx.fillStyle = `rgba(255,230,140,${sunrise})`; ctx.beginPath(); ctx.arc(x + w * 0.6, y + h - 40 * sunrise - 20, 52, 0, 7); ctx.fill();
+  }
+  ctx.globalAlpha = 1 - sunrise;
+  ctx.fillStyle = "#fff5d6"; ctx.beginPath(); ctx.arc(x + w * 0.7, y + 90, 46, 0, 7); ctx.fill();
+  ctx.fillStyle = "#2a2350"; ctx.beginPath(); ctx.arc(x + w * 0.62, y + 76, 42, 0, 7); ctx.fill();
   for (let i = 0; i < 6; i++) {
     const tw = 0.5 + 0.5 * Math.sin(t * 3 + i * 1.7);
-    ctx.fillStyle = `rgba(255,245,214,${0.4 + tw * 0.6})`; ctx.fillRect(140 + (i * 53) % 200, 600 + (i * 71) % 250, 8, 8);
+    ctx.fillStyle = `rgba(255,245,214,${0.4 + tw * 0.6})`; ctx.fillRect(x + 30 + (i * 53) % (w - 60), y + 40 + (i * 71) % (h - 80), 8, 8);
   }
-  ctx.strokeStyle = "#fff"; ctx.lineWidth = 14; round(110, 560, 260, 330, 28); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(240, 560); ctx.lineTo(240, 890); ctx.moveTo(110, 725); ctx.lineTo(370, 725); ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 14; round(x, y, w, h, 28); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + w / 2, y); ctx.lineTo(x + w / 2, y + h); ctx.moveTo(x, y + h / 2); ctx.lineTo(x + w, y + h / 2); ctx.stroke();
   ctx.restore();
-  // Lichterkette
+}
+function lights(t, on = 1) {                                  // Lichterkette
   ctx.save(); ctx.strokeStyle = "rgba(107,86,86,.35)"; ctx.lineWidth = 3; ctx.beginPath();
   for (let x = 40; x <= 1040; x += 10) ctx.lineTo(x, 520 + Math.sin(x / 160) * 30);
   ctx.stroke();
   const colors = ["#ff8fab", "#ffe066", "#a8e6cf", "#bcb6ff"];
   for (let i = 0; i < 11; i++) {
-    const x = 70 + i * 92, y = 534 + Math.sin(x / 160) * 30, on = 0.55 + 0.45 * Math.sin(t * 4 + i);
-    ctx.fillStyle = colors[i % 4]; ctx.globalAlpha = on; ctx.beginPath(); ctx.arc(x, y, 12, 0, 7); ctx.fill();
+    const x = 70 + i * 92, y = 534 + Math.sin(x / 160) * 30;
+    ctx.fillStyle = colors[i % 4]; ctx.globalAlpha = on * (0.55 + 0.45 * Math.sin(t * 4 + i));
+    ctx.beginPath(); ctx.arc(x, y, 12, 0, 7); ctx.fill();
   }
   ctx.restore();
-  // Kissen / Sitzsack
-  ctx.save(); ctx.fillStyle = "#ffb8cf"; ctx.beginPath(); ctx.ellipse(W / 2, 1405, 330, 80, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = "#ffcfdd"; ctx.beginPath(); ctx.ellipse(W / 2, 1390, 300, 58, 0, 0, 7); ctx.fill(); ctx.restore();
-  if (dim > 0) { ctx.fillStyle = `rgba(59,50,96,${dim})`; ctx.fillRect(0, 0, W, H); }
 }
-// Handy, das Mali hält (leuchtet)
-function phone(cx, cy, s, glow = 1) {
-  ctx.save(); ctx.globalAlpha = 0.25 * glow; const g = ctx.createRadialGradient(cx, cy - 60, 10, cx, cy - 60, 260);
-  g.addColorStop(0, "#fff"); g.addColorStop(1, "rgba(255,255,255,0)"); ctx.fillStyle = g; ctx.fillRect(cx - 300, cy - 360, 600, 600); ctx.restore();
-  ctx.fillStyle = "#3a2a30"; round(cx - 4.5 * s, cy - 7 * s, 9 * s, 14 * s, s * 1.2); ctx.fill();
-  ctx.fillStyle = "#fde9ef"; round(cx - 3.5 * s, cy - 6 * s, 7 * s, 12 * s, s * 0.8); ctx.fill();
+// Zimmer von vorn: Wand, Fenster, Lichterkette, Kopfteil des Betts, Nachttisch mit Lampe
+function room(t, sunrise, lampOn) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#ffe9f1"); g.addColorStop(0.62, "#f7d9ee"); g.addColorStop(1, "#e9d3f3");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  windowFrame(t, 110, 560, 260, 330, sunrise);
+  lights(t);
+  ctx.fillStyle = "#e7b7cc"; round(220, 960, 640, 360, 70); ctx.fill();         // Kopfteil
+  ctx.fillStyle = "#f2cadb"; round(250, 990, 580, 300, 54); ctx.fill();
+  ctx.fillStyle = "#d9b8a8"; round(60, 1270, 150, 190, 16); ctx.fill();          // Nachttisch
+  ctx.fillStyle = "#c9a593"; ctx.fillRect(80, 1350, 110, 8);
+  ctx.fillStyle = "#8c7f78"; ctx.fillRect(130, 1170, 10, 100);                    // Lampe
+  ctx.fillStyle = lampOn ? "#ffe8a3" : "#cfc2d8";
+  ctx.beginPath(); ctx.moveTo(85, 1180); ctx.lineTo(185, 1180); ctx.lineTo(160, 1110); ctx.lineTo(110, 1110); ctx.closePath(); ctx.fill();
 }
-// Denkblase mit scrollenden Pins
-function thoughtBubble(t, cx, cy, alpha) {
-  if (alpha <= 0) return;
-  ctx.save(); ctx.globalAlpha = alpha;
-  ctx.fillStyle = "#fff";
-  ctx.beginPath(); ctx.arc(cx - 150, cy + 230, 18, 0, 7); ctx.arc(cx - 115, cy + 190, 26, 0, 7); ctx.fill();
-  round(cx - 250, cy - 170, 500, 340, 70); ctx.fill();
-  ctx.save(); round(cx - 230, cy - 150, 460, 300, 54); ctx.clip();
-  const OUTFITS = [["#ffb3c7", "#7fa0c8"], ["#2b2228", "#c9b8a8"], ["#d9c2f0", "#fff3d6"], ["#a8d5ba", "#3b4a5c"], ["#ffe066", "#ff8fab"]];
-  for (let i = 0; i < 10; i++) {
-    const col = i % 3, x = cx - 210 + col * 145, y = cy - 140 + Math.floor(i / 3) * 170 - ((t * 140) % 170) + (col === 1 ? 60 : 0);
-    const [top, bottom] = OUTFITS[i % OUTFITS.length];
-    ctx.fillStyle = "#f6eef2"; round(x, y, 130, 155, 16); ctx.fill();
-    ctx.fillStyle = top; round(x + 35, y + 22, 60, 55, 10); ctx.fill();
-    ctx.fillStyle = bottom; ctx.fillRect(x + 40, y + 77, 22, 60); ctx.fillRect(x + 68, y + 77, 22, 60);
+// Matratze + Decke vorne (über Malis Bauch)
+function bedFront(top) {
+  ctx.fillStyle = "#fbeef4"; round(170, top - 20, 740, 260, 40); ctx.fill();
+  ctx.fillStyle = "#ffb3c7"; round(190, top, 700, 240, 46); ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.45)";                                        // Pünktchen-Muster
+  for (let i = 0; i < 18; i++) { ctx.beginPath(); ctx.arc(240 + (i % 6) * 120 + (Math.floor(i / 6) % 2) * 60, top + 50 + Math.floor(i / 6) * 70, 9, 0, 7); ctx.fill(); }
+  ctx.fillStyle = "#ff9fba"; round(190, top, 700, 34, 17); ctx.fill();             // Umschlag
+}
+// Dunkelheit über der Szene, mit Lichtkreis um (lx, ly)
+function darkness(amount, lx, ly, radius, warm = false) {
+  if (amount <= 0) return;
+  const g = ctx.createRadialGradient(lx, ly, radius * 0.15, lx, ly, radius);
+  g.addColorStop(0, warm ? `rgba(255,214,150,${amount * 0.1})` : `rgba(18,14,40,${amount * 0.15})`);
+  g.addColorStop(1, `rgba(18,14,40,${amount})`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+
+// ---------- Szene 1: nachts im Bett, von der Seite, Doomscrolling ----------
+const PINS = [["#ffb3c7", "#7fa0c8"], ["#2b2228", "#c9b8a8"], ["#d9c2f0", "#fff3d6"], ["#a8d5ba", "#3b4a5c"],
+              ["#ffe066", "#ff8fab"], ["#c9b8a8", "#2b2228"], ["#ff8fab", "#f4f1ec"]];
+function bigPhone(t, x, y, w, h) {
+  ctx.save();
+  ctx.shadowColor = "rgba(190,200,255,.55)"; ctx.shadowBlur = 80;
+  ctx.fillStyle = "#16121f"; round(x, y, w, h, 56); ctx.fill(); ctx.restore();
+  ctx.save(); round(x + 14, y + 14, w - 28, h - 28, 44); ctx.clip();
+  ctx.fillStyle = "#fff7fa"; ctx.fillRect(x, y, w, h);
+  // Pins rasen nach oben (Doomscrolling: wird immer schneller)
+  const scroll = t * 600 + t * t * 140, cw = (w - 28 - 36) / 2;
+  for (let i = 0; i < 40; i++) {
+    const col = i % 2, ch = 190 + ((i * 37) % 90);
+    const py = y + 80 + Math.floor(i / 2) * 250 + (col ? 90 : 0) - (scroll % (250 * 6)) ;
+    if (py > y + h || py + ch < y) continue;
+    const px = x + 26 + col * (cw + 10), [top, bottom] = PINS[i % PINS.length];
+    ctx.fillStyle = "#f3e7ee"; round(px, py, cw, ch, 18); ctx.fill();
+    ctx.fillStyle = top; round(px + cw * 0.3, py + 24, cw * 0.4, ch * 0.32, 10); ctx.fill();
+    ctx.fillStyle = bottom; ctx.fillRect(px + cw * 0.33, py + 24 + ch * 0.32, cw * 0.15, ch * 0.38); ctx.fillRect(px + cw * 0.52, py + 24 + ch * 0.32, cw * 0.15, ch * 0.38);
   }
-  ctx.restore(); ctx.restore();
+  // Bewegungsunschärfe
+  const blur = ctx.createLinearGradient(0, y, 0, y + h);
+  blur.addColorStop(0, "rgba(255,247,250,.9)"); blur.addColorStop(0.12, "rgba(255,247,250,0)");
+  blur.addColorStop(0.88, "rgba(255,247,250,0)"); blur.addColorStop(1, "rgba(255,247,250,.9)");
+  ctx.fillStyle = blur; ctx.fillRect(x, y, w, h);
+  // Statusleiste mit Uhrzeit: 02:47 -> 03:12
+  const minutes = 167 + Math.floor(prog(t, 0.3, 3.0) * 25);
+  const time = `0${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`;
+  ctx.fillStyle = "#3a2a30"; ctx.font = `800 30px ${FONT}`; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillText(time, x + 50, y + 46);
+  ctx.fillStyle = "#e60023"; ctx.beginPath(); ctx.arc(x + w / 2, y + 46, 16, 0, 7); ctx.fill();   // Pinterest-Punkt
+  ctx.restore();
 }
+function sceneBedSide(t) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#120f24"); g.addColorStop(1, "#231b3d");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // Bett von der Seite: Kopfteil links, Matratze, Kissen
+  ctx.fillStyle = "#3a2f5c"; round(70, 1150, 60, 330, 20); ctx.fill();
+  ctx.fillStyle = "#4a3f6b"; round(90, 1300, 900, 150, 30); ctx.fill();
+  ctx.fillStyle = "#cfc4e6"; ctx.beginPath(); ctx.ellipse(250, 1290, 140, 48, 0, 0, 7); ctx.fill();
+  // Mali liegt (um 90° gedreht, Ohren aufs Kissen), Gesicht vom Handy beleuchtet
+  const breathe = Math.sin(t * 2) * 0.012;
+  const S = 18, cx = 330, cy = 1225;
+  // erst ungedreht in ein kleines Bild malen, dann als Ganzes drehen (sonst Streifen zwischen Pixeln)
+  const face = (t % 2.4) > 2.2 ? "blink" : "tired";
+  const sprite16 = document.createElement("canvas"); sprite16.width = sprite16.height = 16;
+  const sctx = sprite16.getContext("2d");
+  MALI[face].forEach((row, r) => [...row].forEach((ch, c) => { if (PAL[ch]) { sctx.fillStyle = PAL[ch]; sctx.fillRect(c, r, 1, 1); } }));
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(-Math.PI / 2); ctx.scale(1 + breathe, 1);
+  ctx.imageSmoothingEnabled = false; ctx.drawImage(sprite16, -8 * S, -8 * S, 16 * S, 16 * S);
+  ctx.restore();
+  // Decke über dem Körper
+  ctx.fillStyle = "#c86f93"; round(400, 1150 + Math.sin(t * 2) * 4, 590, 190, 70); ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.25)";
+  for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.arc(450 + i * 70, 1210 + (i % 2) * 50, 8, 0, 7); ctx.fill(); }
+  // Pfote mit Handy über dem Gesicht
+  ctx.fillStyle = "#16121f"; round(440, 980, 70, 120, 14); ctx.fill();
+  ctx.fillStyle = "#e9ecff"; round(447, 988, 56, 104, 9); ctx.fill();
+  ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 7; round(455, 1080, 50, 40, 18); ctx.fill(); ctx.stroke();
+  // Lichtkegel vom Handy aufs Gesicht
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  const glow = ctx.createRadialGradient(470, 1060, 10, 400, 1180, 260);
+  glow.addColorStop(0, "rgba(140,160,255,.22)"); glow.addColorStop(1, "rgba(140,160,255,0)");
+  ctx.fillStyle = glow; ctx.fillRect(100, 850, 700, 560); ctx.restore();
+  // großer Handy-Bildschirm (was Mali sieht)
+  bigPhone(t, 290, 520, 500, 420);
+  caption(["3 uhr nachts.", "ich auf pinterest"], W / 2, 340, 80, { scale: easeBack(prog(t, 0, 0.25)) });
+}
+
 function clock(cx, cy, r, t, speed) {
   ctx.save(); ctx.fillStyle = "#fff"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 10;
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fill(); ctx.stroke();
@@ -210,81 +291,83 @@ function outfitCard(cx, cy, top, bottom, price, scale, rot) {
 // ---------- Ablauf ----------
 // 0–3.2 scrollen · 3.2–6.0 fragen · 6.0–9.2 suchen · 9.2–12.6 Idee · 12.6–15 Ende
 function scene(t) {
-  const sad = between(t, 7.6, 9.2);
-  room(t, sad ? 0.12 * prog(t, 7.6, 8.0) : 0);
-  const MX = W / 2, MY = 1130, S = 24;
+  if (t < 3.2) return sceneBedSide(t);
+  const sunrise = easeOut(prog(t, 9.2, 10.4));
+  const lampOn = t >= 3.2;
+  room(t, sunrise, lampOn);
+  const MX = W / 2, MY = 1100, S = 24;
   let face = "idle", tilt = 0, squash = 0, hop = 0;
+  const fx = [];                                     // Dinge, die über der Dunkelheit liegen
 
-  if (t < 3.2) {                                                    // 1: scrollen
-    face = (t % 1.8) > 1.68 ? "blink" : "shiny";
-    hop = Math.abs(Math.sin(t * 2.4)) * 6;
-    thoughtBubble(t, W / 2 + 140, 760, easeBack(prog(t, 0.2, 0.6)));
-    caption(["ich jeden abend", "auf pinterest"], W / 2, 370, 84, { scale: easeBack(prog(t, 0, 0.25)) });
-    if (t > 1.6) floatingHearts(t, 1.6, MX, 980, 4, 200);
-  } else if (t < 6.0) {                                             // 2: fragen
-    face = "idle";
-    tilt = Math.sin((t - 3.2) * 5) * 0.12;
-    caption(["wo habt ihr alle diese", "outfits her??"], W / 2, 370, 78, { scale: easeBack(prog(t, 3.2, 3.45)) });
-    [[-250, 900, 3.4], [230, 860, 3.8], [-40, 760, 4.3], [300, 1040, 4.8], [-310, 1080, 5.2]].forEach(([dx, y, at]) => {
-      const p = easeBack(prog(t, at, at + 0.25));
-      if (p > 0) sprite(QUESTION, MX + dx, y + Math.sin((t - at) * 6) * 8, 15 * p);
+  if (t < 6.0) {                                                    // 2: Lampe an, fragen
+    face = t < 3.5 ? "blink" : "idle";
+    tilt = Math.sin((t - 3.2) * 5) * 0.12 * prog(t, 3.5, 3.8);
+    fx.push(() => {
+      if (t < 4.7) caption(["alle haben so", "schöne outfits…"], W / 2, 370, 84, { scale: easeBack(prog(t, 3.4, 3.65)) });
+      else caption(["wo habt ihr", "die her??"], W / 2, 370, 90, { scale: easeBack(prog(t, 4.7, 4.95)) });
+      [[-250, 860, 3.8], [230, 820, 4.1], [-40, 720, 4.5], [300, 980, 4.9], [-310, 1010, 5.3]].forEach(([dx, y, at]) => {
+        const p = easeBack(prog(t, at, at + 0.25));
+        if (p > 0) sprite(QUESTION, MX + dx, y + Math.sin((t - at) * 6) * 8, 15 * p);
+      });
     });
   } else if (t < 9.2) {                                             // 3: suchen
     face = t < 7.6 ? ((t % 0.9) > 0.8 ? "blink" : "tired") : "sad";
     squash = t > 7.6 ? 0.06 * easeOut(prog(t, 7.6, 7.9)) : 0;
-    caption(["*sucht 3 stunden*"], W / 2, 340, 80, { scale: easeBack(prog(t, 6.0, 6.25)), rot: -0.02 });
-    clock(860, 610, 66, t, 14);
-    [["189 €", 270, 760, 6.4, "#c93a69", false, -0.12], ["ausverkauft", 690, 770, 6.8, "#8c7f78", true, 0.08],
-     ["249 €", 250, 900, 7.2, "#c93a69", false, 0.07], ["nur in den USA", 680, 905, 7.6, "#8c7f78", false, -0.06]]
-      .forEach(([s, x, y, at, color, strike, rot]) => {
-        const p = easeBack(prog(t, at, at + 0.22));
-        const shake = between(t, at, at + 0.3) ? Math.sin(t * 80) * 6 : 0;
-        tag(s, x + shake, y, { color, strike, scale: p, rot });
-      });
-    if (t > 6.6 && t < 7.6) sprite(DROP, MX + 170, 1010 + ((t - 6.6) % 0.5) * 60, 9, 1 - ((t - 6.6) % 0.5) * 2);
-  } else if (t < 12.6) {                                            // 4: die Idee
+    fx.push(() => {
+      caption(["*sucht 3 stunden*"], W / 2, 340, 80, { scale: easeBack(prog(t, 6.0, 6.25)), rot: -0.02 });
+      clock(860, 640, 66, t, 14);
+      [["189 €", 270, 760, 6.4, "#c93a69", false, -0.12], ["ausverkauft", 690, 770, 6.8, "#8c7f78", true, 0.08],
+       ["249 €", 250, 900, 7.2, "#c93a69", false, 0.07], ["nur in den USA", 680, 905, 7.6, "#8c7f78", false, -0.06]]
+        .forEach(([s, x, y, at, color, strike, rot]) => {
+          const p = easeBack(prog(t, at, at + 0.22));
+          const shake = between(t, at, at + 0.3) ? Math.sin(t * 80) * 6 : 0;
+          tag(s, x + shake, y, { color, strike, scale: p, rot });
+        });
+      if (t > 6.6 && t < 7.6) sprite(DROP, MX + 170, 980 + ((t - 6.6) % 0.5) * 60, 9, 1 - ((t - 6.6) % 0.5) * 2);
+    });
+  } else if (t < 12.6) {                                            // 4: die Idee, Sonnenaufgang
     const idea = 9.2;
     face = t < 9.6 ? "shiny" : "happy";
     hop = t > 9.6 ? Math.abs(Math.sin((t - 9.6) * 7.85)) * 40 : 0;
-    // Glühbirne mit Strahlen
     const b = easeBack(prog(t, idea, idea + 0.25));
-    if (t < 10.6) {
-      ctx.save(); ctx.globalAlpha = 0.5 * (1 - prog(t, idea, idea + 0.6));
-      ctx.fillStyle = "#fff6c2"; ctx.beginPath(); ctx.arc(MX, 790, 300 * easeOut(prog(t, idea, idea + 0.6)), 0, 7); ctx.fill(); ctx.restore();
-      sprite(BULB, MX, 800 - hop, 24 * b);
-      caption(["bis mir eine idee kam"], W / 2, 340, 80, { scale: easeBack(prog(t, idea, idea + 0.25)) });
-    } else {
-      laptop(MX, 1440, 20, t - 10.6);
-      if (t < 11.6) caption(["also hab ich einfach", "selbst was gebaut"], W / 2, 370, 76, { scale: easeBack(prog(t, 10.6, 10.85)) });
-      for (let i = 0; i < 4; i++) {                    // Funkeln
-        const k = ((t - 10.6) * 1.4 + i / 4) % 1;
-        sprite(SPARK, MX + [-300, 300, -220, 240][i], [820, 860, 1000, 1040][i] - k * 40, 10, Math.sin(k * Math.PI));
+    fx.push(() => {
+      if (t < 10.6) {
+        ctx.save(); ctx.globalAlpha = 0.5 * (1 - prog(t, idea, idea + 0.6));
+        ctx.fillStyle = "#fff6c2"; ctx.beginPath(); ctx.arc(MX, 770, 300 * easeOut(prog(t, idea, idea + 0.6)), 0, 7); ctx.fill(); ctx.restore();
+        sprite(BULB, MX, 780 - hop, 24 * b);
+        caption(["bis mir eine idee kam"], W / 2, 340, 80, { scale: easeBack(prog(t, idea, idea + 0.25)) });
+      } else {
+        if (t < 11.6) caption(["also hab ich einfach", "selbst was gebaut"], W / 2, 370, 76, { scale: easeBack(prog(t, 10.6, 10.85)) });
+        for (let i = 0; i < 4; i++) {
+          const k = ((t - 10.6) * 1.4 + i / 4) % 1;
+          sprite(SPARK, MX + [-300, 300, -220, 240][i], [800, 840, 980, 1020][i] - k * 40, 10, Math.sin(k * Math.PI));
+        }
       }
-    }
-    if (t > 11.6) {
-      caption(["endlich outfits", "für mein budget"], W / 2, 370, 80, { bg: "#c93a69", fg: "#fff", scale: easeBack(prog(t, 11.6, 11.85)) });
-    }
+      if (t > 11.6) caption(["endlich outfits", "für mein budget"], W / 2, 370, 80, { bg: "#c93a69", fg: "#fff", scale: easeBack(prog(t, 11.6, 11.85)) });
+    });
   } else {                                                          // 5: Ende
     face = Math.floor((t - 12.6) / 0.35) % 2 ? "wave" : "happy";
     hop = Math.abs(Math.sin((t - 12.6) * 6)) * 24;
-    floatingHearts(t, 12.6, MX, 1000, 6, 300);
+    fx.push(() => floatingHearts(t, 12.6, MX, 980, 6, 300));
   }
 
-  // Outfit-Karten (ab der Idee bis zum Ende)
-  if (t > 11.6) {
+  mali(MX, MY - hop, S, face, { tilt, squash });
+  bedFront(1250);
+  if (t > 10.6) laptop(MX, 1450, 16, t - 10.6);
+
+  // Licht: bis zur Idee nur die Nachttischlampe, dann geht die Sonne auf
+  const dark = (t < 9.2 ? 0.62 : 0.62 * (1 - sunrise)) + (between(t, 7.6, 9.2) ? 0.1 * prog(t, 7.6, 8.0) : 0);
+  if (t < 3.5) darkness(0.85 - 0.23 * prog(t, 3.2, 3.5), 140, 1140, 900, true);   // Lampe klickt an
+  else darkness(dark, 300, 1100, 950, true);
+
+  if (t > 11.6) {                                                   // Outfit-Karten
     [["#ffb3c7", "#7fa0c8", "29 €", 250, 860, -0.1, 11.6], ["#d9c2f0", "#fff3d6", "18 €", 790, 700, 0.08, 11.85],
-     ["#a8d5ba", "#3b4a5c", "35 €", 800, 1060, -0.05, 12.1]].forEach(([top, bottom, price, x, y, rot, at]) => {
+     ["#a8d5ba", "#3b4a5c", "35 €", 800, 1000, -0.05, 12.1]].forEach(([top, bottom, price, x, y, rot, at]) => {
       const float = Math.sin((t - at) * 3) * 10;
       outfitCard(x, y + float, top, bottom, price, easeBack(prog(t, at, at + 0.3)) * (t > 12.6 ? 0.82 : 1), rot);
     });
   }
-
-  if (t < 3.2) phone(MX + 10, 1290 - hop, 15);
-  mali(MX, MY - hop, S, face, { tilt, squash });
-  if (t < 3.2) {                                                    // Pfoten über dem Handy
-    ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 8;
-    for (const dx of [-80, 90]) { round(MX + dx - 30, 1305 - hop, 60, 50, 22); ctx.fill(); ctx.stroke(); }
-  }
+  fx.forEach((f) => f());
 
   if (t >= 12.6) {                                                  // Abspann: ganz leise Marke
     const a = prog(t, 12.9, 13.3);

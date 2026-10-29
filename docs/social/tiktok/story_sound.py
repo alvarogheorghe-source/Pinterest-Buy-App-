@@ -1,6 +1,7 @@
 """Musik für story.html ("ich jeden abend auf pinterest"), 15 s, selbst erzeugt.
 
-0–6 s    Spieluhr, verträumt (F – Dm – B – C)
+0–3.2 s  3 Uhr nachts: leise, verschlafene Spieluhr + Wisch-Geräusche (Doomscrolling)
+3.2 s    Lampe "klick", dann Spieluhr etwas wacher, Fragezeichen "boing"
 6–9.2 s  Suche: Musik bricht ab, Uhr tickt, Preisschilder "bonk", traurig "womp womp"
 9.2 s    Idee: "ding!"
 9.2–15 s fröhlich hüpfend, Spieluhr + leichter Beat, Tippen, Pops, Abschluss-Jingle
@@ -80,12 +81,21 @@ def render(path):
     melody_a = [("A", 5), ("C", 6), ("F", 6), ("E", 6), ("D", 6), ("C", 6), ("A#", 5), ("A", 5), ("G", 5), ("C", 6)]
     for k in range(10):                                   # Melodie in Achteln/Vierteln
         n_, o = melody_a[k]
-        put(musicbox(hz(n_, o)), 0.15 + k * BEAT * 0.95)
+        at = 0.15 + k * BEAT * 0.95
+        put(musicbox(hz(n_, o), vol=0.09 if at < 3.2 else 0.16), at)   # nachts leiser
+    for k in range(9):                                    # Wischen über den Bildschirm, immer schneller
+        put(lowpass(noise(0.16), 0.2) * np.sin(np.linspace(0, np.pi, int(0.16 * SR))) ** 2, 0.2 + k * 0.36 - k * k * 0.006, 0.5)
+    click = noise(0.015) * env(int(0.015 * SR), attack=0.0005, decay=250)
+    put(click, 3.2, 0.9)                                  # Lampe an
+    put(click, 3.235, 0.5)
     for bar in range(3):                                  # Begleitung: gebrochene Akkorde
         root, tones = chords[bar % 4]
         for k in range(8):
             put(musicbox(hz(tones[k % 3], 4), vol=0.08), bar * 2.0 + k * 0.25)
         put(sine(hz(root, 3), 2.0, decay=1.2, attack=0.05, vol=0.12), bar * 2.0)
+
+    for k, at in enumerate((3.8, 4.1, 4.5, 4.9, 5.3)):    # Fragezeichen
+        put(boing(280 + k * 40), at, 0.8)
 
     # --- Teil B: Suche (6–9.2 s) ---
     for k in range(16):                                   # Uhr tickt schnell
