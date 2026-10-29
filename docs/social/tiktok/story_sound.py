@@ -1,0 +1,141 @@
+"""Musik für story.html ("ich jeden abend auf pinterest"), 15 s, selbst erzeugt.
+
+0–6 s    Spieluhr, verträumt (F – Dm – B – C)
+6–9.2 s  Suche: Musik bricht ab, Uhr tickt, Preisschilder "bonk", traurig "womp womp"
+9.2 s    Idee: "ding!"
+9.2–15 s fröhlich hüpfend, Spieluhr + leichter Beat, Tippen, Pops, Abschluss-Jingle
+Aufruf: python3 story_sound.py <ordner>  -> story-sound.wav
+"""
+
+import sys
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from sound import SR, env, hat, hz, kick, lowpass, noise, placer, pop, sine, square  # noqa: E402
+
+LEN = 15.0
+BEAT = 0.6                    # 100 BPM, gemütlich
+
+
+def musicbox(freq, dur=1.2, vol=0.16):
+    """Spieluhr: Sinus mit hellen Obertönen, schnell abklingend."""
+    return sine(freq, dur, decay=4.5, attack=0.002, vol=vol, harmonics=(1.0, 0.0, 0.35, 0.0, 0.12))
+
+
+def boing(at_freq=300):
+    n = int(0.35 * SR)
+    t = np.arange(n) / SR
+    f = at_freq * (1 + 1.2 * np.sin(t * 18) * np.exp(-t * 6))
+    return np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 7) * 0.5
+
+
+def tick():
+    x = noise(0.012) * env(int(0.012 * SR), attack=0.0005, decay=300)
+    return (x - lowpass(x, 0.3)) * 0.6
+
+
+def bonk():
+    n = int(0.18 * SR)
+    t = np.arange(n) / SR
+    f = 260 * np.exp(-t * 10) + 120
+    return np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 18) * 0.7
+
+
+def womp(start_hz, dur, wobble=False):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    f = start_hz * (1 - 0.03 * t / dur)
+    if wobble:
+        f = f * (1 + 0.025 * np.sin(2 * np.pi * 6 * t))
+    w = np.where((np.cumsum(f) / SR) % 1 < 0.5, 1.0, -1.0)
+    return lowpass(w * env(n, attack=0.02) * np.minimum(1, (dur - t) * 10), 0.12) * 0.55
+
+
+def ding(f=1568.0):
+    return sine(f, 1.0, decay=4, vol=0.4, harmonics=(1.0, 0.5, 0.25))
+
+
+def sparkle():
+    out = np.zeros(int(0.5 * SR))
+    put = placer(out)
+    for k, f in enumerate((2093.0, 2637.0, 3136.0, 4186.0)):
+        put(sine(f, 0.3, decay=12, vol=0.12), k * 0.05)
+    return out
+
+
+def typing():
+    x = noise(0.02) * env(int(0.02 * SR), attack=0.0005, decay=200)
+    return (x - lowpass(x, 0.25)) * 0.35
+
+
+def render(path):
+    out = np.zeros(int((LEN + 1) * SR))
+    put = placer(out)
+    rng = np.random.default_rng(3)
+
+    # --- Teil A: Spieluhr (0–6 s) ---
+    chords = [("F", ["F", "A", "C"]), ("D", ["D", "F", "A"]), ("A#", ["A#", "D", "F"]), ("C", ["C", "E", "G"])]
+    melody_a = [("A", 5), ("C", 6), ("F", 6), ("E", 6), ("D", 6), ("C", 6), ("A#", 5), ("A", 5), ("G", 5), ("C", 6)]
+    for k in range(10):                                   # Melodie in Achteln/Vierteln
+        n_, o = melody_a[k]
+        put(musicbox(hz(n_, o)), 0.15 + k * BEAT * 0.95)
+    for bar in range(3):                                  # Begleitung: gebrochene Akkorde
+        root, tones = chords[bar % 4]
+        for k in range(8):
+            put(musicbox(hz(tones[k % 3], 4), vol=0.08), bar * 2.0 + k * 0.25)
+        put(sine(hz(root, 3), 2.0, decay=1.2, attack=0.05, vol=0.12), bar * 2.0)
+
+    # --- Teil B: Suche (6–9.2 s) ---
+    for k in range(16):                                   # Uhr tickt schnell
+        put(tick(), 6.0 + k * 0.1)
+    put(sine(hz("D", 3), 3.2, decay=0.6, attack=0.2, vol=0.14, harmonics=(1.0, 0.3)), 6.0)
+    for at in (6.4, 6.8, 7.2, 7.6):
+        put(bonk(), at)
+    for k, (n_, o, d) in enumerate([("A", 3, 0.32), ("G#", 3, 0.32), ("G", 3, 0.32), ("F#", 3, 0.8)]):
+        put(womp(hz(n_, o), d, wobble=k == 3), 8.0 + k * 0.32)
+
+    # --- Idee + Teil C: fröhlich (9.2–15 s) ---
+    put(ding(1568.0), 9.2)
+    put(sparkle(), 9.25)
+    happy = [("C", 6), ("E", 6), ("G", 6), ("E", 6), ("F", 6), ("A", 6), ("G", 6), ("E", 6),
+             ("D", 6), ("F", 6), ("E", 6), ("C", 6), ("D", 6), ("E", 6), ("C", 6), ("G", 5)]
+    for k, (n_, o) in enumerate(happy):
+        put(musicbox(hz(n_, o), vol=0.15), 9.6 + k * BEAT / 2)
+    c_chords = [("C", ["C", "E", "G"]), ("A", ["A", "C", "E"]), ("F", ["F", "A", "C"]), ("G", ["G", "B", "D"])]
+    for b in range(int((LEN - 9.6) / BEAT)):
+        at = 9.6 + b * BEAT
+        root, tones = c_chords[(b // 2) % 4]
+        put(kick(0.22, low=60, high=150, k=30), at, 0.5)
+        put(hat(0.03), at + BEAT / 2, 0.18)
+        if b % 2 == 1:
+            put(lowpass(noise(0.08), 0.3) * np.exp(-np.arange(int(0.08 * SR)) / SR * 40), at, 0.4)  # weicher Klatscher
+        put(square(hz(root, 3), BEAT * 0.45, duty=0.5, decay=6, vol=0.08), at)
+        for k in range(2):
+            put(musicbox(hz(tones[(b + k) % 3], 5), dur=0.5, vol=0.06), at + k * BEAT / 2)
+    for k in range(14):                                   # Tippen am Laptop
+        put(typing(), 10.65 + k * 0.065 + rng.uniform(0, 0.02))
+    for at in (11.6, 11.85, 12.1):
+        put(pop(), at, 0.8)
+    for k, f in enumerate((1046.5, 1318.5, 1568.0, 2093.0)):   # Abschluss-Jingle
+        put(musicbox(f, dur=1.4, vol=0.2), 12.6 + k * 0.12)
+    put(sparkle(), 13.1)
+
+    out = out[: int(LEN * SR)]
+    fade = int(0.6 * SR)
+    out[-fade:] *= np.linspace(1, 0, fade)
+    out = np.tanh(lowpass(out, 0.45) * 1.4)
+    out = out / np.max(np.abs(out)) * 0.9
+    pcm = (out * 32767).astype(np.int16)
+    import wave
+    with wave.open(path, "wb") as f:
+        f.setnchannels(2)
+        f.setsampwidth(2)
+        f.setframerate(SR)
+        f.writeframes(np.repeat(pcm[:, None], 2, axis=1).tobytes())
+
+
+if __name__ == "__main__":
+    render(f"{sys.argv[1]}/story-sound.wav")
+    print("ok")

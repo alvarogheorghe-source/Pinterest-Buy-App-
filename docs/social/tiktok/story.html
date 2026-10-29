@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>html, body { margin: 0; background: #000; } canvas { display: block; }</style></head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// "Ich jeden Abend auf Pinterest" – kleine Mali-Geschichte, kaum Werbung, sehr süß.
+// Bild für Bild nach Zeit t (Sekunden), 15 s. ?lang=en für Englisch. Musik: story_sound.py
+// Sicherer Bereich für TikTok: Inhalte zwischen y 180 und 1520, rechts nicht über x 940.
+const W = 1080, H = 1920, LEN = 15;
+const ctx = document.getElementById("c").getContext("2d");
+const FONT = '"Inter Display", Inter, sans-serif';
+const LANG = new URLSearchParams(location.search).get("lang") || "de";
+const EN = {
+  "ich jeden abend": "me every night", "auf pinterest": "on pinterest",
+  "wo habt ihr alle diese": "where do you all get", "outfits her??": "these outfits??",
+  "*sucht 3 stunden*": "*searches for 3 hours*",
+  "ausverkauft": "sold out", "nur in den USA": "US only", "189 €": "€189", "249 €": "€249",
+  "bis mir eine idee kam": "until i had an idea",
+  "also hab ich einfach": "so i just built", "selbst was gebaut": "something myself",
+  "endlich outfits": "finally outfits", "für mein budget": "for my budget",
+  "29 €": "€29", "18 €": "€18", "35 €": "€35",
+  "kommt bald": "coming soon",
+};
+const tr = (s) => (LANG === "en" && EN[s] !== undefined ? EN[s] : s);
+
+// ---------- Mali ----------
+const PAL = { o: "#6b5656", w: "#fffaf6", s: "#f1e1da", p: "#f6a5b9", b: "#ffc7d1", k: "#2d2326",
+              r: "#ff6b8b", t: "#8fc8ff", y: "#ffe066" };
+const IDLE = [
+  "....oo....oo....", "...owwo..owwo...", "...owpo..opwo...", "...owpo..opwo...",
+  "...owpo..opwo...", "...owwoooowwo...", "..owwwwwwwwwwo..", ".owwwwwwwwwwwwo.",
+  ".owwkkwwwwkkwwo.", ".owbkkwwwwkkbwo.", ".owwwwwppwwwwwo.", "..owwwwwwwwwwo..",
+  "..owwwwwwwwwwo..", ".oswwwwwwwwwwso.", ".oswpwwwwwwpwso.", "..oooooooooooo.."];
+const mk = (rows) => IDLE.map((r, i) => rows[i] || r);
+const MALI = {
+  idle: IDLE,
+  blink: mk({ 8: ".owwwwwwwwwwwwo.", 9: ".owboowwwwoobwo." }),
+  happy: mk({ 8: ".owwwowwwwowwwo.", 9: ".owbowowwowobwo." }),
+  shiny: mk({ 8: ".owwkwwwwwkwwwo.", 9: ".owbkkwwwwkkbwo." }),        // glänzende Augen
+  sad: mk({ 8: ".owwwwwwwwwwwwo.", 9: ".owbkkwwwwkkbwo.", 10: ".owwtwwppwwwwwo.", 11: "..owtwwwwwwwwo.." }),
+  tired: mk({ 8: ".owwwwwwwwwwwwo.", 9: ".owbkkwwwwkkbwo." }),
+  wave: mk({ 8: ".owwwowwwwowwwo.", 9: ".owbowowwowobwo.", 13: ".oswwwwwwwwwwsoo", 12: "..owwwwwwwwwwoop" }),
+};
+const HEART = [".rr.rr.", "rrrrrrr", "rrrrrrr", ".rrrrr.", "..rrr..", "...r..."];
+const QUESTION = [".kkk.", "k...k", "....k", "...k.", "..k..", ".....", "..k.."];
+const BULB = ["..yyy..", ".yyyyy.", "yyyyyyy", "yyyyyyy", ".yyyyy.", "..yyy..", "..ooo..", "..ooo.."];
+const SPARK = ["..y..", "..y..", "yyyyy", "..y..", "..y.."];
+const DROP = ["..t..", ".ttt.", "ttttt", ".ttt."];
+
+function pixels(rows, x, y, s, pal, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha;
+  rows.forEach((row, r) => [...row].forEach((ch, c) => {
+    if (ch === "." || !pal[ch]) return;
+    ctx.fillStyle = pal[ch];
+    ctx.fillRect(Math.round(x + c * s), Math.round(y + r * s), Math.ceil(s), Math.ceil(s));
+  }));
+  ctx.restore();
+}
+function mali(cx, cy, s, face = "idle", { alpha = 1, squash = 0, tilt = 0 } = {}) {
+  ctx.save(); ctx.globalAlpha = alpha * 0.16; ctx.fillStyle = "#6b5656";
+  ctx.beginPath(); ctx.ellipse(cx, cy + 8.6 * s, 6.4 * s, 1.1 * s, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.translate(cx, cy + 8 * s); ctx.rotate(tilt); ctx.scale(1 + squash, 1 - squash);
+  ctx.translate(-cx, -(cy + 8 * s));
+  pixels(MALI[face], cx - 8 * s, cy - 8 * s, s, PAL, alpha);
+  ctx.restore();
+}
+const sprite = (rows, cx, cy, s, alpha = 1) => pixels(rows, cx - rows[0].length * s / 2, cy - rows.length * s / 2, s, PAL, alpha);
+
+// ---------- Helfer ----------
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeBack = (x) => { const c = 2.4; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const between = (t, a, b) => t >= a && t < b;
+function round(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+// Text wie eine TikTok-Textbox (weiß, abgerundet), passt sich der Breite an
+function caption(lines, cx, cy, size, { bg = "#fff", fg = "#3a2a30", scale = 1, alpha = 1, rot = 0, weight = 800 } = {}) {
+  if (alpha <= 0 || scale <= 0) return;
+  lines = lines.map(tr);
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.font = `${weight} ${size}px ${FONT}`;
+  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width)) + size * 0.84;
+  if (widest > 800) { size *= 800 / widest; ctx.font = `${weight} ${size}px ${FONT}`; }
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const lh = size * 1.3, total = lh * lines.length;
+  lines.forEach((line, i) => {
+    const y = -total / 2 + lh * i + lh / 2, w = ctx.measureText(line).width + size * 0.84;
+    if (bg) { ctx.fillStyle = bg; round(-w / 2, y - lh / 2, w, lh, size * 0.3); ctx.fill(); }
+    ctx.fillStyle = fg; ctx.fillText(line, 0, y + size * 0.04);
+  });
+  ctx.restore();
+}
+function heart(cx, cy, s, alpha = 1) { sprite(HEART, cx, cy, s, alpha); }
+function floatingHearts(t, start, cx, cy, n = 5, spread = 260) {
+  for (let i = 0; i < n; i++) {
+    const k = ((t - start) * 0.6 + i / n) % 1;
+    if (t < start) return;
+    heart(cx + Math.sin(i * 2.1 + k * 5) * spread, cy - k * 360, 7 + (i % 2) * 3, Math.sin(k * Math.PI));
+  }
+}
+
+// ---------- Szene: gemütliches Zimmer bei Nacht ----------
+function room(t, dim = 0) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#ffe9f1"); g.addColorStop(0.62, "#f7d9ee"); g.addColorStop(1, "#e9d3f3");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // Fenster mit Mond und Sternen
+  ctx.save(); ctx.fillStyle = "#3b3260"; round(110, 560, 260, 330, 28); ctx.fill();
+  ctx.fillStyle = "#fff5d6"; ctx.beginPath(); ctx.arc(290, 650, 46, 0, 7); ctx.fill();
+  ctx.fillStyle = "#3b3260"; ctx.beginPath(); ctx.arc(270, 636, 42, 0, 7); ctx.fill();
+  for (let i = 0; i < 6; i++) {
+    const tw = 0.5 + 0.5 * Math.sin(t * 3 + i * 1.7);
+    ctx.fillStyle = `rgba(255,245,214,${0.4 + tw * 0.6})`; ctx.fillRect(140 + (i * 53) % 200, 600 + (i * 71) % 250, 8, 8);
+  }
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 14; round(110, 560, 260, 330, 28); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(240, 560); ctx.lineTo(240, 890); ctx.moveTo(110, 725); ctx.lineTo(370, 725); ctx.stroke();
+  ctx.restore();
+  // Lichterkette
+  ctx.save(); ctx.strokeStyle = "rgba(107,86,86,.35)"; ctx.lineWidth = 3; ctx.beginPath();
+  for (let x = 40; x <= 1040; x += 10) ctx.lineTo(x, 520 + Math.sin(x / 160) * 30);
+  ctx.stroke();
+  const colors = ["#ff8fab", "#ffe066", "#a8e6cf", "#bcb6ff"];
+  for (let i = 0; i < 11; i++) {
+    const x = 70 + i * 92, y = 534 + Math.sin(x / 160) * 30, on = 0.55 + 0.45 * Math.sin(t * 4 + i);
+    ctx.fillStyle = colors[i % 4]; ctx.globalAlpha = on; ctx.beginPath(); ctx.arc(x, y, 12, 0, 7); ctx.fill();
+  }
+  ctx.restore();
+  // Kissen / Sitzsack
+  ctx.save(); ctx.fillStyle = "#ffb8cf"; ctx.beginPath(); ctx.ellipse(W / 2, 1405, 330, 80, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = "#ffcfdd"; ctx.beginPath(); ctx.ellipse(W / 2, 1390, 300, 58, 0, 0, 7); ctx.fill(); ctx.restore();
+  if (dim > 0) { ctx.fillStyle = `rgba(59,50,96,${dim})`; ctx.fillRect(0, 0, W, H); }
+}
+// Handy, das Mali hält (leuchtet)
+function phone(cx, cy, s, glow = 1) {
+  ctx.save(); ctx.globalAlpha = 0.25 * glow; const g = ctx.createRadialGradient(cx, cy - 60, 10, cx, cy - 60, 260);
+  g.addColorStop(0, "#fff"); g.addColorStop(1, "rgba(255,255,255,0)"); ctx.fillStyle = g; ctx.fillRect(cx - 300, cy - 360, 600, 600); ctx.restore();
+  ctx.fillStyle = "#3a2a30"; round(cx - 4.5 * s, cy - 7 * s, 9 * s, 14 * s, s * 1.2); ctx.fill();
+  ctx.fillStyle = "#fde9ef"; round(cx - 3.5 * s, cy - 6 * s, 7 * s, 12 * s, s * 0.8); ctx.fill();
+}
+// Denkblase mit scrollenden Pins
+function thoughtBubble(t, cx, cy, alpha) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.fillStyle = "#fff";
+  ctx.beginPath(); ctx.arc(cx - 150, cy + 230, 18, 0, 7); ctx.arc(cx - 115, cy + 190, 26, 0, 7); ctx.fill();
+  round(cx - 250, cy - 170, 500, 340, 70); ctx.fill();
+  ctx.save(); round(cx - 230, cy - 150, 460, 300, 54); ctx.clip();
+  const OUTFITS = [["#ffb3c7", "#7fa0c8"], ["#2b2228", "#c9b8a8"], ["#d9c2f0", "#fff3d6"], ["#a8d5ba", "#3b4a5c"], ["#ffe066", "#ff8fab"]];
+  for (let i = 0; i < 10; i++) {
+    const col = i % 3, x = cx - 210 + col * 145, y = cy - 140 + Math.floor(i / 3) * 170 - ((t * 140) % 170) + (col === 1 ? 60 : 0);
+    const [top, bottom] = OUTFITS[i % OUTFITS.length];
+    ctx.fillStyle = "#f6eef2"; round(x, y, 130, 155, 16); ctx.fill();
+    ctx.fillStyle = top; round(x + 35, y + 22, 60, 55, 10); ctx.fill();
+    ctx.fillStyle = bottom; ctx.fillRect(x + 40, y + 77, 22, 60); ctx.fillRect(x + 68, y + 77, 22, 60);
+  }
+  ctx.restore(); ctx.restore();
+}
+function clock(cx, cy, r, t, speed) {
+  ctx.save(); ctx.fillStyle = "#fff"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 10;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.lineCap = "round";
+  for (const [len, sp, w] of [[r * 0.55, speed / 12, 10], [r * 0.8, speed, 7]]) {
+    const a = t * sp - Math.PI / 2;
+    ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len); ctx.stroke();
+  }
+  ctx.restore();
+}
+function tag(textStr, cx, cy, { color = "#c93a69", strike = false, scale = 1, rot = 0 } = {}) {
+  if (scale <= 0) return;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.font = `900 54px ${FONT}`; const w = ctx.measureText(tr(textStr)).width + 70;
+  ctx.fillStyle = "#fff"; ctx.shadowColor = "rgba(58,42,48,.18)"; ctx.shadowBlur = 20; ctx.shadowOffsetY = 6;
+  round(-w / 2, -48, w, 96, 26); ctx.fill(); ctx.shadowColor = "transparent";
+  ctx.fillStyle = "#f4e3ea"; ctx.beginPath(); ctx.arc(-w / 2 + 28, 0, 9, 0, 7); ctx.fill();
+  ctx.fillStyle = color; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(tr(textStr), 10, 3);
+  if (strike) { ctx.strokeStyle = color; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(-w / 2 + 50, 4); ctx.lineTo(w / 2 - 20, 4); ctx.stroke(); }
+  ctx.restore();
+}
+function laptop(cx, cy, s, t) {
+  ctx.save();
+  ctx.fillStyle = "#6b5656"; round(cx - 9 * s, cy - 12 * s, 18 * s, 12 * s, s); ctx.fill();
+  ctx.fillStyle = "#fde9ef"; round(cx - 8 * s, cy - 11 * s, 16 * s, 10 * s, s * 0.6); ctx.fill();
+  for (let i = 0; i < 4; i++) {                       // "Code"-Zeilen erscheinen
+    const w = (6 + ((i * 5) % 7)) * s * clamp((t * 3) - i);
+    ctx.fillStyle = ["#ff8fab", "#bcb6ff", "#a8d5ba", "#ffb3c7"][i]; ctx.fillRect(cx - 7 * s, cy - 10 * s + i * 2.2 * s, w, s);
+  }
+  heart(cx + 4 * s, cy - 4.2 * s, s * 0.45, clamp(t * 2 - 2));
+  ctx.fillStyle = "#8c7f78"; round(cx - 11 * s, cy, 22 * s, 2 * s, s * 0.8); ctx.fill();
+  ctx.restore();
+}
+function outfitCard(cx, cy, top, bottom, price, scale, rot) {
+  if (scale <= 0) return;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.fillStyle = "#fff"; ctx.shadowColor = "rgba(58,42,48,.18)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
+  round(-120, -150, 240, 300, 30); ctx.fill(); ctx.shadowColor = "transparent";
+  ctx.fillStyle = "#fbf1f5"; round(-100, -130, 200, 190, 20); ctx.fill();
+  ctx.fillStyle = top; round(-45, -110, 90, 75, 14); ctx.fill();
+  ctx.fillStyle = bottom; ctx.fillRect(-38, -35, 34, 80); ctx.fillRect(4, -35, 34, 80);
+  ctx.fillStyle = "#c93a69"; ctx.font = `900 54px ${FONT}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(tr(price), 0, 105);
+  ctx.restore();
+}
+
+// ---------- Ablauf ----------
+// 0–3.2 scrollen · 3.2–6.0 fragen · 6.0–9.2 suchen · 9.2–12.6 Idee · 12.6–15 Ende
+function scene(t) {
+  const sad = between(t, 7.6, 9.2);
+  room(t, sad ? 0.12 * prog(t, 7.6, 8.0) : 0);
+  const MX = W / 2, MY = 1130, S = 24;
+  let face = "idle", tilt = 0, squash = 0, hop = 0;
+
+  if (t < 3.2) {                                                    // 1: scrollen
+    face = (t % 1.8) > 1.68 ? "blink" : "shiny";
+    hop = Math.abs(Math.sin(t * 2.4)) * 6;
+    thoughtBubble(t, W / 2 + 140, 760, easeBack(prog(t, 0.2, 0.6)));
+    caption(["ich jeden abend", "auf pinterest"], W / 2, 370, 84, { scale: easeBack(prog(t, 0, 0.25)) });
+    if (t > 1.6) floatingHearts(t, 1.6, MX, 980, 4, 200);
+  } else if (t < 6.0) {                                             // 2: fragen
+    face = "idle";
+    tilt = Math.sin((t - 3.2) * 5) * 0.12;
+    caption(["wo habt ihr alle diese", "outfits her??"], W / 2, 370, 78, { scale: easeBack(prog(t, 3.2, 3.45)) });
+    [[-250, 900, 3.4], [230, 860, 3.8], [-40, 760, 4.3], [300, 1040, 4.8], [-310, 1080, 5.2]].forEach(([dx, y, at]) => {
+      const p = easeBack(prog(t, at, at + 0.25));
+      if (p > 0) sprite(QUESTION, MX + dx, y + Math.sin((t - at) * 6) * 8, 15 * p);
+    });
+  } else if (t < 9.2) {                                             // 3: suchen
+    face = t < 7.6 ? ((t % 0.9) > 0.8 ? "blink" : "tired") : "sad";
+    squash = t > 7.6 ? 0.06 * easeOut(prog(t, 7.6, 7.9)) : 0;
+    caption(["*sucht 3 stunden*"], W / 2, 340, 80, { scale: easeBack(prog(t, 6.0, 6.25)), rot: -0.02 });
+    clock(860, 610, 66, t, 14);
+    [["189 €", 270, 760, 6.4, "#c93a69", false, -0.12], ["ausverkauft", 690, 770, 6.8, "#8c7f78", true, 0.08],
+     ["249 €", 250, 900, 7.2, "#c93a69", false, 0.07], ["nur in den USA", 680, 905, 7.6, "#8c7f78", false, -0.06]]
+      .forEach(([s, x, y, at, color, strike, rot]) => {
+        const p = easeBack(prog(t, at, at + 0.22));
+        const shake = between(t, at, at + 0.3) ? Math.sin(t * 80) * 6 : 0;
+        tag(s, x + shake, y, { color, strike, scale: p, rot });
+      });
+    if (t > 6.6 && t < 7.6) sprite(DROP, MX + 170, 1010 + ((t - 6.6) % 0.5) * 60, 9, 1 - ((t - 6.6) % 0.5) * 2);
+  } else if (t < 12.6) {                                            // 4: die Idee
+    const idea = 9.2;
+    face = t < 9.6 ? "shiny" : "happy";
+    hop = t > 9.6 ? Math.abs(Math.sin((t - 9.6) * 7.85)) * 40 : 0;
+    // Glühbirne mit Strahlen
+    const b = easeBack(prog(t, idea, idea + 0.25));
+    if (t < 10.6) {
+      ctx.save(); ctx.globalAlpha = 0.5 * (1 - prog(t, idea, idea + 0.6));
+      ctx.fillStyle = "#fff6c2"; ctx.beginPath(); ctx.arc(MX, 790, 300 * easeOut(prog(t, idea, idea + 0.6)), 0, 7); ctx.fill(); ctx.restore();
+      sprite(BULB, MX, 800 - hop, 24 * b);
+      caption(["bis mir eine idee kam"], W / 2, 340, 80, { scale: easeBack(prog(t, idea, idea + 0.25)) });
+    } else {
+      laptop(MX, 1440, 20, t - 10.6);
+      if (t < 11.6) caption(["also hab ich einfach", "selbst was gebaut"], W / 2, 370, 76, { scale: easeBack(prog(t, 10.6, 10.85)) });
+      for (let i = 0; i < 4; i++) {                    // Funkeln
+        const k = ((t - 10.6) * 1.4 + i / 4) % 1;
+        sprite(SPARK, MX + [-300, 300, -220, 240][i], [820, 860, 1000, 1040][i] - k * 40, 10, Math.sin(k * Math.PI));
+      }
+    }
+    if (t > 11.6) {
+      caption(["endlich outfits", "für mein budget"], W / 2, 370, 80, { bg: "#c93a69", fg: "#fff", scale: easeBack(prog(t, 11.6, 11.85)) });
+    }
+  } else {                                                          // 5: Ende
+    face = Math.floor((t - 12.6) / 0.35) % 2 ? "wave" : "happy";
+    hop = Math.abs(Math.sin((t - 12.6) * 6)) * 24;
+    floatingHearts(t, 12.6, MX, 1000, 6, 300);
+  }
+
+  // Outfit-Karten (ab der Idee bis zum Ende)
+  if (t > 11.6) {
+    [["#ffb3c7", "#7fa0c8", "29 €", 250, 860, -0.1, 11.6], ["#d9c2f0", "#fff3d6", "18 €", 790, 700, 0.08, 11.85],
+     ["#a8d5ba", "#3b4a5c", "35 €", 800, 1060, -0.05, 12.1]].forEach(([top, bottom, price, x, y, rot, at]) => {
+      const float = Math.sin((t - at) * 3) * 10;
+      outfitCard(x, y + float, top, bottom, price, easeBack(prog(t, at, at + 0.3)) * (t > 12.6 ? 0.82 : 1), rot);
+    });
+  }
+
+  if (t < 3.2) phone(MX + 10, 1290 - hop, 15);
+  mali(MX, MY - hop, S, face, { tilt, squash });
+  if (t < 3.2) {                                                    // Pfoten über dem Handy
+    ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 8;
+    for (const dx of [-80, 90]) { round(MX + dx - 30, 1305 - hop, 60, 50, 22); ctx.fill(); ctx.stroke(); }
+  }
+
+  if (t >= 12.6) {                                                  // Abspann: ganz leise Marke
+    const a = prog(t, 12.9, 13.3);
+    ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = "#3a2a30"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = '800 96px Georgia, "DejaVu Serif", serif'; ctx.fillText("malipin", W / 2, 420); ctx.restore();
+    caption(["kommt bald"], W / 2, 530, 44, { bg: "#3a2a30", fg: "#fff", alpha: prog(t, 13.2, 13.5) });
+  }
+}
+
+window.duration = LEN;
+window.draw = (t) => { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H); scene(t); };
+window.draw(0);
+</script>
+</body></html>
