@@ -15,7 +15,7 @@ from serie_sound import whoosh, write  # noqa: E402
 from sound import SR, env, hz, lowpass, music_lofi, noise, placer, sine  # noqa: E402
 from story_sound import musicbox  # noqa: E402
 
-LEN = 15.5
+LEN = 18.0
 GUSTS = [(0.1, 1.0), (3.7, 0.5), (7.8, 1.2), (10.6, 0.6), (12.9, 0.9)]
 
 
@@ -67,11 +67,19 @@ def blip(freq, vol=0.22):
     return sine(freq, 0.35, decay=9, attack=0.004, vol=vol, harmonics=(1.0, 0.25))
 
 
+def sparkle_soft():
+    out = np.zeros(int(0.6 * SR))
+    put = placer(out)
+    for k, f in enumerate((1568.0, 2093.0, 2637.0, 3136.0)):
+        put(sine(f, 0.4, decay=10, vol=0.08), k * 0.06)
+    return out
+
+
 def render(path):
     out = np.zeros(int((LEN + 1) * SR))
     put = placer(out)
 
-    put(lowpass(music_lofi(LEN, 1.8, 13.5, 99), 0.18), 0, 0.55)     # ruhiger Lo-Fi, ab der ersten Nachricht
+    put(lowpass(music_lofi(LEN, 1.8, 16.4, 99), 0.18), 0, 0.55)     # ruhiger Lo-Fi, ab der ersten Nachricht
     put(wind(LEN), 0)
     for at, s in GUSTS:
         put(rustle(0.8), at + 0.1, 0.8 * s)
@@ -86,8 +94,11 @@ def render(path):
     put(sine(880.0, 0.25, decay=10, vol=0.1), 11.0)                 # gesehen
     put(crickets(0.9), 11.0, 0.7)
     put(sneeze(), 12.45, 0.8)
+    put(sparkle_soft(), 14.3)                                       # sie taucht auf
+    for k in range(8):                                              # ihre Schritte im Laub
+        put(rustle(0.18), 14.35 + k * 0.29, 0.5)
     for k, (n_, o) in enumerate([("E", 5), ("D", 5), ("C", 5), ("B", 4), ("A", 4)]):   # traurige Spieluhr
-        put(musicbox(hz(n_, o), dur=1.6, vol=0.12), 13.7 + k * 0.4)
+        put(musicbox(hz(n_, o), dur=1.6, vol=0.12), 16.4 + k * 0.32)
     write(out, LEN, path)
 
 

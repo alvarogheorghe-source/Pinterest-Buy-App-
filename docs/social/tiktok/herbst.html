@@ -8,7 +8,7 @@
 // Herbstpark, filmischer Look (warme Farben, Filmkorn, Untertitel, volles 9:16-Bild): Mali friert ohne Jacke und
 // fragt Creator, wo die Jacke her ist. Nachrichten steigen als Blasen aus dem Handy. Kein Name,
 // keine Lösung. ?lang=en
-LEN = 15.5;
+LEN = 18;
 Object.assign(EN, {
   "4 grad. keine jacke.": "4°C. no jacket.", "wo ist die jacke her?? 🥺": "where is the jacket from?? 🥺",
   "danke 🥰": "thank u 🥰", "danke.": "thank u.", "und der mantel?? 🙏": "and the coat?? 🙏", "vintage 💅": "vintage 💅",
@@ -17,6 +17,7 @@ Object.assign(EN, {
   "ich zahl dir 5 €": "i'll pay u €5", "gesehen 23:02": "seen 23:02", "gesehen. 23:02.": "seen. 23:02.",
   "warum fragt ihr eigentlich immer": "why do you guys always ask", "wo meine sachen her sind 🙄": "where my stuff is from 🙄",
   "hatschi.": "achoo.", "immer noch keine jacke.": "still no jacket.",
+  "und dann läuft sie vorbei.": "and then she walks by.", "in der jacke.": "in the jacket.",
 });
 
 const punch = (t, at, len = 0.22) => (t >= at && t < at + len) ? 1 - (t - at) / len : 0;
@@ -183,6 +184,28 @@ function chat(t, phone) {
   }
 }
 
+// ---------- Ende: der Hase mit DER Jacke spaziert vorbei ----------
+function passerBy(t) {
+  const k = prog(t, 14.2, 16.6);
+  if (k <= 0 || k >= 1) return;
+  const x = lerp(-160, W + 160, k), bob = Math.abs(Math.sin(t * 9)) * 12, y = 985 - bob;   // weiter hinten auf dem Weg
+  ctx.fillStyle = "rgba(60,30,20,.18)"; ctx.beginPath(); ctx.ellipse(x, 985 + 8 * 15, 95, 14, 0, 0, 7); ctx.fill();
+  bunny("leather", x, y, 15, "happy");
+  for (let i = 0; i < 4; i++) {                                      // Glitzer um sie herum
+    const q = (t * 1.6 + i / 4) % 1;
+    sprite(SPARK, x + [-110, 110, -80, 95][i], y + [-110, -80, 30, 60][i] - q * 30, 8, Math.sin(q * Math.PI));
+  }
+}
+function landedLeaf(t) {                                            // ein Blatt landet auf Malis Kopf
+  const k = prog(t, 16.4, 17.1);
+  if (k <= 0) return;
+  const x = lerp(W / 2 + 160, W / 2 + 10, k) + Math.sin(k * 9) * 30 * (1 - k), y = lerp(560, MY - 6.2 * S, easeOut(k));
+  ctx.save(); ctx.translate(x, y); ctx.rotate(lerp(2, 0.3, k));
+  ctx.fillStyle = "#e8743b"; ctx.beginPath(); ctx.ellipse(0, 0, 34, 17, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = "rgba(90,50,30,.6)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-34, 0); ctx.lineTo(38, 0); ctx.stroke();
+  ctx.restore();
+}
+
 // ---------- Film-Look ----------
 function subtitle(textStr, at, until) {
   if (t0 < at || t0 > until) return;
@@ -222,8 +245,12 @@ function scene(t) {
   else if (t < 9.4) { face = t < 8.0 ? "idle" : "shock"; push = Math.sin(prog(t, 7.8, 8.8) * Math.PI) * 50; }
   else if (t < 12.0) { face = t < 11.0 ? "idle" : "sad"; shiver += 2; }
   else if (t < 13.5) face = t < 12.9 ? "tired" : "sneeze";
-  else face = (t % 2) > 1.85 ? "blink" : "sad";
+  else if (t < 14.3) face = (t % 2) > 1.85 ? "blink" : "sad";
+  else if (t < 16.3) face = "shock";                                // sie läuft vorbei …
+  else face = (t % 1.6) > 1.5 ? "blink" : "tired";
+  passerBy(t);
   const phone = maliAt(t, face, { push, shiver, leaf });
+  landedLeaf(t);
   leaves(t, 6, true);
   chat(t, phone);
   ctx.restore();
@@ -234,7 +261,9 @@ function scene(t) {
   subtitle("die bio sagt manifesting.", 8.1, 9.3);
   subtitle("gesehen. 23:02.", 11.0, 11.9);
   subtitle("hatschi.", 12.9, 13.5);
-  subtitle("immer noch keine jacke.", 13.7, LEN - 0.2);
+  subtitle("immer noch keine jacke.", 13.7, 14.6);
+  subtitle("und dann läuft sie vorbei.", 14.8, 16.2);
+  subtitle("in der jacke.", 16.4, LEN - 0.3);
   const out = prog(t, LEN - 0.6, LEN), inn = 1 - prog(t, 0, 0.4);
   const black = Math.max(out, inn);
   if (black > 0) { ctx.fillStyle = `rgba(11,7,6,${black})`; ctx.fillRect(0, 0, W, H); }
