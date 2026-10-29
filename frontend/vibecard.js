@@ -144,104 +144,133 @@
     ctx.fillStyle = look.muted;
     ctx.fillText(t("MEIN PINTEREST-VIBE"), W / 2, 222);
 
-    // --- Malis Sprechblase: "Du bist …" + Vibe + Spruch ---
-    const boxX = 80;
-    const boxW = W - 160;
-    const inner = boxW - 120;
-    const top = 290;
-    const titleSize = fitFont(ctx, vibe.title, 700, 96, 52, inner, SERIF);
-    const titleLines = wrap(ctx, vibe.title, inner);
-    ctx.font = `38px ${SANS}`;
-    // Karte ohne Emojis: die aus Malis Spruch entfernen
-    const plain = vibe.text.replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, "").replace(/\s+/g, " ").trim();
-    const quoteAll = wrap(ctx, `„${plain}“`, inner);
-    const quote = quoteAll.slice(0, 3);
-    if (quote.length < quoteAll.length) {
-      quote[2] = `${quote[2].replace(/[\s,.–-]+$/, "")} …“`;
-    }
-    const second = vibe.second_title;
-    // Grundlinien der Zeilen vorab ausrechnen – daraus ergibt sich die Höhe der Blase
-    const yDu = top + 84;
-    const yTitle = titleLines.map((_, i) => yDu + 28 + titleSize * 0.85 + i * titleSize * 1.05);
-    const lastTitle = yTitle[yTitle.length - 1];
-    const ySecond = second ? lastTitle + 64 : lastTitle;
-    const yQuote = quote.map((_, i) => ySecond + 76 + i * 52);
-    const boxH = Math.round(yQuote[yQuote.length - 1] + 54 - top);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.globalAlpha = 0.95;
-    roundRect(ctx, boxX, top, boxW, boxH, 44);
-    ctx.fill();
-    // Pixelige Spitze nach unten zu Mali (3 Treppenstufen)
-    const tipX = W / 2 + 40;
-    ctx.fillRect(tipX - 36, top + boxH - 2, 72, 18);
-    ctx.fillRect(tipX - 24, top + boxH + 16, 48, 18);
-    ctx.fillRect(tipX - 12, top + boxH + 34, 24, 18);
-    ctx.globalAlpha = 1;
-
-    ctx.font = `600 38px ${SANS}`;
-    ctx.fillStyle = "#6f5a63";
-    ctx.fillText(t("Du bist …"), W / 2, yDu);
-    ctx.font = `700 ${titleSize}px ${SERIF}`;
-    ctx.fillStyle = look.title;
-    titleLines.forEach((line, i) => ctx.fillText(line, W / 2, yTitle[i]));
-    if (second) {
-      ctx.font = `italic 42px ${SERIF}`;
-      ctx.fillStyle = "#6f5a63";
-      ctx.fillText(t("… mit einer Prise {second}", { second }), W / 2, ySecond);
-    }
-    ctx.font = `38px ${SANS}`;
-    ctx.fillStyle = "#2f2328";
-    quote.forEach((line, i) => ctx.fillText(line, W / 2, yQuote[i]));
-
-    // --- Mali im passenden Outfit, direkt unter der Sprechblase ---
-    const size = 25;
-    const malTop = top + boxH + 70;
-    const malX = (W - 16 * size) / 2;
-    // Ganze Pixel-Positionen, sonst entstehen feine Linien zwischen den Pixeln
+    // --- Mali im passenden Outfit ---
+    const size = 17;
+    const malTop = 270;
+    const malX = Math.round((W - 16 * size) / 2);
     drawPixels(ctx, pixels.happy, { ...pixels.palette, ...look.fur }, malX, malTop, size);
     for (const [grid, gx, gy] of OUTFITS[vibe.look] || []) {
       drawPixels(ctx, grid, OUTFIT_COLORS, malX + gx * size, malTop + gy * size, size);
     }
-    let y = malTop + 16 * size + 90;
-
-    // Unten ist der Button – was nicht mehr passt, wird weggelassen statt zu überlappen
-    const bottom = H - 280;
-
-    // Farbtupfer
-    if (vibe.colors && vibe.colors.length && y + 100 <= bottom) {
-      const gap = 180;
-      let x = W / 2 - ((vibe.colors.length - 1) * gap) / 2;
-      for (const color of vibe.colors) {
-        ctx.beginPath();
-        ctx.arc(x, y, 44, 0, Math.PI * 2);
-        ctx.fillStyle = color.hex;
-        ctx.fill();
-        ctx.lineWidth = 6;
-        ctx.strokeStyle = "#ffffff";
-        ctx.stroke();
-        ctx.font = `600 30px ${SANS}`;
-        ctx.fillStyle = look.muted;
-        ctx.fillText(t(color.name), x, y + 88);
-        x += gap;
-      }
-      y += 150;
+    // Funkeln um Mali
+    ctx.fillStyle = look.deco;
+    for (const [x, y, s] of [[malX - 70, malTop + 60, 10], [malX + 16 * size + 50, malTop + 30, 12], [malX + 16 * size + 30, malTop + 210, 8]]) {
+      ctx.fillRect(x, y - s * 2, s, s * 5); ctx.fillRect(x - s * 2, y, s * 5, s);
     }
 
-    // Top-Begriffe als #Hashtags
-    if (vibe.terms && vibe.terms.length && y <= bottom + 30) {
-      ctx.font = `600 36px ${SANS}`;
-      ctx.fillStyle = look.accent;
-      ctx.fillText(vibe.terms.map((term) => `#${t(term).replace(/\s+/g, "")}`).join("  "), W / 2, y);
+    // --- "Du bist" + Vibe (groß) ---
+    let y = malTop + 16 * size + 80;
+    ctx.font = `600 40px ${SANS}`;
+    ctx.fillStyle = look.muted;
+    ctx.fillText(t("Du bist"), W / 2, y);
+    const titleSize = fitFont(ctx, vibe.title, 700, 120, 60, W - 160, SERIF);
+    ctx.font = `700 ${titleSize}px ${SERIF}`;
+    ctx.fillStyle = look.accent;
+    for (const line of wrap(ctx, vibe.title, W - 160)) { y += titleSize * 1.02; ctx.fillText(line, W / 2, y); }
+    if (vibe.second_title) {
+      y += 62;
+      ctx.font = `italic 40px ${SERIF}`;
+      ctx.fillStyle = look.muted;
+      ctx.fillText(t("… mit einer Prise {second}", { second: vibe.second_title }), W / 2, y);
+    }
+    if (vibe.pin_count) {
+      y += 54;
+      ctx.font = `500 30px ${SANS}`;
+      ctx.fillStyle = look.muted;
+      ctx.fillText(t("aus {n} deiner Pins gelesen", { n: vibe.pin_count }), W / 2, y);
+    }
+
+    // --- drei Eigenschaften als Kärtchen ---
+    if (vibe.traits && vibe.traits.length) {
+      y += 90;
+      let fontSize = 40;
+      const gap = 18;
+      const widths = () => vibe.traits.map((trait) => { ctx.font = `700 ${fontSize}px ${SANS}`; return ctx.measureText(trait).width + fontSize * 1.3; });
+      while (widths().reduce((a, b) => a + b, 0) + gap * 2 > W - 120 && fontSize > 26) fontSize -= 2;
+      const ws = widths();
+      let x = (W - ws.reduce((a, b) => a + b, 0) - gap * 2) / 2;
+      vibe.traits.forEach((trait, i) => {
+        ctx.fillStyle = "rgba(255,255,255,0.88)";
+        roundRect(ctx, x, y - fontSize * 1.05, ws[i], fontSize * 1.8, fontSize * 0.9);
+        ctx.fill();
+        ctx.font = `700 ${fontSize}px ${SANS}`;
+        ctx.fillStyle = "#3a2a30";
+        ctx.fillText(trait, x + ws[i] / 2, y);
+        x += ws[i] + gap;
+      });
+    }
+
+    // --- Superkraft ---
+    if (vibe.power) {
+      y += 70;
+      ctx.font = `italic 46px ${SERIF}`;
+      const lines = wrap(ctx, vibe.power, W - 260);
+      const boxH = 110 + lines.length * 58;
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      roundRect(ctx, 90, y, W - 180, boxH, 40);
+      ctx.fill();
+      ctx.font = `800 28px ${SANS}`;
+      ctx.fillStyle = look.accent === "#ff8fb4" ? "#c93a69" : look.accent;
+      ctx.fillText(t("DEINE SUPERKRAFT"), W / 2, y + 62);
+      ctx.font = `italic 46px ${SERIF}`;
+      ctx.fillStyle = "#2f2328";
+      lines.forEach((line, i) => ctx.fillText(line, W / 2, y + 122 + i * 58));
+      y += boxH;
+    }
+
+    // --- Signature-Piece + Farben nebeneinander ---
+    const bottom = H - 300;
+    if (y + 230 <= bottom) {
+      y += 30;
+      const half = (W - 180 - 24) / 2;
+      const boxes = [[90, t("SIGNATURE-PIECE")], [90 + half + 24, t("DEINE FARBEN")]];
+      for (const [bx, label] of boxes) {
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        roundRect(ctx, bx, y, half, 200, 34);
+        ctx.fill();
+        ctx.font = `800 24px ${SANS}`;
+        ctx.fillStyle = look.accent === "#ff8fb4" ? "#c93a69" : look.accent;
+        ctx.fillText(label, bx + half / 2, y + 52);
+      }
+      if (vibe.piece) {
+        const pieceSize = fitFont(ctx, vibe.piece, 700, 40, 26, half - 40, SANS);
+        ctx.font = `700 ${pieceSize}px ${SANS}`;
+        ctx.fillStyle = "#2f2328";
+        const lines = wrap(ctx, vibe.piece, half - 40).slice(0, 2);
+        lines.forEach((line, i) => ctx.fillText(line, 90 + half / 2, y + 120 + i * pieceSize * 1.15 - (lines.length - 1) * pieceSize * 0.55));
+      }
+      const colors = (vibe.colors || []).slice(0, 3);
+      const cx0 = 90 + half + 24 + half / 2 - ((colors.length - 1) * 96) / 2;
+      colors.forEach((color, i) => {
+        ctx.beginPath();
+        ctx.arc(cx0 + i * 96, y + 125, 36, 0, Math.PI * 2);
+        ctx.fillStyle = color.hex;
+        ctx.fill();
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "#ead9e0";
+        ctx.stroke();
+      });
+      y += 200;
+    }
+
+    // --- Perfektes Duo: Freund:innen markieren ---
+    if (vibe.duo && y + 120 <= bottom + 40) {
+      y += 90;
+      ctx.font = `700 40px ${SANS}`;
+      ctx.fillStyle = look.text;
+      ctx.fillText(t("Perfektes Duo mit {duo}", { duo: vibe.duo }), W / 2, y);
+      ctx.font = `500 32px ${SANS}`;
+      ctx.fillStyle = look.muted;
+      ctx.fillText(t("Markier dein {duo}", { duo: vibe.duo }), W / 2, y + 50);
     }
 
     // Fuß: Einladung
     ctx.fillStyle = look.cta;
-    roundRect(ctx, 140, H - 220, W - 280, 110, 55);
+    roundRect(ctx, 140, H - 200, W - 280, 104, 52);
     ctx.fill();
-    ctx.font = `700 42px ${SANS}`;
+    ctx.font = `700 40px ${SANS}`;
     ctx.fillStyle = look.ctaText;
-    ctx.fillText(t("Finde deinen Vibe → {site}", { site: SITE }), W / 2, H - 150);
+    ctx.fillText(t("Finde deinen Vibe → {site}", { site: SITE }), W / 2, H - 134);
 
     return canvas;
   }

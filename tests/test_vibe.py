@@ -63,7 +63,7 @@ def test_api_vibe(fake, client):
     result = client.get("/api/vibe").json()
     assert result["title"] == "Goth Baddie"
     assert set(result) == {"title", "emoji", "text", "second", "terms", "colors", "pin_count", "second_title", "look",
-                           "slug"}
+                           "slug", "traits", "power", "piece", "duo"}
     assert result["slug"] == "vibe-goth-baddie"                     # Link ins Stil-Lexikon
 
 
@@ -102,3 +102,24 @@ def test_other_line_never_repeats_the_last_one(fake, client):
 def test_every_vibe_has_five_lines():
     for v in vibe.VIBES + [vibe.UNIQUE]:
         assert len(v.lines) == 5, v.title
+
+
+def test_every_vibe_has_a_card_profile():
+    """Vibe-Karte: jeder Vibe hat 3 Eigenschaften, Superkraft, Signature-Piece und ein Duo."""
+    from backend import vibe, vibe_profiles
+    titles = {v.title for v in vibe.VIBES}
+    for v in [*vibe.VIBES, vibe.UNIQUE]:
+        for lang in ("de", "en"):
+            data = vibe_profiles.profile(v.title, lang)
+            assert data and len(data["traits"]) == 3 and data["power"] and data["piece"], (v.title, lang)
+            assert data["duo"] is None or data["duo"] in titles, (v.title, data["duo"])
+            assert ":" not in data["power"] and "–" not in data["power"]     # menschlich, ohne Doppelpunkt
+
+
+def test_vibe_check_returns_card_profile(fake):
+    from backend import vibe
+    pins = [{"id": str(i), "title": "Goth Outfit schwarz", "description": "goth grunge schwarz"} for i in range(6)]
+    result = vibe.vibe_check(pins)
+    assert result["title"] == "Goth Baddie"
+    assert result["traits"] == ["mutig", "geheimnisvoll", "loyal"]
+    assert result["power"].startswith("Du betrittst") and result["duo"] == "Clean Girl"

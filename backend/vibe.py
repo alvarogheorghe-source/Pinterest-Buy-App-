@@ -232,4 +232,17 @@ def vibe_check(pins: list[dict], rng: random.Random | None = None, avoid: str | 
         "colors": [{"name": tr(name), "hex": SWATCHES[name]}
                    for name, _ in profile.colors.most_common(4) if name in SWATCHES],
         "pin_count": profile.pin_count,
+        # Für die Vibe-Karte: Eigenschaften, Superkraft, Signature-Piece, passender Vibe
+        **_card_profile(best.title, second),
     }
+
+
+def _card_profile(title: str, second: Vibe | None) -> dict:
+    from backend import i18n, vibe_profiles
+    lang = i18n.current()
+    data = vibe_profiles.profile(title, lang)
+    if not data:
+        return {"traits": [], "power": None, "piece": None, "duo": None}
+    duo = data["duo"]
+    return {"traits": data["traits"], "power": data["power"], "piece": data["piece"],
+            "duo": tr(duo) if duo else None}
