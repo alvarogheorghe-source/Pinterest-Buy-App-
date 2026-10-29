@@ -15,7 +15,7 @@ from serie_sound import whoosh, write  # noqa: E402
 from sound import SR, env, hz, lowpass, music_lofi, noise, placer, sine  # noqa: E402
 from story_sound import musicbox  # noqa: E402
 
-LEN = 18.0
+LEN = 20.2
 GUSTS = [(0.1, 1.0), (3.7, 0.5), (7.8, 1.2), (10.6, 0.6), (12.9, 0.9)]
 
 
@@ -79,7 +79,7 @@ def render(path):
     out = np.zeros(int((LEN + 1) * SR))
     put = placer(out)
 
-    put(lowpass(music_lofi(LEN, 1.8, 16.4, 99), 0.18), 0, 0.55)     # ruhiger Lo-Fi, ab der ersten Nachricht
+    put(lowpass(music_lofi(LEN, 1.8, 14.6, 99), 0.18), 0, 0.55)     # ruhiger Lo-Fi, ab der ersten Nachricht
     put(wind(LEN), 0)
     for at, s in GUSTS:
         put(rustle(0.8), at + 0.1, 0.8 * s)
@@ -94,11 +94,16 @@ def render(path):
     put(sine(880.0, 0.25, decay=10, vol=0.1), 11.0)                 # gesehen
     put(crickets(0.9), 11.0, 0.7)
     put(sneeze(), 12.45, 0.8)
-    put(sparkle_soft(), 14.3)                                       # sie taucht auf
-    for k in range(8):                                              # ihre Schritte im Laub
-        put(rustle(0.18), 14.35 + k * 0.29, 0.5)
-    for k, (n_, o) in enumerate([("E", 5), ("D", 5), ("C", 5), ("B", 4), ("A", 4)]):   # traurige Spieluhr
-        put(musicbox(hz(n_, o), dur=1.6, vol=0.12), 16.4 + k * 0.32)
+    put(whoosh(0.6), 14.35, 0.8)                                    # weißer Übergang
+    put(sparkle_soft(), 14.6)
+    put(blip(1318.5, 0.2), 16.0)                                    # Ping! endlich eine Antwort
+    put(blip(1760.0, 0.2), 16.12)
+    put(blip(659.3, 0.16), 16.1)
+    put(blip(523.3, 0.16), 16.9)
+    for k, (n_, o) in enumerate([("E", 5), ("D", 5), ("C", 5), ("B", 4)]):   # traurige Spieluhr
+        put(musicbox(hz(n_, o), dur=1.4, vol=0.12), 17.0 + k * 0.28)
+    put(lowpass(noise(0.4), 0.05) * np.exp(-np.arange(int(0.4 * SR)) / SR * 9) * 3, 18.0)   # Schnee rutscht ab
+    put(blip(988.0), 18.6)                                          # und morgen wieder …
     write(out, LEN, path)
 
 

@@ -8,7 +8,7 @@
 // Herbstpark, filmischer Look (warme Farben, Filmkorn, Untertitel, volles 9:16-Bild): Mali friert ohne Jacke und
 // fragt Creator, wo die Jacke her ist. Nachrichten steigen als Blasen aus dem Handy. Kein Name,
 // keine Lösung. ?lang=en
-LEN = 18;
+LEN = 20.2;
 Object.assign(EN, {
   "4 grad. keine jacke.": "4°C. no jacket.", "wo ist die jacke her?? 🥺": "where is the jacket from?? 🥺",
   "danke 🥰": "thank u 🥰", "danke.": "thank u.", "und der mantel?? 🙏": "and the coat?? 🙏", "vintage 💅": "vintage 💅",
@@ -17,7 +17,9 @@ Object.assign(EN, {
   "ich zahl dir 5 €": "i'll pay u €5", "gesehen 23:02": "seen 23:02", "gesehen. 23:02.": "seen. 23:02.",
   "warum fragt ihr eigentlich immer": "why do you guys always ask", "wo meine sachen her sind 🙄": "where my stuff is from 🙄",
   "hatschi.": "achoo.", "immer noch keine jacke.": "still no jacket.",
-  "und dann läuft sie vorbei.": "and then she walks by.", "in der jacke.": "in the jacket.",
+  "3 wochen später.": "3 weeks later.", "ist von einem kleinen laden": "it's from a tiny shop",
+  "in kopenhagen 🥰": "in copenhagen 🥰", "leider ausverkauft": "sold out tho", "wo ist der mantel her?? 🥺": "where is the coat from?? 🥺",
+  "und morgen wieder.": "and again tomorrow.",
 });
 
 const punch = (t, at, len = 0.22) => (t >= at && t < at + len) ? 1 - (t - at) / len : 0;
@@ -147,6 +149,8 @@ const ROUNDS = [
   [6.8, 9.3, [["jacke pls 😭", 6.8, true], ["link in bio ✨", 7.5, false, "street"]]],
   [9.4, 11.9, [["hey 🥺", 9.4, true], ["hallo?", 9.8, true], ["mir ist kalt", 10.2, true], ["ich zahl dir 5 €", 10.6, true]]],
   [12.0, 13.5, [["warum fragt ihr eigentlich immer", 12.0, false, "y2k"], ["wo meine sachen her sind 🙄", 12.0, false, null]]],
+  [16.0, 18.3, [["ist von einem kleinen laden", 16.1, false, "leather"], ["in kopenhagen 🥰", 16.1, false, null], ["leider ausverkauft", 16.9, false, null]]],
+  [18.5, 20.2, [["wo ist der mantel her?? 🥺", 18.6, true]]],
 ];
 function bubble(t, msg, at, mine, look, slot, phone, fade) {
   const pop = easeBack(prog(t, at, at + 0.3)), rise = easeOut(prog(t, at, at + 0.6));
@@ -184,25 +188,50 @@ function chat(t, phone) {
   }
 }
 
-// ---------- Ende: der Hase mit DER Jacke spaziert vorbei ----------
-function passerBy(t) {
-  const k = prog(t, 14.2, 16.6);
-  if (k <= 0 || k >= 1) return;
-  const x = lerp(-160, W + 160, k), bob = Math.abs(Math.sin(t * 9)) * 12, y = 985 - bob;   // weiter hinten auf dem Weg
-  ctx.fillStyle = "rgba(60,30,20,.18)"; ctx.beginPath(); ctx.ellipse(x, 985 + 8 * 15, 95, 14, 0, 0, 7); ctx.fill();
-  bunny("leather", x, y, 15, "happy");
-  for (let i = 0; i < 4; i++) {                                      // Glitzer um sie herum
-    const q = (t * 1.6 + i / 4) % 1;
-    sprite(SPARK, x + [-110, 110, -80, 95][i], y + [-110, -80, 30, 60][i] - q * 30, 8, Math.sin(q * Math.PI));
+// ---------- Ende: 3 Wochen später, Schnee, Antwort kommt endlich (und hilft nicht) ----------
+function snowflakes(t, n = 150) {
+  ctx.fillStyle = "rgba(255,255,255,.9)";
+  for (let i = 0; i < n; i++) {
+    const x = ((i * 211.7 + t * (30 + (i % 5) * 8) + Math.sin(t + i) * 20) % 1180) - 50;
+    const y = ((i * 97.3 + t * (90 + (i % 4) * 30)) % 1980) - 30, r = 3 + (i % 3) * 2;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
   }
 }
-function landedLeaf(t) {                                            // ein Blatt landet auf Malis Kopf
-  const k = prog(t, 16.4, 17.1);
-  if (k <= 0) return;
-  const x = lerp(W / 2 + 160, W / 2 + 10, k) + Math.sin(k * 9) * 30 * (1 - k), y = lerp(560, MY - 6.2 * S, easeOut(k));
-  ctx.save(); ctx.translate(x, y); ctx.rotate(lerp(2, 0.3, k));
-  ctx.fillStyle = "#e8743b"; ctx.beginPath(); ctx.ellipse(0, 0, 34, 17, 0, 0, 7); ctx.fill();
-  ctx.strokeStyle = "rgba(90,50,30,.6)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-34, 0); ctx.lineTo(38, 0); ctx.stroke();
+function winter(t) {
+  const zoom = 1.04 + prog(t, 14.6, LEN) * 0.06;
+  ctx.save(); ctx.translate(W / 2, 1200); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -1200);
+  park(t);
+  ctx.save(); ctx.globalCompositeOperation = "saturation"; ctx.fillStyle = "rgba(128,128,128,.8)"; ctx.fillRect(0, 0, W, H); ctx.restore();
+  ctx.fillStyle = "rgba(205,222,255,.38)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#f3f6fc"; ctx.beginPath(); ctx.moveTo(0, 1075);                 // Schneedecke
+  for (let x = 0; x <= W; x += 90) ctx.quadraticCurveTo(x + 45, 1050 + (x % 180 ? 10 : -12), x + 90, 1075);
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
+  const cx = W / 2 + Math.sin(t * 70) * 2.5, cy = MY;
+  let face = (t % 1.7) > 1.55 ? "blink" : "tired";
+  if (between(t, 17.0, 18.0)) face = "sad";
+  if (t > 18.4) face = "idle";
+  mali(cx, cy, S, face);
+  ctx.fillStyle = "#ff5a6e"; ctx.fillRect(cx - S, cy + 2 * S, 2 * S, S);                // rote Nase
+  // Schneehäubchen zwischen den Ohren, rutscht bei 18.0 runter
+  const slide = easeOut(prog(t, 18.0, 18.5));
+  if (slide < 1) {
+    ctx.save(); ctx.globalAlpha = 1 - slide; ctx.translate(cx + slide * 120, cy - 5.2 * S + slide * 300); ctx.rotate(slide * 0.8);
+    ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#b9c8e2"; ctx.lineWidth = 7;
+    round(-3.4 * S, -0.9 * S, 6.8 * S, 1.9 * S, S); ctx.fill(); ctx.stroke(); ctx.restore();
+  }
+  if (between(t, 18.0, 18.7)) for (let i = 0; i < 8; i++) {                           // Puderwolke
+    const k = prog(t, 18.0, 18.7), a = i / 8 * Math.PI * 2;
+    ctx.fillStyle = `rgba(255,255,255,${1 - k})`; ctx.beginPath(); ctx.arc(cx + 100 + Math.cos(a) * 90 * k, cy + 60 + Math.sin(a) * 60 * k, 14, 0, 7); ctx.fill();
+  }
+  // Schneehügel bis zur Nase
+  ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#c9d6ea"; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.ellipse(cx, cy + 6.3 * S, 7.6 * S, 3.3 * S, 0, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#e6edf8"; ctx.beginPath(); ctx.ellipse(cx + 2 * S, cy + 7.2 * S, 5 * S, 1.6 * S, 0, 0, 7); ctx.fill();
+  const phone = { x: cx + 3.2 * S, y: cy + 3.2 * S };                                 // Handy schaut aus dem Schnee
+  ctx.fillStyle = "#231c20"; round(phone.x - 26, phone.y - 20, 52, 80, 9); ctx.fill();
+  ctx.fillStyle = t > 16.0 ? "#ffffff" : "#c9d4ea"; round(phone.x - 20, phone.y - 14, 40, 68, 6); ctx.fill();
+  snowflakes(t);
+  chat(t, { x: phone.x, y: phone.y - 30 });
   ctx.restore();
 }
 
@@ -218,7 +247,7 @@ function subtitle(textStr, at, until) {
 let t0 = 0;
 function grade(t) {
   ctx.save(); ctx.globalCompositeOperation = "soft-light";             // warme Farbgebung
-  ctx.fillStyle = "rgba(255,150,80,.35)"; ctx.fillRect(0, 0, W, H); ctx.restore();
+  ctx.fillStyle = t > 14.6 ? "rgba(140,180,255,.3)" : "rgba(255,150,80,.35)"; ctx.fillRect(0, 0, W, H); ctx.restore();
   const v = ctx.createRadialGradient(W / 2, 1000, 300, W / 2, 1000, 1150);   // Vignette
   v.addColorStop(0, "rgba(30,12,8,0)"); v.addColorStop(1, "rgba(30,12,8,.4)");
   ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
@@ -233,6 +262,7 @@ function grade(t) {
 // ---------- Ablauf ----------
 function scene(t) {
   t0 = t;
+  if (t >= 14.6) { winter(t); return finish(t); }
   const zoom = 1 + prog(t, 0, LEN) * 0.08 + gust(t) * 0.006;           // langsamer Kamera-Zoom
   ctx.save(); ctx.translate(W / 2, 1200); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -1200);
   park(t);
@@ -245,15 +275,14 @@ function scene(t) {
   else if (t < 9.4) { face = t < 8.0 ? "idle" : "shock"; push = Math.sin(prog(t, 7.8, 8.8) * Math.PI) * 50; }
   else if (t < 12.0) { face = t < 11.0 ? "idle" : "sad"; shiver += 2; }
   else if (t < 13.5) face = t < 12.9 ? "tired" : "sneeze";
-  else if (t < 14.3) face = (t % 2) > 1.85 ? "blink" : "sad";
-  else if (t < 16.3) face = "shock";                                // sie läuft vorbei …
-  else face = (t % 1.6) > 1.5 ? "blink" : "tired";
-  passerBy(t);
+  else face = (t % 2) > 1.85 ? "blink" : "sad";
   const phone = maliAt(t, face, { push, shiver, leaf });
-  landedLeaf(t);
   leaves(t, 6, true);
   chat(t, phone);
   ctx.restore();
+  finish(t);
+}
+function finish(t) {
   grade(t);
   subtitle("4 grad. keine jacke.", 0.2, 1.8);
   subtitle("danke.", 3.4, 4.3);
@@ -262,8 +291,10 @@ function scene(t) {
   subtitle("gesehen. 23:02.", 11.0, 11.9);
   subtitle("hatschi.", 12.9, 13.5);
   subtitle("immer noch keine jacke.", 13.7, 14.6);
-  subtitle("und dann läuft sie vorbei.", 14.8, 16.2);
-  subtitle("in der jacke.", 16.4, LEN - 0.3);
+  subtitle("3 wochen später.", 15.0, 16.0);
+  subtitle("und morgen wieder.", 18.9, LEN - 0.3);
+  const white = Math.max(0, 1 - Math.abs(t - 14.6) / 0.3);                          // weißer Übergang in den Winter
+  if (white > 0) { ctx.fillStyle = `rgba(255,255,255,${white})`; ctx.fillRect(0, 0, W, H); }
   const out = prog(t, LEN - 0.6, LEN), inn = 1 - prog(t, 0, 0.4);
   const black = Math.max(out, inn);
   if (black > 0) { ctx.fillStyle = `rgba(11,7,6,${black})`; ctx.fillRect(0, 0, W, H); }
