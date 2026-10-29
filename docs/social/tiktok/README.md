@@ -36,3 +36,12 @@ python3 serie_sound.py <ausgabe>
 node render_serie.js "$(pwd)" <ausgabe> de     # oder en
 ```
 Wann was gepostet wird: `docs/social/POSTING-PLAN.md`.
+
+## Gatekeeping (gatekeeping.html, 15,5 s)
+
+"POV: du fragst wo das outfit her ist": Reaction-Video, oben Kommentare/Bio/DMs, unten die
+Reaction-Cam. Ohne Namen, ohne Lösung. Sneaky-Beat, Grillenzirpen, "dun dun duuun".
+```
+python3 gatekeeping_sound.py <ausgabe>
+node render_page.js "$(pwd)" <ausgabe> gatekeeping.html gatekeeping.wav malipin-gatekeeping de   # oder en
+```

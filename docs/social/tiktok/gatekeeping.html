@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>html, body { margin: 0; background: #000; } canvas { display: block; }</style></head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="mali-lib.js"></script>
+<script>
+// "POV: du fragst wo das outfit her ist" – Gatekeeping. Reaction-Video: oben das Handy
+// (Kommentare, Bio, DMs), unten die Reaction-Cam. Kein Name, keine Lösung, nur der Struggle.
+LEN = 15.5;
+Object.assign(EN, {
+  "POV: du fragst wo": "POV: you ask where", "das outfit her ist": "the outfit is from",
+  "omg wo ist die jacke her?? 😍": "omg where is the jacket from?? 😍", "danke 🥰": "thank u 🥰",
+  "danke…???": "thank u…???", "und der mantel?? 🙏": "and the coat?? 🙏", "vintage 💅": "vintage 💅",
+  "vintage. natürlich.": "vintage. of course.", "SCHUHE PLS 😭": "SHOES PLS 😭", "link in bio ✨": "link in bio ✨",
+  "WELCHER LINK": "WHAT LINK", "hey 🥺": "hey 🥺", "hallo?": "hello?", "die jacke 🥺": "the jacket 🥺",
+  "bitte": "please", "ich zahl dir 5 €": "i'll pay u €5", "Gesehen": "Seen",
+  "*tippt…*": "*typing…*", "*tippt nicht mehr*": "*stopped typing*",
+  "warum fragt ihr eigentlich immer": "why do you guys always ask", "wo meine sachen her sind 🙄": "where my stuff is from 🙄",
+  "gatekeeping sollte": "gatekeeping should", "illegal sein": "be illegal",
+  "Kommentar schreiben…": "Add a comment…", "Nachricht…": "Message…", "du": "you",
+  "living my best life 🌸": "living my best life 🌸",
+});
+MALI.angry = mk({ 7: ".owkwwwwwwwwkwo.", 8: ".owwkkwwwwkkwwo.", 9: ".owbkkwwwwkkbwo.", 10: ".owwwwkkkkwwwwo." });
+MALI.dead = mk({ 8: ".owwwwwwwwwwwwo.", 9: ".owkkkwwwwkkkwo.", 10: ".owwwwwkkwwwwwo." });
+
+// großer TikTok-Text: weiß mit dicker Kontur
+function bigText(lines, cy, size, { scale = 1, rot = -0.03, fill = "#fff" } = {}) {
+  if (scale <= 0) return;
+  lines = lines.map(tr);
+  ctx.save(); ctx.translate(W / 2, cy); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.font = `900 ${size}px ${FONT}`;
+  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width)) + size * 0.2;
+  if (widest > 800) { size *= 800 / widest; ctx.font = `900 ${size}px ${FONT}`; }
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round";
+  ctx.lineWidth = size * 0.2; ctx.strokeStyle = "#1d1218";
+  lines.forEach((l, i) => { const y = (i - (lines.length - 1) / 2) * size * 1.08; ctx.strokeText(l, 0, y); ctx.fillStyle = Array.isArray(fill) ? fill[i] : fill; ctx.fillText(l, 0, y); });
+  ctx.restore();
+}
+const punch = (t, at, len = 0.22) => (t >= at && t < at + len) ? 1 - (t - at) / len : 0;
+function flash(t, at, color = "255,255,255", a = 0.8, len = 0.15) {
+  const k = punch(t, at, len) * a;
+  if (k > 0) { ctx.fillStyle = `rgba(${color},${k})`; ctx.fillRect(0, 0, W, H); }
+}
+function avatar(look, cx, cy, r) {
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fillStyle = LOOKS[look].bg; ctx.fill(); ctx.clip();
+  bunny(look, cx, cy + r * 0.25, r / 7.5); ctx.restore();
+}
+function text(str, x, y, size, color, weight = 600, align = "left") {
+  ctx.fillStyle = color; ctx.font = `${weight} ${size}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = "middle";
+  ctx.fillText(tr(str), x, y);
+}
+const typed = (t, s, from, to) => { const str = tr(s); return str.slice(0, Math.floor([...str].length * prog(t, from, to))); };
+
+// --- Handy-Bildschirm --------------------------------------------------------------------------
+const PX = 140, PY = 400, PW = 800, PH = 700;      // innerhalb des sicheren Bereichs
+function phone(draw) {
+  ctx.save(); ctx.shadowColor = "rgba(40,20,40,.35)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 12;
+  ctx.fillStyle = "#1b1418"; round(PX, PY, PW, PH, 48); ctx.fill(); ctx.restore();
+  ctx.save(); round(PX + 12, PY + 12, PW - 24, PH - 24, 38); ctx.clip();
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(PX, PY, PW, PH);
+  draw(PX + 12, PY + 12, PW - 24, PH - 24);
+  ctx.restore();
+}
+// Post mit Kommentaren. comments: [[user, look, text, ab Zeit]], input: [text, von, bis, gesendet ab]
+function postScreen(t, look, user, comments, input) {
+  phone((x, y, w, h) => {
+    avatar(look, x + 50, y + 44, 26); text(user, x + 90, y + 44, 28, "#1b1418", 800);
+    ctx.fillStyle = LOOKS[look].bg; ctx.fillRect(x, y + 84, w, 280);
+    bunny(look, x + w / 2, y + 222, 11);
+    heart(x + 40, y + 400, 4); text("48,2k", x + 70, y + 400, 26, "#1b1418", 700);
+    let cy = y + 466;
+    for (const [u, lk, msg, at] of comments) {
+      if (t < at) continue;
+      const pop = easeBack(prog(t, at, at + 0.18));
+      if (!u) cy -= 52;                                // zweite Zeile derselben Person
+      ctx.save(); ctx.translate(x + 30, cy); ctx.scale(pop, pop);
+      if (u) { avatar(lk, 22, 0, 22); text(u, 60, -18, 26, "#1b1418", 800); }
+      text(msg, 60, 18, 36, "#1b1418", 500);
+      ctx.restore(); cy += 96;
+    }
+    if (input) {                                      // Eingabezeile mit Tippen
+      const [msg, from, to, sent] = input;
+      ctx.fillStyle = "#f3eef1"; round(x + 20, y + h - 80, w - 40, 60, 30); ctx.fill();
+      if (t < sent) {
+        const s = typed(t, msg, from, to);
+        text(s || tr("Kommentar schreiben…"), x + 50, y + h - 50, 34, s ? "#1b1418" : "#9a8b93", 500);
+        if (s && (t * 3) % 1 < 0.5) { ctx.font = `500 34px ${FONT}`; ctx.fillStyle = "#c93a69"; ctx.fillRect(x + 52 + ctx.measureText(s).width, y + h - 68, 3, 36); }
+      } else text("Kommentar schreiben…", x + 50, y + h - 50, 28, "#9a8b93", 500);
+    }
+  });
+}
+function bioScreen(t) {
+  phone((x, y, w, h) => {
+    avatar("street", x + w / 2, y + 120, 80);
+    text("@bunny.fits", x + w / 2, y + 240, 40, "#1b1418", 800, "center");
+    text("✨ manifesting ✨", x + w / 2, y + 310, 38, "#1b1418", 500, "center");
+    text("living my best life 🌸", x + w / 2, y + 365, 34, "#6f5a63", 500, "center");
+    for (let i = 0; i < 3; i++) { ctx.fillStyle = LOOKS[["leather", "y2k", "trench"][i]].bg; ctx.fillRect(x + 10 + i * (w - 20) / 3, y + 430, (w - 40) / 3, 260); bunny(["leather", "y2k", "trench"][i], x + 10 + i * (w - 20) / 3 + (w - 40) / 6, y + 560, 6); }
+  });
+}
+function dmScreen(t) {
+  phone((x, y, w, h) => {
+    ctx.fillStyle = "#faf6f8"; ctx.fillRect(x, y, w, 90);
+    avatar("leather", x + 50, y + 45, 28); text("@hasi.style", x + 92, y + 45, 30, "#1b1418", 800);
+    const msgs = [["hey 🥺", 9.1], ["hallo?", 9.4], ["die jacke 🥺", 9.7], ["bitte", 10.0], ["ich zahl dir 5 €", 10.3]];
+    let my = y + 140;
+    for (const [m, at] of msgs) {
+      if (t < at) continue;
+      const pop = easeBack(prog(t, at, at + 0.15));
+      ctx.font = `500 32px ${FONT}`; const bw = ctx.measureText(tr(m)).width + 50;
+      ctx.save(); ctx.translate(x + w - 30 - bw / 2, my + 30); ctx.scale(pop, pop);
+      ctx.fillStyle = "#c93a69"; round(-bw / 2, -30, bw, 60, 30); ctx.fill();
+      text(m, 0, 2, 32, "#fff", 500, "center"); ctx.restore();
+      my += 76;
+    }
+    if (t > 10.6) text("Gesehen", x + w - 34, my + 4, 24, "#9a8b93", 600, "right");
+    if (between(t, 10.8, 11.3)) {                     // tippt … und hört wieder auf
+      ctx.fillStyle = "#efe7eb"; round(x + 30, my + 40, 120, 60, 30); ctx.fill();
+      for (let i = 0; i < 3; i++) { ctx.fillStyle = "#9a8b93"; ctx.beginPath(); ctx.arc(x + 62 + i * 28, my + 70 - Math.abs(Math.sin(t * 9 + i)) * 8, 8, 0, 7); ctx.fill(); }
+    }
+    ctx.fillStyle = "#f3eef1"; round(x + 20, y + h - 80, w - 40, 60, 30); ctx.fill();
+    text("Nachricht…", x + 50, y + h - 50, 28, "#9a8b93", 500);
+  });
+}
+// --- Reaction-Cam unten ------------------------------------------------------------------------
+function reaction(t, face, { shake = 0, sweat = false, red = 0 } = {}) {
+  const x = 310, y = 1150, w = 460, h = 360;
+  ctx.save(); ctx.translate(shake, 0);
+  ctx.fillStyle = "#fff"; round(x - 8, y - 8, w + 16, h + 16, 40); ctx.fill();
+  ctx.save(); round(x, y, w, h, 34); ctx.clip();
+  const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, "#ffe9f1"); g.addColorStop(1, "#f6d0e0");
+  ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+  mali(x + w / 2, y + 150, 27, face);                // Nahaufnahme: Gesicht in der Mitte
+  if (sweat) sprite(DROP, x + w / 2 + 150, y + 120 + (t % 0.6) * 60, 8);
+  if (red > 0) { ctx.fillStyle = `rgba(255,40,60,${red * 0.35})`; ctx.fillRect(x, y, w, h); }
+  ctx.restore(); ctx.restore();
+}
+
+function scene(t) {
+  // Hintergrund: Rosa mit Streifen, bewegt sich
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#ff9fbd"); g.addColorStop(1, "#ff6b8b");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.globalAlpha = 0.1; ctx.fillStyle = "#fff";
+  for (let i = -4; i < 14; i++) { ctx.save(); ctx.translate(i * 160 + (t * 120) % 160, 0); ctx.rotate(0.35); ctx.fillRect(0, -200, 60, 2600); ctx.restore(); }
+  ctx.restore();
+  // ganzes Bild wackelt bei Schock-Momenten
+  const quake = (punch(t, 8.3, 0.4) + punch(t, 12.0, 0.5)) * 18 * Math.sin(t * 95);
+  ctx.save(); ctx.translate(quake, 0);
+
+  if (t < 1.6) {                                                     // Hook
+    reaction(t, "shock");
+    bigText(["POV: du fragst wo", "das outfit her ist"], 560, 110, { scale: lerp(1.5, 1, easeOut(prog(t, 0, 0.18))), fill: ["#fff", "#ffe066"] });
+  } else if (t < 4.2) {                                              // 1: "danke"
+    postScreen(t, "leather", "@hasi.style",
+      [["du", "hoodie", "omg wo ist die jacke her?? 😍", 2.7], ["@hasi.style", "leather", "danke 🥰", 3.2]],
+      ["omg wo ist die jacke her?? 😍", 1.8, 2.6, 2.7]);
+    reaction(t, t < 3.2 ? "shiny" : "tired");
+    if (t > 3.4) bigText(["danke…???"], 300, 120, { scale: easeBack(prog(t, 3.4, 3.65)) });
+  } else if (t < 6.6) {                                              // 2: "vintage"
+    postScreen(t, "trench", "@hasi.style",
+      [["du", "hoodie", "und der mantel?? 🙏", 5.0], ["@hasi.style", "trench", "vintage 💅", 5.4]],
+      ["und der mantel?? 🙏", 4.3, 4.9, 5.0]);
+    const twitch = t > 5.5 ? (Math.floor(t * 12) % 4 === 0 ? 8 : 0) : 0;
+    reaction(t, t < 5.4 ? "idle" : "tired", { shake: twitch });
+    if (t > 5.6) bigText(["vintage. natürlich."], 300, 100, { scale: easeBack(prog(t, 5.6, 5.85)) });
+  } else if (t < 9.0) {                                              // 3: "link in bio"
+    if (t < 8.0) postScreen(t, "street", "@bunny.fits",
+      [["du", "hoodie", "SCHUHE PLS 😭", 7.2], ["@bunny.fits", "street", "link in bio ✨", 7.5]],
+      ["SCHUHE PLS 😭", 6.7, 7.1, 7.2]);
+    else bioScreen(t);
+    reaction(t, t < 8.3 ? "idle" : "shock", { red: t > 8.3 ? 1 - prog(t, 8.3, 9.0) : 0 });
+    if (t > 8.3) bigText(["WELCHER LINK"], 300, 130, { scale: lerp(1.6, 1, easeOut(prog(t, 8.3, 8.45))), fill: "#ffe066" });
+  } else if (t < 11.6) {                                             // 4: DMs, gesehen, tippt nicht mehr
+    dmScreen(t);
+    reaction(t, t < 10.6 ? "shiny" : "tired", { sweat: t > 10.6 });
+    if (between(t, 10.8, 11.3)) bigText(["*tippt…*"], 300, 100, { scale: easeBack(prog(t, 10.8, 11.0)) });
+    if (t >= 11.3) bigText(["*tippt nicht mehr*"], 300, 100, { scale: easeBack(prog(t, 11.3, 11.5)) });
+  } else if (t < 13.6) {                                             // 5: "warum fragt ihr immer"
+    postScreen(t, "y2k", "@hasi.style",
+      [["@hasi.style", "y2k", "warum fragt ihr eigentlich immer", 11.7], ["", "y2k", "wo meine sachen her sind 🙄", 11.7]], null);
+    reaction(t, t < 12.0 ? "idle" : "angry", { shake: t > 12.0 ? Math.sin(t * 70) * 10 : 0, red: t > 12.0 ? 0.6 : 0 });
+  } else {                                                           // Ende: tot starren
+    const z = 1 + prog(t, 13.6, 15.5) * 0.25;
+    ctx.save(); ctx.translate(W / 2, 1100); ctx.scale(z, z); ctx.translate(-W / 2, -1100);
+    mali(W / 2, 1060, 36, "dead");
+    ctx.restore();
+    bigText(["gatekeeping sollte", "illegal sein"], 420, 120, { scale: lerp(1.5, 1, easeOut(prog(t, 13.7, 13.9))), fill: ["#fff", "#ffe066"] });
+  }
+  ctx.restore();
+  flash(t, 0, "255,255,255", 0.9); flash(t, 8.3, "255,80,100", 0.5, 0.25); flash(t, 12.0, "255,80,100", 0.4, 0.25);
+  flash(t, 13.6, "29,18,24", 1, 0.2);
+}
+
+window.duration = LEN;
+window.draw = (t) => { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H); scene(t); };
+window.draw(0);
+</script>
+</body></html>
