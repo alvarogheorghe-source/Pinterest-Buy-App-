@@ -16,11 +16,12 @@ node render.js "$(pwd)" en     # Englisch
 ```
 Texte bleiben im sicheren Bereich (nicht unter TikToks Knöpfen rechts und der Beschreibung unten).
 
-## Video 4: "3 uhr nachts. ich auf pinterest" (Mali-Geschichte, 15 s)
+## Video 4: Mali nachts auf Pinterest (Geschichte ohne Werbung, 14,5 s)
 
-Weniger Werbung, mehr Mali: Mali liegt nachts im Bett und scrollt (dunkel, von der Seite), Lampe geht an, Mali fragt sich, woher alle ihre Outfits haben, sucht
-stundenlang (zu teuer, ausverkauft), hat eine Idee (Sonnenaufgang) und baut Malipin. Spieluhr-Musik mit
-traurigem "womp womp" und fröhlichem Ende.
+Erzähltext in *Sternchen*, ohne Marke am Ende (Werbung kommt in die Kommentare):
+*scrollt um 3 uhr nachts durch pinterest* (Feed voller Hasen-Influencer) · *alle sehen so gut aus* ·
+*will auch so aussehen* (Traumwolke) · *wo soll sie überhaupt suchen??* (37 Tabs) · *sucht 3 stunden* ·
+*alles zu teuer* · *hat eine idee* (Sonnenaufgang). Spieluhr-Musik mit "womp womp" und "ding!".
 ```
 python3 story_sound.py <ausgabe>
 node render_story.js "$(pwd)" <ausgabe> de     # oder en

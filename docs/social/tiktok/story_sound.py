@@ -1,10 +1,12 @@
-"""Musik für story.html ("ich jeden abend auf pinterest"), 15 s, selbst erzeugt.
+"""Musik für story.html (Mali nachts auf Pinterest), 14,5 s, selbst erzeugt.
 
-0–3.2 s  3 Uhr nachts: leise, verschlafene Spieluhr + Wisch-Geräusche (Doomscrolling)
-3.2 s    Lampe "klick", dann Spieluhr etwas wacher, Fragezeichen "boing"
-6–9.2 s  Suche: Musik bricht ab, Uhr tickt, Preisschilder "bonk", traurig "womp womp"
-9.2 s    Idee: "ding!"
-9.2–15 s fröhlich hüpfend, Spieluhr + leichter Beat, Tippen, Pops, Abschluss-Jingle
+0–5.6 s    nachts im Bett: leise Spieluhr, Wisch-Geräusche, "wow"-Funkeln beim Influencer-Hasen,
+           verträumtes Glockenspiel bei der Traumwolke
+5.6 s      Lampe "klick"
+6.0–7.5 s  überfordert: Browserfenster poppen auf (Benachrichtigungs-Blips, Spannung steigt)
+7.6–9.5 s  sucht: Uhr tickt, Preisschilder "bonk"
+9.6 s      "womp womp" (alles zu teuer)
+11.0 s     Idee: "ding!", Funkeln, kurzer fröhlicher Ausklang
 Aufruf: python3 story_sound.py <ordner>  -> story-sound.wav
 """
 
@@ -16,7 +18,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from sound import SR, env, hat, hz, kick, lowpass, noise, placer, pop, sine, square  # noqa: E402
 
-LEN = 15.0
+LEN = 14.5
 BEAT = 0.6                    # 100 BPM, gemütlich
 
 
@@ -76,64 +78,59 @@ def render(path):
     put = placer(out)
     rng = np.random.default_rng(3)
 
-    # --- Teil A: Spieluhr (0–6 s) ---
+    # --- nachts im Bett (0–5.6 s): leise, verschlafene Spieluhr ---
     chords = [("F", ["F", "A", "C"]), ("D", ["D", "F", "A"]), ("A#", ["A#", "D", "F"]), ("C", ["C", "E", "G"])]
-    melody_a = [("A", 5), ("C", 6), ("F", 6), ("E", 6), ("D", 6), ("C", 6), ("A#", 5), ("A", 5), ("G", 5), ("C", 6)]
-    for k in range(10):                                   # Melodie in Achteln/Vierteln
-        n_, o = melody_a[k]
-        at = 0.15 + k * BEAT * 0.95
-        put(musicbox(hz(n_, o), vol=0.09 if at < 3.2 else 0.16), at)   # nachts leiser
-    for k in range(9):                                    # Wischen über den Bildschirm, immer schneller
-        put(lowpass(noise(0.16), 0.2) * np.sin(np.linspace(0, np.pi, int(0.16 * SR))) ** 2, 0.2 + k * 0.36 - k * k * 0.006, 0.5)
-    click = noise(0.015) * env(int(0.015 * SR), attack=0.0005, decay=250)
-    put(click, 3.2, 0.9)                                  # Lampe an
-    put(click, 3.235, 0.5)
-    for bar in range(3):                                  # Begleitung: gebrochene Akkorde
+    melody = [("A", 5), ("C", 6), ("F", 6), ("E", 6), ("D", 6), ("C", 6), ("A#", 5), ("A", 5), ("G", 5)]
+    for k, (n_, o) in enumerate(melody):
+        put(musicbox(hz(n_, o), vol=0.08), 0.15 + k * BEAT)
+    for bar in range(3):
         root, tones = chords[bar % 4]
         for k in range(8):
-            put(musicbox(hz(tones[k % 3], 4), vol=0.08), bar * 2.0 + k * 0.25)
-        put(sine(hz(root, 3), 2.0, decay=1.2, attack=0.05, vol=0.12), bar * 2.0)
+            put(musicbox(hz(tones[k % 3], 4), vol=0.05), bar * 2.0 + k * 0.25)
+        put(sine(hz(root, 3), 2.0, decay=1.2, attack=0.05, vol=0.1), bar * 2.0)
+    swipe_len = int(0.16 * SR)
+    for at in (0.2, 0.5, 0.75, 0.97, 1.17, 1.37, 1.6, 1.88, 2.25, 2.75):   # Wischen: schnell, dann langsamer
+        put(lowpass(noise(0.16), 0.2) * np.sin(np.linspace(0, np.pi, swipe_len)) ** 2, at, 0.5)
+    put(sparkle(), 3.0)                                   # der Influencer-Hase
+    put(ding(2093.0), 3.05, 0.5)
+    for k, f in enumerate((1046.5, 1318.5, 1568.0, 2093.0, 2637.0)):   # Traumwolke: Glockenspiel hoch
+        put(musicbox(f, dur=1.2, vol=0.12), 4.3 + k * 0.09)
 
-    for k, at in enumerate((3.8, 4.1, 4.5, 4.9, 5.3)):    # Fragezeichen
-        put(boing(280 + k * 40), at, 0.8)
+    # --- Lampe an, überfordert (5.6–7.5 s) ---
+    click = noise(0.015) * env(int(0.015 * SR), attack=0.0005, decay=250)
+    put(click, 5.6, 0.9)
+    put(click, 5.635, 0.5)
+    for k in range(12):                                   # Fenster poppen, immer höher
+        put(square(880 * 2 ** (k / 12), 0.06, duty=0.25, decay=40, vol=0.22), 6.0 + k * 0.1)
+        put(pop(), 6.0 + k * 0.1, 0.35)
+    n = int(1.5 * SR)
+    tt = np.arange(n) / SR
+    put(np.sin(2 * np.pi * np.cumsum(180 + 420 * (tt / 1.5) ** 2) / SR) * (tt / 1.5) * 0.18, 6.0)   # Spannung
+    put(sine(hz("D", 3), 1.8, decay=0.8, attack=0.1, vol=0.12, harmonics=(1.0, 0.4)), 5.8)
 
-    # --- Teil B: Suche (6–9.2 s) ---
-    for k in range(16):                                   # Uhr tickt schnell
-        put(tick(), 6.0 + k * 0.1)
-    put(sine(hz("D", 3), 3.2, decay=0.6, attack=0.2, vol=0.14, harmonics=(1.0, 0.3)), 6.0)
-    for at in (6.4, 6.8, 7.2, 7.6):
+    # --- suchen (7.6–9.5 s) ---
+    for k in range(19):
+        put(tick(), 7.6 + k * 0.1)
+    put(sine(hz("D", 3), 2.0, decay=0.6, attack=0.2, vol=0.12, harmonics=(1.0, 0.3)), 7.6)
+    for at in (8.0, 8.4, 8.8, 9.2):
         put(bonk(), at)
-    for k, (n_, o, d) in enumerate([("A", 3, 0.32), ("G#", 3, 0.32), ("G", 3, 0.32), ("F#", 3, 0.8)]):
-        put(womp(hz(n_, o), d, wobble=k == 3), 8.0 + k * 0.32)
+    for k, (n_, o, d) in enumerate([("A", 3, 0.3), ("G#", 3, 0.3), ("G", 3, 0.3), ("F#", 3, 0.75)]):
+        put(womp(hz(n_, o), d, wobble=k == 3), 9.6 + k * 0.3)
 
-    # --- Idee + Teil C: fröhlich (9.2–15 s) ---
-    put(ding(1568.0), 9.2)
-    put(sparkle(), 9.25)
-    happy = [("C", 6), ("E", 6), ("G", 6), ("E", 6), ("F", 6), ("A", 6), ("G", 6), ("E", 6),
-             ("D", 6), ("F", 6), ("E", 6), ("C", 6), ("D", 6), ("E", 6), ("C", 6), ("G", 5)]
+    # --- Idee (11.0 s) ---
+    put(ding(1568.0), 11.0)
+    put(sparkle(), 11.05)
+    happy = [("C", 6), ("E", 6), ("G", 6), ("C", 7), ("G", 6), ("E", 6), ("F", 6), ("A", 6), ("G", 6)]
     for k, (n_, o) in enumerate(happy):
-        put(musicbox(hz(n_, o), vol=0.15), 9.6 + k * BEAT / 2)
-    c_chords = [("C", ["C", "E", "G"]), ("A", ["A", "C", "E"]), ("F", ["F", "A", "C"]), ("G", ["G", "B", "D"])]
-    for b in range(int((LEN - 9.6) / BEAT)):
-        at = 9.6 + b * BEAT
-        root, tones = c_chords[(b // 2) % 4]
-        put(kick(0.22, low=60, high=150, k=30), at, 0.5)
-        put(hat(0.03), at + BEAT / 2, 0.18)
-        if b % 2 == 1:
-            put(lowpass(noise(0.08), 0.3) * np.exp(-np.arange(int(0.08 * SR)) / SR * 40), at, 0.4)  # weicher Klatscher
-        put(square(hz(root, 3), BEAT * 0.45, duty=0.5, decay=6, vol=0.08), at)
-        for k in range(2):
-            put(musicbox(hz(tones[(b + k) % 3], 5), dur=0.5, vol=0.06), at + k * BEAT / 2)
-    for k in range(14):                                   # Tippen am Laptop
-        put(typing(), 10.65 + k * 0.065 + rng.uniform(0, 0.02))
-    for at in (11.6, 11.85, 12.1):
-        put(pop(), at, 0.8)
-    for k, f in enumerate((1046.5, 1318.5, 1568.0, 2093.0)):   # Abschluss-Jingle
-        put(musicbox(f, dur=1.4, vol=0.2), 12.6 + k * 0.12)
-    put(sparkle(), 13.1)
+        put(musicbox(hz(n_, o), vol=0.14), 11.4 + k * BEAT / 2)
+    for k, (root, tones) in enumerate([("C", ["C", "E", "G"]), ("F", ["F", "A", "C"]), ("C", ["C", "E", "G"])]):
+        put(sine(hz(root, 3), 1.2, decay=1.5, attack=0.05, vol=0.12), 11.4 + k * 1.2)
+        for m, note in enumerate(tones):
+            put(musicbox(hz(note, 5), dur=0.9, vol=0.06), 11.4 + k * 1.2 + m * 0.1)
+    put(sparkle(), 13.4)
 
     out = out[: int(LEN * SR)]
-    fade = int(0.6 * SR)
+    fade = int(0.7 * SR)
     out[-fade:] *= np.linspace(1, 0, fade)
     out = np.tanh(lowpass(out, 0.45) * 1.4)
     out = out / np.max(np.abs(out)) * 0.9
