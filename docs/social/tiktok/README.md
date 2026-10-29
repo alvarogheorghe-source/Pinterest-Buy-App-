@@ -26,3 +26,13 @@ Erzähltext in *Sternchen*, ohne Marke am Ende (Werbung kommt in die Kommentare)
 python3 story_sound.py <ausgabe>
 node render_story.js "$(pwd)" <ausgabe> de     # oder en
 ```
+
+## Mali-Serie (serie.html): ausverkauft, paket, schrank, warenkorb
+
+Kurze Alltagsgeschichten (10–11 s), Erzähltext in *Sternchen*, keine Werbung im Video.
+Gemeinsame Bausteine (Mali, Zimmer, Bett, Text) liegen in `mali-lib.js`.
+```
+python3 serie_sound.py <ausgabe>
+node render_serie.js "$(pwd)" <ausgabe> de     # oder en
+```
+Wann was gepostet wird: `docs/social/POSTING-PLAN.md`.

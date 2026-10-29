@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>html, body { margin: 0; background: #000; } canvas { display: block; }</style></head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="mali-lib.js"></script>
+<script>
+// Mali-Serie: kurze, süße Alltagsgeschichten ohne Werbung. ?v=ausverkauft|paket|schrank|warenkorb, ?lang=en
+Object.assign(EN, {
+  "*findet DIE perfekte jacke*": "*finds THE perfect jacket*", "*größe auswählen…*": "*picking a size…*",
+  "*ausverkauft.": "*sold out.", "in jeder größe*": "in every size*", "AUSVERKAUFT": "SOLD OUT",
+  "*legt sich wieder": "*goes back", "ins bett*": "to bed*", "In den Warenkorb": "Add to cart",
+  "*bestellt das outfit": "*orders the outfit", "vom foto*": "from the photo*", "bestellt ✓": "ordered ✓",
+  "*paket ist da!!*": "*package is here!!*", "bestellt": "ordered", "bekommen": "got", "*naja…*": "*well…*",
+  "*schickt es zurück*": "*sends it back*",
+  "*kleiderschrank": "*wardrobe", "ist voll*": "is full*", "*sucht was": "*looking for", "zum anziehen*": "something to wear*",
+  "*hat trotzdem nichts": "*still has nothing", "*öffnet pinterest*": "*opens pinterest*",
+  "*packt alles in": "*puts everything", "den warenkorb*": "in the cart*", "*sieht die summe*": "*sees the total*",
+  "*entfernt alles wieder*": "*removes everything*", "*speichert es": "*saves it", "auf pinterest*": "on pinterest*",
+  "Warenkorb": "Cart", "Summe": "Total", "Merken": "Save",
+  "Lederjacke": "Leather jacket", "Baggy Jeans": "Baggy jeans", "Sneaker": "Sneakers", "Tasche": "Bag", "Top": "Top",
+  "39,90 €": "€39.90", "59,90 €": "€59.90", "39,99 €": "€39.99", "69,00 €": "€69.00", "49,00 €": "€49.00", "32,01 €": "€32.01",
+});
+const money = (v) => LANG === "en" ? `€${v.toFixed(2)}` : `${v.toFixed(2).replace(".", ",")} €`;
+
+const ITEMS = {
+  jacket: ["...XX..XX...", "..XXXwwXXX..", ".XXXXwwXXXX.", "XXXXXwwXXXXX", "XXXXXwwXXXXX",
+           "XX.XXwwXX.XX", "XX.XXwwXX.XX", "XX.XXwwXX.XX", "XX.XXXXXX.XX", "...XXXXXX..."],
+  jeans:  ["..XXXXXXXX..", "..XXXXXXXX..", "..XXXX.XXX..", ".XXXXX.XXXX.", ".XXXX..XXXX.",
+           ".XXXX..XXXX.", "XXXXX..XXXXX", "XXXXX..XXXXX", "XXXXX..XXXXX", "XXXX....XXXX"],
+  sneaker:["............", "....XXX.....", "...XXXXX....", "..XXXXXXXX..", ".XXXXXXXXXXX",
+           "XXXXXXXXXXXX", "GGGGGGGGGGGG", "............"],
+  bag:    ["....XXXX....", "...X....X...", "...X....X...", ".XXXXXXXXXX.", ".XXXXXXXXXX.",
+           ".XXXXwwXXXX.", ".XXXXXXXXXX.", ".XXXXXXXXXX.", ".XXXXXXXXXX."],
+  top:    [".XX....XX.", ".XXXXXXXX.", "XXXXXXXXXX", "XXXXXXXXXX", "..XXXXXX..",
+           "..XXXXXX..", "..XXXXXX..", "..XXXXXX.."],
+};
+function item(name, cx, cy, s, color, alpha = 1) {
+  const rows = ITEMS[name];
+  pixels(rows, cx - rows[0].length * s / 2, cy - rows.length * s / 2, s, { X: color, w: "#fffaf6", G: "#8c7f78" }, alpha);
+}
+// Handy groß über Mali: Rahmen + Inhalt (draw bekommt die Innenfläche)
+function phoneScreen(x, y, w, h, scale, draw) {
+  if (scale <= 0) return;
+  ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.scale(scale, scale); ctx.translate(-(x + w / 2), -(y + h / 2));
+  ctx.save(); ctx.shadowColor = "rgba(58,42,48,.25)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 12;
+  ctx.fillStyle = "#231c20"; round(x, y, w, h, 56); ctx.fill(); ctx.restore();
+  ctx.save(); round(x + 14, y + 14, w - 28, h - 28, 44); ctx.clip();
+  ctx.fillStyle = "#fff7fa"; ctx.fillRect(x, y, w, h);
+  draw(x + 14, y + 14, w - 28, h - 28);
+  ctx.restore(); ctx.restore();
+}
+function pill(textStr, cx, cy, size, bg, fg, scale = 1, rot = 0) {
+  if (scale <= 0) return;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.font = `800 ${size}px ${FONT}`; const w = ctx.measureText(tr(textStr)).width + size * 1.2;
+  ctx.fillStyle = bg; round(-w / 2, -size * 0.8, w, size * 1.6, size * 0.8); ctx.fill();
+  ctx.fillStyle = fg; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(tr(textStr), 0, size * 0.05);
+  ctx.restore();
+}
+function fadeOut(t) {
+  const out = prog(t, LEN - 0.45, LEN);
+  if (out > 0) { ctx.fillStyle = `rgba(255,247,250,${out})`; ctx.fillRect(0, 0, W, H); }
+}
+const MX = W / 2, MY = 1100, S = 24;
+
+// ================= 1: ausverkauft =================
+function ausverkauft(t) {
+  room(t, 1, false);
+  let face = (t % 1.7) > 1.6 ? "blink" : "shiny", sink = 0, shake = 0;
+  if (t > 3.0) face = "idle";
+  if (t > 4.6) face = "shock";
+  if (t > 6.6) face = "sad";
+  if (t > 7.4) { sink = easeOut(prog(t, 7.6, 8.6)) * 250; face = "tired"; }
+  if (between(t, 5.6, 5.9)) shake = Math.sin(t * 90) * 14;
+  ctx.save(); ctx.translate(shake, 0);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, 1400); ctx.clip();      // unter der Decke verschwinden
+  mali(MX, MY + sink, S, face);
+  ctx.restore();
+  bedFront(1250);
+  const phoneIn = easeBack(prog(t, 0.1, 0.45)) * (1 - easeOut(prog(t, 7.2, 7.6)));
+  phoneScreen(290, 430, 500, 480, phoneIn, (x, y, w, h) => {
+    ctx.fillStyle = "#f3e7ee"; round(x + 20, y + 20, w - 40, 230, 24); ctx.fill();
+    item("jacket", x + w / 2, y + 135, 15, "#1e1a1d");
+    for (let i = 0; i < 3; i++) {
+      const k = (t * 1.2 + i / 3) % 1;
+      if (t < 3) sprite(SPARK, x + [70, w - 70, w - 110][i], y + [70, 90, 210][i] - k * 20, 7, Math.sin(k * Math.PI));
+    }
+    ctx.fillStyle = "#3a2a30"; ctx.font = `800 34px ${FONT}`; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText(tr("39,90 €"), x + 26, y + 285);
+    ["S", "M", "L", "XL"].forEach((size, i) => {          // Größen, eine nach der anderen weg
+      const bx = x + 26 + i * 104, by = y + 320, gone = t > 3.0 + i * 0.6;
+      ctx.fillStyle = gone ? "#efe3e9" : "#fff"; ctx.strokeStyle = "#d9c6cf"; ctx.lineWidth = 3;
+      round(bx, by, 88, 60, 14); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = gone ? "#c4b3bb" : "#3a2a30"; ctx.font = `800 30px ${FONT}`; ctx.textAlign = "center";
+      ctx.fillText(size, bx + 44, by + 31);
+      if (gone) { const p = prog(t, 3.0 + i * 0.6, 3.2 + i * 0.6); ctx.strokeStyle = "#e0435f"; ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(bx + 14, by + 10); ctx.lineTo(bx + 14 + 60 * p, by + 10 + 40 * p); ctx.stroke(); }
+    });
+    const press = between(t, 2.2, 2.45) ? 0.93 : 1;
+    ctx.save(); ctx.translate(x + w / 2, y + h - 50); ctx.scale(press, press);
+    ctx.fillStyle = t > 2.2 ? "#a52d55" : "#c93a69"; round(-180, -32, 360, 64, 32); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.font = `800 30px ${FONT}`; ctx.textAlign = "center"; ctx.fillText(tr("In den Warenkorb"), 0, 2);
+    ctx.restore();
+    if (t > 5.6) {                                       // Stempel
+      const st = prog(t, 5.6, 5.85);
+      ctx.save(); ctx.translate(x + w / 2, y + h / 2 - 20); ctx.rotate(-0.18); ctx.scale(lerp(2.2, 1, easeOut(st)), lerp(2.2, 1, easeOut(st)));
+      ctx.globalAlpha = st; ctx.strokeStyle = "#e0435f"; ctx.lineWidth = 10; ctx.font = `900 64px ${FONT}`;
+      const sw = ctx.measureText(tr("AUSVERKAUFT")).width + 60;
+      round(-sw / 2, -55, sw, 110, 18); ctx.stroke();
+      ctx.fillStyle = "#e0435f"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(tr("AUSVERKAUFT"), 0, 4);
+      ctx.restore();
+    }
+  });
+  if (t > 6.7 && t < 7.6) sprite(DROP, MX + 170, 1000 + ((t - 6.7) % 0.6) * 60, 9, 1 - ((t - 6.7) % 0.6) / 0.6);
+  ctx.restore();
+  if (t < 2.2) narrate(["*findet DIE perfekte jacke*"], 300, { scale: easeBack(prog(t, 0, 0.3)) });
+  else if (t < 5.6) narrate(["*größe auswählen…*"], 300, { scale: easeBack(prog(t, 2.3, 2.6)) });
+  else if (t < 7.4) narrate(["*ausverkauft.", "in jeder größe*"], 300, { scale: easeBack(prog(t, 5.6, 5.9)) });
+  else narrate(["*legt sich wieder", "ins bett*"], 330, { scale: easeBack(prog(t, 7.6, 7.9)) });
+  fadeOut(t);
+}
+
+// ================= 2: bestellt vs. bekommen =================
+function uglyJacket(cx, cy, a) {                         // viel zu große, senfgelbe Jacke
+  if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a; ctx.translate(cx, cy); ctx.scale(lerp(0.6, 1, easeBack(a)), lerp(0.6, 1, easeBack(a)));
+  ctx.fillStyle = "#c9a227"; round(-250, -80, 500, 330, 70); ctx.fill();                 // Körper
+  ctx.fillStyle = "#b38f1f"; round(-300, -40, 90, 300, 40); ctx.fill(); round(210, -40, 90, 300, 40); ctx.fill(); // Ärmel
+  ctx.fillStyle = "#d8b43b"; ctx.beginPath(); ctx.moveTo(-120, -80); ctx.lineTo(0, 40); ctx.lineTo(120, -80); ctx.lineTo(80, -110); ctx.lineTo(0, -20); ctx.lineTo(-80, -110); ctx.closePath(); ctx.fill(); // Kragen
+  ctx.fillStyle = "#8a6d12"; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(0, 70 + i * 60, 10, 0, 7); ctx.fill(); }
+  ctx.fillStyle = "#a07ed6"; round(120, 120, 70, 50, 10); ctx.fill();                   // komischer Flicken
+  ctx.restore();
+}
+function box(cx, cy, open, s = 1) {
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(s, s);
+  ctx.fillStyle = "#d6a676"; round(-150, -100, 300, 200, 14); ctx.fill();
+  ctx.fillStyle = "#c08e5f"; ctx.fillRect(-20, -100, 40, 200);
+  ctx.save(); ctx.translate(-160, -100); ctx.rotate(-1.9 * open);
+  ctx.fillStyle = "#e0b585"; round(0, -24, 320, 30, 10); ctx.fill(); ctx.restore();
+  ctx.restore();
+}
+function paket(t) {
+  room(t, 1, false);
+  let face = (t % 1.7) > 1.6 ? "blink" : "shiny", hop = 0, ugly = 0;
+  if (between(t, 2.6, 5.0)) { face = "happy"; hop = Math.abs(Math.sin((t - 2.6) * 7)) * 34; }
+  if (t > 6.2) { face = (t % 1.4) > 1.3 ? "blink" : "tired"; ugly = prog(t, 6.2, 6.6) * (1 - prog(t, 9.0, 9.3)); }
+  if (t > 9.3) face = "sad";
+  mali(MX, MY - hop, S, face);
+  uglyJacket(MX, MY + 60, ugly);
+  bedFront(1250);
+  // Bestellung auf dem Handy
+  const phoneIn = easeBack(prog(t, 0.1, 0.45)) * (1 - easeOut(prog(t, 2.4, 2.7)));
+  phoneScreen(290, 430, 500, 480, phoneIn, (x, y, w, h) => {
+    feedCard("leather", x + 20, y + 20, w - 40, h - 40, "48,2k", true);
+    pill("bestellt ✓", x + w / 2, y + h - 70, 34, "#3fa66b", "#fff", easeBack(prog(t, 1.6, 1.85)));
+  });
+  // Paket fällt aufs Bett und geht auf
+  if (between(t, 2.7, 6.4) || t > 9.0) {
+    const fall = t < 9 ? easeBack(prog(t, 2.8, 3.3)) : 1;
+    const out = t > 9.4 ? easeOut(prog(t, 9.4, 10.2)) * 900 : 0;
+    box(MX + 230 + out, lerp(200, 1240, fall), t > 9 ? 0 : easeOut(prog(t, 5.0, 5.5)), 0.9);
+    if (between(t, 5.2, 6.4)) for (let i = 0; i < 5; i++) {
+      const k = prog(t, 5.2, 6.4);
+      sprite(SPARK, MX + 230 + Math.cos(i * 1.3) * 200 * k, 1100 - Math.sin(i * 1.3) * 220 * k, 9, 1 - k);
+    }
+  }
+  if (t > 6.6 && t < 9.0) {                              // Vergleich
+    const a = easeBack(prog(t, 6.6, 6.9));
+    ctx.save(); ctx.translate(250, 640); ctx.scale(a, a); ctx.rotate(-0.06);
+    feedCard("leather", -140, -170, 280, 340, "48,2k");
+    ctx.restore();
+    pill("bestellt", 250, 860, 34, "#3a2a30", "#fff", a);
+    pill("bekommen", 800, 980, 34, "#c93a69", "#fff", easeBack(prog(t, 7.0, 7.3)), 0.05);
+  }
+  if (t < 2.6) narrate(["*bestellt das outfit", "vom foto*"], 300, { scale: easeBack(prog(t, 0, 0.3)) });
+  else if (t < 6.2) narrate(["*paket ist da!!*"], 300, { scale: easeBack(prog(t, 2.7, 3.0)) });
+  else if (t < 9.0) narrate(["*naja…*"], 300, { scale: easeBack(prog(t, 7.4, 7.7)), size: 90 });
+  else narrate(["*schickt es zurück*"], 300, { scale: easeBack(prog(t, 9.1, 9.4)) });
+  fadeOut(t);
+}
+
+// ================= 3: nichts zum anziehen =================
+const CLOTHES = ["#ff8fab", "#7fa0c8", "#ffe066", "#a8d5ba", "#1e1a1d", "#d9c2f0", "#c9b8a8", "#ffb3c7", "#3b4a5c", "#f4f1ec"];
+function wardrobe(t, open) {
+  ctx.fillStyle = "#e3c7b5"; round(290, 600, 500, 820, 30); ctx.fill();
+  ctx.fillStyle = "#f6ece4"; round(320, 630, 440, 760, 20); ctx.fill();
+  ctx.fillStyle = "#b99a86"; ctx.fillRect(330, 680, 420, 10);                        // Stange
+  const left = Math.max(0, 10 - Math.floor(prog(t, 2.6, 5.4) * 10));               // Kleidung wird weniger
+  for (let i = 0; i < left; i++) {
+    const x = 350 + i * 40, wig = Math.sin(t * 8 + i) * (t < 2.4 ? 3 : 0);
+    ctx.strokeStyle = "#8c7f78"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x + 18, 685); ctx.lineTo(x + 18, 700); ctx.stroke();
+    ctx.fillStyle = CLOTHES[i]; round(x + wig, 700, 36, 230 + (i % 3) * 30, 8); ctx.fill();
+  }
+  ctx.fillStyle = "#e3c7b5"; ctx.fillRect(320, 1080, 440, 14);                       // Regal
+  for (let i = 0; i < 4; i++) { ctx.fillStyle = CLOTHES[(i + 3) % 10]; round(340 + i * 104, 1040 - (i % 2) * 14, 90, 40 + (i % 2) * 14, 8); ctx.fill(); }
+  const d = 220 * (1 - open);                                                         // Türen
+  ctx.fillStyle = "#d4b39e"; round(290, 600, 30 + d, 820, 24); ctx.fill(); round(760 - d, 600, 30 + d, 820, 24); ctx.fill();
+}
+function schrank(t) {
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#ffe9f1"); g.addColorStop(1, "#f1dcef");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#ecd2e2"; ctx.fillRect(0, 1380, W, 540);                            // Boden
+  lights(t);
+  wardrobe(t, easeOut(prog(t, 0.3, 0.9)));
+  // Haufen auf dem Boden, wächst
+  const pile = prog(t, 2.8, 5.6);
+  for (let i = 0; i < Math.floor(pile * 18); i++) {
+    const side = i % 2 ? 1 : -1, x = MX + side * (120 + (i * 37) % 200), y = 1440 - Math.floor(i / 4) * 34;
+    ctx.fillStyle = CLOTHES[i % 10]; ctx.save(); ctx.translate(x, y); ctx.rotate((i * 0.7) % 1 - 0.5);
+    round(-70, -22, 140, 44, 14); ctx.fill(); ctx.restore();
+  }
+  // fliegende Teile (über Malis Schulter)
+  if (between(t, 2.6, 5.6)) for (let k = 0; k < 12; k++) {
+    const at = 2.6 + k * 0.25, f = prog(t, at, at + 0.5);
+    if (f <= 0 || f >= 1) continue;
+    const side = k % 2 ? 1 : -1, x = lerp(MX, MX + side * 280, f), y = 900 - Math.sin(f * Math.PI) * 300 + f * 520;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(f * 6 * side); ctx.fillStyle = CLOTHES[k % 10]; round(-55, -35, 110, 70, 12); ctx.fill(); ctx.restore();
+  }
+  let face = "idle", my = 1280, hop = 0;
+  if (t < 2.4) face = (t % 1.5) > 1.4 ? "blink" : "happy";
+  else if (t < 5.6) { face = "idle"; hop = Math.abs(Math.sin(t * 8)) * 16; }
+  else { face = t > 7.6 ? "shiny" : ((t % 1.4) > 1.3 ? "blink" : "tired"); my = 1230; }
+  mali(MX, my - hop, 22, face);
+  if (t > 7.6) {                                                                     // Handy
+    ctx.fillStyle = "#231c20"; round(MX + 90, 1210, 70, 120, 14); ctx.fill();
+    ctx.fillStyle = "#e9ecff"; round(MX + 97, 1218, 56, 104, 9); ctx.fill();
+    ctx.fillStyle = "#e60023"; ctx.beginPath(); ctx.arc(MX + 125, 1270, 14, 0, 7); ctx.fill();
+  }
+  if (t < 2.4) narrate(["*kleiderschrank", "ist voll*"], 300, { scale: easeBack(prog(t, 0, 0.3)) });
+  else if (t < 5.6) narrate(["*sucht was", "zum anziehen*"], 300, { scale: easeBack(prog(t, 2.5, 2.8)) });
+  else if (t < 7.6) narrate(["*hat trotzdem nichts", "zum anziehen*"], 300, { scale: easeBack(prog(t, 5.7, 6.0)) });
+  else narrate(["*öffnet pinterest*"], 300, { scale: easeBack(prog(t, 7.7, 8.0)) });
+  fadeOut(t);
+}
+
+// ================= 4: warenkorb =================
+const CART = [["jacket", "#1e1a1d", "Lederjacke", 59.90], ["jeans", "#7fa0c8", "Baggy Jeans", 39.99],
+              ["sneaker", "#f4f1ec", "Sneaker", 69.00], ["bag", "#c93a69", "Tasche", 49.00], ["top", "#d9c2f0", "Top", 32.01]];
+const ADD = [0.5, 1.1, 1.7, 2.3, 2.9], REMOVE = [5.6, 6.0, 6.4, 6.8, 7.2];
+function warenkorb(t) {
+  room(t, 1, false);
+  let face = (t % 1.7) > 1.6 ? "blink" : "happy";
+  if (t > 3.6) face = "shock";
+  if (t > 5.4) face = (t % 1.4) > 1.3 ? "blink" : "tired";
+  if (t > 8.2) face = "happy";
+  const shake = between(t, 3.6, 3.95) ? Math.sin(t * 90) * 12 : 0;
+  mali(MX, MY, S, face);
+  bedFront(1250);
+  const phoneIn = easeBack(prog(t, 0.05, 0.4));
+  ctx.save(); ctx.translate(shake, 0);
+  phoneScreen(270, 350, 540, 570, phoneIn, (x, y, w, h) => {
+    ctx.fillStyle = "#3a2a30"; ctx.font = `800 36px ${FONT}`; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText(tr("Warenkorb"), x + 30, y + 46);
+    let total = 0, row = 0;
+    CART.forEach(([kind, color, name, price], i) => {
+      const added = prog(t, ADD[i], ADD[i] + 0.2), removed = prog(t, REMOVE[i], REMOVE[i] + 0.25);
+      if (added <= 0 || removed >= 1) return;
+      if (removed === 0) total += price;
+      const ry = y + 84 + row * 64, rx = x + 20 - removed * 600; row++;
+      ctx.globalAlpha = added * (1 - removed);
+      ctx.fillStyle = "#f6ecf1"; round(rx, ry, w - 40, 56, 14); ctx.fill();
+      ctx.fillStyle = color === "#f4f1ec" ? "#d8cbc4" : "#fff"; round(rx + 7, ry + 5, 46, 46, 9); ctx.fill();
+      item(kind, rx + 30, ry + 28, 3.2, color);
+      ctx.fillStyle = "#3a2a30"; ctx.font = `700 27px ${FONT}`; ctx.textAlign = "left"; ctx.fillText(tr(name), rx + 68, ry + 29);
+      ctx.textAlign = "right"; ctx.fillText(money(price), rx + w - 60, ry + 29);
+      ctx.globalAlpha = 1;
+    });
+    if (t > 8.2) total = 0;
+    // Summe
+    const big = between(t, 3.6, 5.4) ? easeBack(prog(t, 3.6, 3.9)) : 0;
+    ctx.fillStyle = "#3a2a30"; ctx.fillRect(x + 20, y + h - 120, w - 40, 3);
+    ctx.font = `800 34px ${FONT}`; ctx.textAlign = "left"; ctx.fillText(tr("Summe"), x + 30, y + h - 70);
+    ctx.save(); ctx.translate(x + w - 40, y + h - 70); ctx.scale(1 + big * 0.5, 1 + big * 0.5);
+    ctx.fillStyle = big > 0 ? "#e0435f" : "#3a2a30"; ctx.font = `900 40px ${FONT}`; ctx.textAlign = "right";
+    ctx.fillText(money(total), 0, 0); ctx.restore();
+    if (t > 8.2) {                                        // auf Pinterest merken
+      const p = easeBack(prog(t, 8.3, 8.6));
+      ctx.fillStyle = `rgba(255,247,250,${0.9 * clamp(p)})`; ctx.fillRect(x, y, w, h);
+      ctx.save(); ctx.translate(x + w / 2, y + h / 2 - 30); ctx.scale(p, p);
+      ctx.fillStyle = "#f3e7ee"; round(-150, -170, 300, 300, 26); ctx.fill();
+      item("jacket", 0, -30, 14, "#1e1a1d");
+      ctx.restore();
+      pill("Merken", x + w / 2, y + h - 90, 36, "#e60023", "#fff", easeBack(prog(t, 8.6, 8.85)));
+      if (t > 8.9) for (let i = 0; i < 4; i++) { const k = ((t - 8.9) * 0.9 + i / 4) % 1; heart(x + w / 2 + (i - 1.5) * 70, y + h - 150 - k * 220, 6, Math.sin(k * Math.PI)); }
+    }
+  });
+  ctx.restore();
+  if (t < 3.4) narrate(["*packt alles in", "den warenkorb*"], 270, { scale: easeBack(prog(t, 0, 0.3)) });
+  else if (t < 5.4) narrate(["*sieht die summe*"], 290, { scale: easeBack(prog(t, 3.6, 3.9)) });
+  else if (t < 8.2) narrate(["*entfernt alles wieder*"], 290, { scale: easeBack(prog(t, 5.4, 5.7)) });
+  else narrate(["*speichert es", "auf pinterest*"], 270, { scale: easeBack(prog(t, 8.2, 8.5)) });
+  fadeOut(t);
+}
+
+const VIDEOS = { ausverkauft: [ausverkauft, 10.5], paket: [paket, 11], schrank: [schrank, 10], warenkorb: [warenkorb, 10.5] };
+const which = new URLSearchParams(location.search).get("v") || "ausverkauft";
+LEN = VIDEOS[which][1];
+window.duration = LEN;
+window.draw = (t) => { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H); VIDEOS[which][0](t); };
+window.draw(0);
+</script>
+</body></html>

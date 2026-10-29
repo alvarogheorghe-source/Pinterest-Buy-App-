@@ -1,0 +1,348 @@
+// Gemeinsame Bausteine für die Mali-Videos (story.html, serie.html): Mali, Hasen-Outfits,
+// Zimmer, Bett, Licht, Erzähltext. Alles Bild für Bild nach Zeit t.
+
+// Mali-Geschichte: nachts Hasen-Influencer im Feed, will auch so aussehen, alles zu teuer, hat eine Idee. Keine Werbung.
+// Bild für Bild nach Zeit t (Sekunden), 15 s. ?lang=en für Englisch. Musik: story_sound.py
+// Sicherer Bereich für TikTok: Inhalte zwischen y 180 und 1520, rechts nicht über x 940.
+const W = 1080, H = 1920;
+let LEN = 14.5;   // jede Seite setzt ihre eigene Länge
+const ctx = document.getElementById("c").getContext("2d");
+const FONT = '"Inter Display", Inter, sans-serif';
+const LANG = new URLSearchParams(location.search).get("lang") || "de";
+const EN = {
+  "*scrollt um 3 uhr nachts": "*scrolling pinterest", "durch pinterest*": "at 3am*",
+  "*alle sehen so gut aus*": "*everyone looks so good*",
+  "*will auch so": "*wants to look", "aussehen*": "like that too*",
+  "*sucht 3 stunden*": "*searches for 3 hours*", "*alles zu teuer*": "*everything's too expensive*",
+  "*hat eine idee*": "*has an idea*",
+  "*wo soll sie überhaupt": "*where is she even", "suchen??*": "supposed to look??*", "37 tabs offen": "37 tabs open",
+  "ausverkauft": "sold out", "nur in den USA": "US only", "189 €": "€189", "249 €": "€249",
+};
+const tr = (s) => (LANG === "en" && EN[s] !== undefined ? EN[s] : s);
+
+// ---------- Mali ----------
+const PAL = { o: "#6b5656", w: "#fffaf6", s: "#f1e1da", p: "#f6a5b9", b: "#ffc7d1", k: "#2d2326",
+              r: "#ff6b8b", t: "#8fc8ff", y: "#ffe066" };
+const IDLE = [
+  "....oo....oo....", "...owwo..owwo...", "...owpo..opwo...", "...owpo..opwo...",
+  "...owpo..opwo...", "...owwoooowwo...", "..owwwwwwwwwwo..", ".owwwwwwwwwwwwo.",
+  ".owwkkwwwwkkwwo.", ".owbkkwwwwkkbwo.", ".owwwwwppwwwwwo.", "..owwwwwwwwwwo..",
+  "..owwwwwwwwwwo..", ".oswwwwwwwwwwso.", ".oswpwwwwwwpwso.", "..oooooooooooo.."];
+const mk = (rows) => IDLE.map((r, i) => rows[i] || r);
+const MALI = {
+  idle: IDLE,
+  blink: mk({ 8: ".owwwwwwwwwwwwo.", 9: ".owboowwwwoobwo." }),
+  happy: mk({ 8: ".owwwowwwwowwwo.", 9: ".owbowowwowobwo." }),
+  shiny: mk({ 8: ".owwkwwwwwkwwwo.", 9: ".owbkkwwwwkkbwo." }),        // glänzende Augen
+  sad: mk({ 8: ".owwwwwwwwwwwwo.", 9: ".owbkkwwwwkkbwo.", 10: ".owwtwwppwwwwwo.", 11: "..owtwwwwwwwwo.." }),
+  tired: mk({ 8: ".owwwwwwwwwwwwo.", 9: ".owbkkwwwwkkbwo." }),
+  shock: mk({ 8: ".owkkkwwwwkkkwo.", 9: ".owkkkwwwwkkkwo.", 10: ".owwwwwkkwwwwwo." }),
+  wave: mk({ 8: ".owwwowwwwowwwo.", 9: ".owbowowwowobwo.", 13: ".oswwwwwwwwwwsoo", 12: "..owwwwwwwwwwoop" }),
+};
+const HEART = [".rr.rr.", "rrrrrrr", "rrrrrrr", ".rrrrr.", "..rrr..", "...r..."];
+const QUESTION = [".kkk.", "k...k", "....k", "...k.", "..k..", ".....", "..k.."];
+const BULB = ["..yyy..", ".yyyyy.", "yyyyyyy", "yyyyyyy", ".yyyyy.", "..yyy..", "..ooo..", "..ooo.."];
+const SPARK = ["..y..", "..y..", "yyyyy", "..y..", "..y.."];
+const DROP = ["..t..", ".ttt.", "ttttt", ".ttt."];
+
+function pixels(rows, x, y, s, pal, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha;
+  rows.forEach((row, r) => [...row].forEach((ch, c) => {
+    if (ch === "." || !pal[ch]) return;
+    ctx.fillStyle = pal[ch];
+    ctx.fillRect(Math.round(x + c * s), Math.round(y + r * s), Math.ceil(s), Math.ceil(s));
+  }));
+  ctx.restore();
+}
+function mali(cx, cy, s, face = "idle", { alpha = 1, squash = 0, tilt = 0 } = {}) {
+  ctx.save(); ctx.globalAlpha = alpha * 0.16; ctx.fillStyle = "#6b5656";
+  ctx.beginPath(); ctx.ellipse(cx, cy + 8.6 * s, 6.4 * s, 1.1 * s, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.translate(cx, cy + 8 * s); ctx.rotate(tilt); ctx.scale(1 + squash, 1 - squash);
+  ctx.translate(-cx, -(cy + 8 * s));
+  pixels(MALI[face], cx - 8 * s, cy - 8 * s, s, PAL, alpha);
+  ctx.restore();
+}
+// Hasen-Influencer: gleiche Form wie Mali, andere Fellfarbe + Outfit
+const LOOKS = {
+  leather: { fur: "#fffaf6", shade: "#f1e1da", top: "#1e1a1d", tee: "#fffaf6", chain: null, glasses: "#1e1a1d", shoes: "#fffaf6", bg: "#f3e7ee" },
+  hoodie:  { fur: "#d9b99b", shade: "#c4a283", top: "#ff8fab", tee: "#ff8fab", chain: "#f2c14e", glasses: null, shoes: "#fffaf6", bg: "#fde2ea" },
+  trench:  { fur: "#c9c3cf", shade: "#b3acba", top: "#d7b98e", tee: "#f4ead8", chain: null, glasses: "#3a2a30", shoes: "#6b4a3a", bg: "#f1ebe2" },
+  y2k:     { fur: "#fffaf6", shade: "#f1e1da", top: "#c9a8ff", tee: "#c9a8ff", chain: "#e9e6f2", glasses: "#ff6b8b", shoes: "#ff8fab", bg: "#efe6ff" },
+  street:  { fur: "#8a7c84", shade: "#76686f", top: "#7fa0c8", tee: "#7fa0c8", chain: "#f2c14e", glasses: "#1e1a1d", shoes: "#fffaf6", bg: "#e3ebf5" },
+};
+function dressed(look, face = "idle") {
+  const L = LOOKS[look], rows = MALI[face].map((r) => [...r]);
+  for (let r = 11; r <= 14; r++) for (let c = 0; c < 16; c++) {
+    if ("wsp".includes(rows[r][c])) rows[r][c] = (c === 7 || c === 8) && r >= 11 ? "T" : "J";
+  }
+  if (L.chain) for (let c = 6; c <= 9; c++) rows[11][c] = "G";
+  rows[14][4] = rows[14][11] = "S";
+  if (L.glasses) {
+    for (const r of [8, 9]) for (const c of [3, 4, 5, 6, 9, 10, 11, 12]) rows[r][c] = "K";
+    rows[8][7] = rows[8][8] = "K";
+  }
+  const pal = { ...PAL, w: L.fur, s: L.shade, J: L.top, T: L.tee, G: L.chain || L.top, K: L.glasses || "#000", S: L.shoes };
+  return { rows: rows.map((r) => r.join("")), pal };
+}
+function bunny(look, cx, cy, s, face = "idle", alpha = 1) {
+  const { rows, pal } = dressed(look, face);
+  pixels(rows, cx - 8 * s, cy - 8 * s, s, pal, alpha);
+}
+// Sprite als Ganzes drehen (ohne Streifen zwischen den Pixeln)
+function rotatedSprite(rows, pal, cx, cy, s, angle, scaleX = 1) {
+  const c16 = document.createElement("canvas"); c16.width = c16.height = 16;
+  const sc = c16.getContext("2d");
+  rows.forEach((row, r) => [...row].forEach((ch, c) => { if (pal[ch]) { sc.fillStyle = pal[ch]; sc.fillRect(c, r, 1, 1); } }));
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle); ctx.scale(scaleX, 1);
+  ctx.imageSmoothingEnabled = false; ctx.drawImage(c16, -8 * s, -8 * s, 16 * s, 16 * s); ctx.restore();
+}
+const sprite = (rows, cx, cy, s, alpha = 1) => pixels(rows, cx - rows[0].length * s / 2, cy - rows.length * s / 2, s, PAL, alpha);
+
+// ---------- Helfer ----------
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeBack = (x) => { const c = 2.4; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const between = (t, a, b) => t >= a && t < b;
+function round(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+// Text wie eine TikTok-Textbox (weiß, abgerundet), passt sich der Breite an
+function caption(lines, cx, cy, size, { bg = "#fff", fg = "#3a2a30", scale = 1, alpha = 1, rot = 0, weight = 800 } = {}) {
+  if (alpha <= 0 || scale <= 0) return;
+  lines = lines.map(tr);
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.font = `${weight} ${size}px ${FONT}`;
+  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width)) + size * 0.84;
+  if (widest > 800) { size *= 800 / widest; ctx.font = `${weight} ${size}px ${FONT}`; }
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const lh = size * 1.3, total = lh * lines.length;
+  lines.forEach((line, i) => {
+    const y = -total / 2 + lh * i + lh / 2, w = ctx.measureText(line).width + size * 0.84;
+    if (bg) { ctx.fillStyle = bg; round(-w / 2, y - lh / 2, w, lh, size * 0.3); ctx.fill(); }
+    ctx.fillStyle = fg; ctx.fillText(line, 0, y + size * 0.04);
+  });
+  ctx.restore();
+}
+// Erzähltext in *Sternchen*: weiße Schrift mit weichem Schatten, ohne Kasten
+function narrate(lines, cy, { scale = 1, alpha = 1, size = 76 } = {}) {
+  if (alpha <= 0 || scale <= 0) return;
+  lines = lines.map(tr);
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(W / 2, cy); ctx.scale(scale, scale);
+  ctx.font = `800 ${size}px ${FONT}`;
+  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width));
+  if (widest > 820) { size *= 820 / widest; ctx.font = `800 ${size}px ${FONT}`; }
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const lh = size * 1.18;
+  lines.forEach((line, i) => {
+    const y = (i - (lines.length - 1) / 2) * lh;
+    ctx.lineJoin = "round"; ctx.lineWidth = size * 0.09; ctx.strokeStyle = "rgba(45,25,45,.55)";
+    ctx.shadowColor = "rgba(20,12,30,.8)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 4;
+    ctx.strokeText(line, 0, y); ctx.shadowColor = "transparent";
+    ctx.fillStyle = "#fff"; ctx.fillText(line, 0, y);
+  });
+  ctx.restore();
+}
+function heart(cx, cy, s, alpha = 1) { sprite(HEART, cx, cy, s, alpha); }
+function floatingHearts(t, start, cx, cy, n = 5, spread = 260) {
+  for (let i = 0; i < n; i++) {
+    const k = ((t - start) * 0.6 + i / n) % 1;
+    if (t < start) return;
+    heart(cx + Math.sin(i * 2.1 + k * 5) * spread, cy - k * 360, 7 + (i % 2) * 3, Math.sin(k * Math.PI));
+  }
+}
+
+// ---------- Szene: Schlafzimmer (Nacht -> Lampe -> Sonnenaufgang) ----------
+const mix = (a, b, k) => {          // zwei Hex-Farben mischen
+  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+  const ch = (sh) => Math.round(lerp((pa >> sh) & 255, (pb >> sh) & 255, k));
+  return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
+};
+function windowFrame(t, x, y, w, h, sunrise) {
+  ctx.save(); ctx.fillStyle = mix("#2a2350", "#ffb88c", sunrise); round(x, y, w, h, 28); ctx.fill();
+  if (sunrise > 0) {                                          // Sonne geht auf
+    ctx.fillStyle = `rgba(255,230,140,${sunrise})`; ctx.beginPath(); ctx.arc(x + w * 0.6, y + h - 40 * sunrise - 20, 52, 0, 7); ctx.fill();
+  }
+  ctx.globalAlpha = 1 - sunrise;
+  ctx.fillStyle = "#fff5d6"; ctx.beginPath(); ctx.arc(x + w * 0.7, y + 90, 46, 0, 7); ctx.fill();
+  ctx.fillStyle = "#2a2350"; ctx.beginPath(); ctx.arc(x + w * 0.62, y + 76, 42, 0, 7); ctx.fill();
+  for (let i = 0; i < 6; i++) {
+    const tw = 0.5 + 0.5 * Math.sin(t * 3 + i * 1.7);
+    ctx.fillStyle = `rgba(255,245,214,${0.4 + tw * 0.6})`; ctx.fillRect(x + 30 + (i * 53) % (w - 60), y + 40 + (i * 71) % (h - 80), 8, 8);
+  }
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 14; round(x, y, w, h, 28); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + w / 2, y); ctx.lineTo(x + w / 2, y + h); ctx.moveTo(x, y + h / 2); ctx.lineTo(x + w, y + h / 2); ctx.stroke();
+  ctx.restore();
+}
+function lights(t, on = 1) {                                  // Lichterkette
+  ctx.save(); ctx.strokeStyle = "rgba(107,86,86,.35)"; ctx.lineWidth = 3; ctx.beginPath();
+  for (let x = 40; x <= 1040; x += 10) ctx.lineTo(x, 520 + Math.sin(x / 160) * 30);
+  ctx.stroke();
+  const colors = ["#ff8fab", "#ffe066", "#a8e6cf", "#bcb6ff"];
+  for (let i = 0; i < 11; i++) {
+    const x = 70 + i * 92, y = 534 + Math.sin(x / 160) * 30;
+    ctx.fillStyle = colors[i % 4]; ctx.globalAlpha = on * (0.55 + 0.45 * Math.sin(t * 4 + i));
+    ctx.beginPath(); ctx.arc(x, y, 12, 0, 7); ctx.fill();
+  }
+  ctx.restore();
+}
+// Zimmer von vorn: Wand, Fenster, Lichterkette, Kopfteil des Betts, Nachttisch mit Lampe
+function room(t, sunrise, lampOn) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#ffe9f1"); g.addColorStop(0.62, "#f7d9ee"); g.addColorStop(1, "#e9d3f3");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  windowFrame(t, 110, 560, 260, 330, sunrise);
+  lights(t);
+  ctx.fillStyle = "#e7b7cc"; round(220, 960, 640, 360, 70); ctx.fill();         // Kopfteil
+  ctx.fillStyle = "#f2cadb"; round(250, 990, 580, 300, 54); ctx.fill();
+  ctx.fillStyle = "#d9b8a8"; round(60, 1270, 150, 190, 16); ctx.fill();          // Nachttisch
+  ctx.fillStyle = "#c9a593"; ctx.fillRect(80, 1350, 110, 8);
+  ctx.fillStyle = "#8c7f78"; ctx.fillRect(130, 1170, 10, 100);                    // Lampe
+  ctx.fillStyle = lampOn ? "#ffe8a3" : "#cfc2d8";
+  ctx.beginPath(); ctx.moveTo(85, 1180); ctx.lineTo(185, 1180); ctx.lineTo(160, 1110); ctx.lineTo(110, 1110); ctx.closePath(); ctx.fill();
+}
+// Matratze + Decke vorne (über Malis Bauch)
+function bedFront(top) {
+  ctx.fillStyle = "#fbeef4"; round(170, top - 20, 740, 260, 40); ctx.fill();
+  ctx.fillStyle = "#ffb3c7"; round(190, top, 700, 240, 46); ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.45)";                                        // Pünktchen-Muster
+  for (let i = 0; i < 18; i++) { ctx.beginPath(); ctx.arc(240 + (i % 6) * 120 + (Math.floor(i / 6) % 2) * 60, top + 50 + Math.floor(i / 6) * 70, 9, 0, 7); ctx.fill(); }
+  ctx.fillStyle = "#ff9fba"; round(190, top, 700, 34, 17); ctx.fill();             // Umschlag
+}
+// Dunkelheit über der Szene, mit Lichtkreis um (lx, ly)
+function darkness(amount, lx, ly, radius, warm = false) {
+  if (amount <= 0) return;
+  const g = ctx.createRadialGradient(lx, ly, radius * 0.15, lx, ly, radius);
+  g.addColorStop(0, warm ? `rgba(255,214,150,${amount * 0.1})` : `rgba(18,14,40,${amount * 0.15})`);
+  g.addColorStop(1, `rgba(18,14,40,${amount})`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+
+// ---------- Szene 1: nachts im Bett, von der Seite, Doomscrolling ----------
+const FEED = ["hoodie", "trench", "y2k", "street", "leather", "hoodie", "street", "trench", "y2k", "leather"];
+const LIKES = ["12,4k", "8,9k", "21k", "5,2k", "48,2k", "9,7k", "33k", "6,1k", "17k", "48,2k"];
+function feedCard(look, x, y, w, h, likes, big = false) {
+  ctx.fillStyle = LOOKS[look].bg; round(x, y, w, h, big ? 30 : 18); ctx.fill();
+  const s = big ? 15 : (w / 22);
+  bunny(look, x + w / 2, y + h * 0.44, s);
+  ctx.fillStyle = "#3a2a30"; ctx.font = `800 ${big ? 40 : 22}px ${FONT}`; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  heart(x + (big ? 40 : 24), y + h - (big ? 40 : 22), big ? 5 : 3);
+  ctx.fillText(likes, x + (big ? 70 : 40), y + h - (big ? 38 : 21));
+}
+// großer Handy-Bildschirm: Feed scrollt, bremst ab und bleibt bei einem Hasen stehen (zoom 0..1)
+function bigPhone(t, x, y, w, h, zoom, alpha = 1) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.save(); ctx.shadowColor = "rgba(190,200,255,.55)"; ctx.shadowBlur = 80;
+  ctx.fillStyle = "#16121f"; round(x, y, w, h, 56); ctx.fill(); ctx.restore();
+  ctx.save(); round(x + 14, y + 14, w - 28, h - 28, 44); ctx.clip();
+  ctx.fillStyle = "#fff7fa"; ctx.fillRect(x, y, w, h);
+  // Position: schnell, dann abbremsen bis t=3.0
+  const T = Math.min(t, 3.0), scroll = 820 * T - 120 * T * T;
+  const cw = (w - 28 - 36) / 2, ch = 250;
+  for (let i = 0; i < FEED.length * 2; i++) {
+    const col = i % 2, py = y + 80 + Math.floor(i / 2) * (ch + 14) + (col ? 70 : 0) - scroll;
+    if (py > y + h || py + ch < y) continue;
+    feedCard(FEED[i % FEED.length], x + 26 + col * (cw + 10), py, cw, ch, LIKES[i % LIKES.length]);
+  }
+  if (zoom > 0) {                                   // der eine Hase, der alles hat
+    ctx.fillStyle = `rgba(255,247,250,${0.85 * zoom})`; ctx.fillRect(x, y, w, h);
+    const z = easeBack(zoom), bw = lerp(cw, w - 70, z), bh = lerp(ch, h - 110, z);
+    feedCard("leather", x + (w - bw) / 2, y + 70 + (h - 110 - bh) / 2, bw, bh, "48,2k", z > 0.6);
+    for (let i = 0; i < 3; i++) {                    // Herzen poppen
+      const k = ((t - 3.0) * 0.9 + i / 3) % 1;
+      if (t > 3.1) heart(x + w - 80 - i * 40, y + h - 90 - k * 160, 6, Math.sin(k * Math.PI) * zoom);
+    }
+  }
+  const minutes = 167 + Math.floor(prog(t, 0.3, 5.0) * 25);  // 02:47 -> 03:12
+  ctx.fillStyle = "#3a2a30"; ctx.font = `800 30px ${FONT}`; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillText(`0${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`, x + 50, y + 46);
+  ctx.fillStyle = "#e60023"; ctx.beginPath(); ctx.arc(x + w / 2, y + 46, 16, 0, 7); ctx.fill();
+  ctx.restore(); ctx.restore();
+}
+// Traumwolke: Mali im gleichen Outfit
+function dreamCloud(t, cx, cy, a) {
+  if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a;
+  ctx.fillStyle = "rgba(255,255,255,.95)";
+  for (const [dx, dy, r] of [[-170, 0, 120], [0, -50, 150], [170, 0, 120], [-80, 70, 110], [90, 70, 110]]) { ctx.beginPath(); ctx.arc(cx + dx, cy + dy, r * easeBack(a), 0, 7); ctx.fill(); }
+  ctx.beginPath(); ctx.arc(cx - 160, cy + 220, 26, 0, 7); ctx.arc(cx - 200, cy + 290, 16, 0, 7); ctx.fill();
+  bunny("leather", cx, cy - 10 + Math.sin(t * 4) * 8, 14, "happy");
+  for (let i = 0; i < 4; i++) {
+    const k = (t * 1.3 + i / 4) % 1;
+    sprite(SPARK, cx + [-200, 210, -150, 160][i], cy + [-90, -70, 90, 100][i] - k * 30, 8, Math.sin(k * Math.PI));
+  }
+  ctx.restore();
+}
+function sceneBedSide(t) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#120f24"); g.addColorStop(1, "#231b3d");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#3a2f5c"; round(70, 1150, 60, 330, 20); ctx.fill();          // Bett von der Seite
+  ctx.fillStyle = "#4a3f6b"; round(90, 1300, 900, 150, 30); ctx.fill();
+  ctx.fillStyle = "#cfc4e6"; ctx.beginPath(); ctx.ellipse(250, 1290, 140, 48, 0, 0, 7); ctx.fill();
+  const face = t > 2.9 ? ((t % 1.6) > 1.5 ? "blink" : "shiny") : ((t % 2.4) > 2.2 ? "blink" : "tired");
+  rotatedSprite(MALI[face], PAL, 330, 1225, 18, -Math.PI / 2, 1 + Math.sin(t * 2) * 0.012);
+  ctx.fillStyle = "#c86f93"; round(400, 1150 + Math.sin(t * 2) * 4, 590, 190, 70); ctx.fill();   // Decke
+  ctx.fillStyle = "rgba(255,255,255,.25)";
+  for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.arc(450 + i * 70, 1210 + (i % 2) * 50, 8, 0, 7); ctx.fill(); }
+  ctx.fillStyle = "#16121f"; round(440, 980, 70, 120, 14); ctx.fill();         // Handy in der Pfote
+  ctx.fillStyle = "#e9ecff"; round(447, 988, 56, 104, 9); ctx.fill();
+  ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 7; round(455, 1080, 50, 40, 18); ctx.fill(); ctx.stroke();
+  ctx.save(); ctx.globalCompositeOperation = "lighter";                           // Lichtschein vom Handy
+  const glow = ctx.createRadialGradient(470, 1060, 10, 400, 1180, 260);
+  glow.addColorStop(0, "rgba(140,160,255,.22)"); glow.addColorStop(1, "rgba(140,160,255,0)");
+  ctx.fillStyle = glow; ctx.fillRect(100, 850, 700, 560); ctx.restore();
+  const dream = prog(t, 4.3, 4.7);
+  bigPhone(t, 290, 500, 500, 440, prog(t, 2.9, 3.3), 1 - dream);
+  dreamCloud(t, W / 2 + 20, 720, dream);
+  if (t < 2.8) narrate(["*scrollt um 3 uhr nachts", "durch pinterest*"], 330, { scale: easeBack(prog(t, 0, 0.3)) });
+  else if (t < 4.3) narrate(["*alle sehen so gut aus*"], 330, { scale: easeBack(prog(t, 2.8, 3.1)) });
+  else narrate(["*will auch so", "aussehen*"], 330, { scale: easeBack(prog(t, 4.3, 4.6)) });
+}
+
+function clock(cx, cy, r, t, speed) {
+  ctx.save(); ctx.fillStyle = "#fff"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 10;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.lineCap = "round";
+  for (const [len, sp, w] of [[r * 0.55, speed / 12, 10], [r * 0.8, speed, 7]]) {
+    const a = t * sp - Math.PI / 2;
+    ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len); ctx.stroke();
+  }
+  ctx.restore();
+}
+function tag(textStr, cx, cy, { color = "#c93a69", strike = false, scale = 1, rot = 0 } = {}) {
+  if (scale <= 0) return;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.font = `900 54px ${FONT}`; const w = ctx.measureText(tr(textStr)).width + 70;
+  ctx.fillStyle = "#fff"; ctx.shadowColor = "rgba(58,42,48,.18)"; ctx.shadowBlur = 20; ctx.shadowOffsetY = 6;
+  round(-w / 2, -48, w, 96, 26); ctx.fill(); ctx.shadowColor = "transparent";
+  ctx.fillStyle = "#f4e3ea"; ctx.beginPath(); ctx.arc(-w / 2 + 28, 0, 9, 0, 7); ctx.fill();
+  ctx.fillStyle = color; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(tr(textStr), 10, 3);
+  if (strike) { ctx.strokeStyle = color; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(-w / 2 + 50, 4); ctx.lineTo(w / 2 - 20, 4); ctx.stroke(); }
+  ctx.restore();
+}
+
+// Browserfenster, die überall aufpoppen (Überforderung)
+const WINDOWS = [[180, 660, -0.08], [850, 650, 0.07], [430, 610, 0.04], [650, 640, -0.05], [170, 830, 0.06],
+                 [840, 820, -0.09], [190, 1000, -0.03], [850, 990, 0.09], [170, 1170, 0.05], [840, 1160, -0.1],
+                 [200, 1330, 0.1], [830, 1320, -0.06]];
+function browserWin(cx, cy, scale, rot, seed) {
+  if (scale <= 0) return;
+  const w = 300, h = 210;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(scale, scale);
+  ctx.shadowColor = "rgba(20,12,30,.35)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
+  ctx.fillStyle = "#fff"; round(-w / 2, -h / 2, w, h, 18); ctx.fill(); ctx.shadowColor = "transparent";
+  ctx.fillStyle = "#f1e6ec"; round(-w / 2, -h / 2, w, 36, 18); ctx.fill(); ctx.fillRect(-w / 2, -h / 2 + 18, w, 18);
+  ["#ff6b8b", "#ffe066", "#a8e6cf"].forEach((c, i) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(-w / 2 + 22 + i * 22, -h / 2 + 18, 7, 0, 7); ctx.fill(); });
+  ctx.fillStyle = "#f6eef2"; round(-w / 2 + 18, -h / 2 + 50, w - 36, 30, 15); ctx.fill();          // Suchleiste
+  ctx.strokeStyle = "#b9a7b0"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(-w / 2 + 36, -h / 2 + 64, 7, 0, 7); ctx.stroke();
+  const colors = ["#ffb3c7", "#c9b8a8", "#bcb6ff", "#a8d5ba", "#ffe066", "#7fa0c8"];
+  for (let k = 0; k < 4; k++) { ctx.fillStyle = colors[(seed + k) % 6]; round(-w / 2 + 18 + k * 68, -h / 2 + 96, 58, 80, 10); ctx.fill(); }
+  ctx.restore();
+}
+
