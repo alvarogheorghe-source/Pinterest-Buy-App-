@@ -46,14 +46,13 @@ python3 gatekeeping_sound.py <ausgabe>
 node render_page.js "$(pwd)" <ausgabe> gatekeeping.html gatekeeping.wav malipin-gatekeeping de   # oder en
 ```
 
-## Herbstpark (herbst.html, 20 s, Endlosschleife)
+## Herbstpark (herbst.html, 13,4 s, Endlosschleife)
 
-Filmischer Look (volles 9:16-Bild, warme Farben, Filmkorn, langsamer Zoom, Untertitel): Pixel-Mali
-steht mit Schal und ohne Jacke im Herbstlaub und friert. Nachrichten steigen als Blasen aus dem
-Handy: "danke", "vintage", "link in bio", gesehen 23:02, "hatschi", "immer noch keine jacke."
-Dann "3 wochen später.": Schnee, Mali eingeschneit, endlich die Antwort "kleiner laden in
-kopenhagen, leider ausverkauft". Sie fragt nach dem nächsten Mantel, "und morgen wieder.",
-Schwarz, und das Video beginnt von vorn. Ruhiger Lo-Fi mit Wind und Vinyl.
+Filmischer Look (volles 9:16-Bild, warme Farben, Filmkorn, langsamer Zoom), ohne Untertitel.
+Pixel-Mali steht mit Schal und ohne Jacke im Herbstlaub und friert. Zwei Nachrichten-Wechsel:
+"wo ist die jacke her?? 🥺" -> "danke 🥰", dann "hallo? 🥺" -> nur "Gesehen". Hatschi, weißer
+Übergang in den Winter: Mali immer noch ohne Jacke im Schnee, darüber ihr Feed, der endlos durch
+Jacken und Mäntel scrollt. Schwarz, und das Video beginnt von vorn. Ruhiger Lo-Fi mit Wind.
 ```
 python3 herbst_sound.py <ausgabe>
 node render_page.js "$(pwd)" <ausgabe> herbst.html herbst.wav malipin-herbst de   # oder en

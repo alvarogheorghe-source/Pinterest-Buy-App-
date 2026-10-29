@@ -8,10 +8,11 @@
 // Herbstpark, filmischer Look (warme Farben, Filmkorn, Untertitel, volles 9:16-Bild): Mali friert ohne Jacke und
 // fragt Creator, wo die Jacke her ist. Nachrichten steigen als Blasen aus dem Handy. Kein Name,
 // keine Lösung. ?lang=en
-LEN = 20.2;
+LEN = 13.4;
 Object.assign(EN, {
-  "4 grad. keine jacke.": "4°C. no jacket.", "wo ist die jacke her?? 🥺": "where is the jacket from?? 🥺",
-  "danke 🥰": "thank u 🥰", "danke.": "thank u.", "und der mantel?? 🙏": "and the coat?? 🙏", "vintage 💅": "vintage 💅",
+  "hallo? 🥺": "hello? 🥺",
+  "4 grad. keine jacke.": "4°C. no jacket.", "bitte?? 🥺": "please?? 🥺", "ist leider ausverkauft 🥰": "it's sold out sorry 🥰", "wo ist die jacke her?? 🥺": "where is the jacket from?? 🥺",
+  "danke 🥰": "thanks 🥰", "danke.": "thank u.", "und der mantel?? 🙏": "and the coat?? 🙏", "vintage 💅": "vintage 💅",
   "natürlich.": "of course.", "jacke pls 😭": "jacket pls 😭", "link in bio ✨": "link in bio ✨",
   "die bio sagt manifesting.": "the bio says manifesting.", "hey 🥺": "hey 🥺", "hallo?": "hello?", "mir ist kalt": "i'm cold",
   "ich zahl dir 5 €": "i'll pay u €5", "gesehen 23:02": "seen 23:02", "gesehen. 23:02.": "seen. 23:02.",
@@ -30,7 +31,7 @@ function txt(str, x, y, size, color, weight = 600, align = "left") {
 const typed = (t, s, from, to) => { const str = [...tr(s)]; return str.slice(0, Math.floor(str.length * prog(t, from, to))).join(""); };
 
 // ---------- Wind ----------
-const GUSTS = [[0.1, 1.0], [3.7, 0.5], [7.8, 1.2], [10.6, 0.6], [12.9, 0.9]];   // [Zeit, Stärke]
+const GUSTS = [[0.1, 1.0], [3.5, 0.5], [6.4, 0.9], [9.5, 0.5]];   // [Zeit, Stärke]
 const gust = (t) => GUSTS.reduce((a, [at, s]) => a + s * Math.exp(-((t - at - 0.35) ** 2) / 0.12), 0);
 const drift = (t) => t * 60 + GUSTS.reduce((a, [at, s]) => a + s * 700 * clamp((t - at) / 0.8), 0);   // aufsummierter Wind
 
@@ -142,22 +143,17 @@ function maliAt(t, face, { push = 0, shiver = 0, leaf = false } = {}) {
 }
 
 // ---------- Chat-Blasen, die aus dem Handy aufsteigen ----------
-// [Text, Zeit, von mir?, Avatar-Look]
+// Nur zwei Wechsel: "danke" … und dann nur noch "gesehen".
 const ROUNDS = [
-  [1.9, 4.3, [["wo ist die jacke her?? 🥺", 1.9, true], ["danke 🥰", 2.9, false, "leather"]]],
-  [4.4, 6.7, [["und der mantel?? 🙏", 4.4, true], ["vintage 💅", 5.2, false, "trench"]]],
-  [6.8, 9.3, [["jacke pls 😭", 6.8, true], ["link in bio ✨", 7.5, false, "street"]]],
-  [9.4, 11.9, [["hey 🥺", 9.4, true], ["hallo?", 9.8, true], ["mir ist kalt", 10.2, true], ["ich zahl dir 5 €", 10.6, true]]],
-  [12.0, 13.5, [["warum fragt ihr eigentlich immer", 12.0, false, "y2k"], ["wo meine sachen her sind 🙄", 12.0, false, null]]],
-  [16.0, 18.3, [["ist von einem kleinen laden", 16.1, false, "leather"], ["in kopenhagen 🥰", 16.1, false, null], ["leider ausverkauft", 16.9, false, null]]],
-  [18.5, 20.2, [["wo ist der mantel her?? 🥺", 18.6, true]]],
+  [1.9, 4.4, [["wo ist die jacke her?? 🥺", 1.9, true], ["danke 🥰", 2.9, false, "leather"]]],
+  [4.6, 7.2, [["hallo? 🥺", 4.7, true]]],
 ];
 function bubble(t, msg, at, mine, look, slot, phone, fade) {
   const pop = easeBack(prog(t, at, at + 0.3)), rise = easeOut(prog(t, at, at + 0.6));
   if (pop <= 0) return;
   ctx.font = `500 46px ${FONT}`;
   const tw = ctx.measureText(tr(msg)).width, bw = tw + 64, bh = 86;
-  const tx = mine ? 900 - bw / 2 : 170 + bw / 2;                // eigene rechts, Antworten links
+  const tx = mine ? 900 - bw / 2 : 170 + bw / 2;
   const ty = 430 + slot * 116;
   const x = lerp(phone.x, tx, rise), y = lerp(phone.y, ty, rise);
   ctx.save(); ctx.globalAlpha = fade; ctx.translate(x, y); ctx.scale(pop, pop);
@@ -175,20 +171,22 @@ function bubble(t, msg, at, mine, look, slot, phone, fade) {
 function chat(t, phone) {
   for (const [from, to, msgs] of ROUNDS) {
     if (t < from || t > to) continue;
-    const fade = 1 - prog(t, to - 0.25, to);
+    const fade = 1 - prog(t, to - 0.3, to);
     msgs.forEach(([msg, at, mine, look], slot) => bubble(t, msg, at, mine, look, slot, phone, fade));
-    if (from === 9.4 && t > 11.0) {
-      ctx.globalAlpha = fade; ctx.fillStyle = "#fff"; ctx.font = `600 28px ${FONT}`; ctx.textAlign = "right";
-      ctx.fillText(tr("gesehen 23:02"), 900, 430 + 4 * 116 - 50); ctx.globalAlpha = 1;
+    if (from === 4.6 && t > 5.4) {                                 // gesehen …
+      ctx.save(); ctx.globalAlpha = fade * prog(t, 5.4, 5.6); ctx.fillStyle = "#fff"; ctx.font = `600 34px ${FONT}`;
+      ctx.textAlign = "right"; ctx.shadowColor = "rgba(0,0,0,.4)"; ctx.shadowBlur = 8;
+      ctx.fillText(tr("Gesehen"), 900, 430 + 76); ctx.restore();
     }
-    if (from === 9.4 && between(t, 11.2, 11.7)) {                  // tippt … und hört auf
-      ctx.fillStyle = "#fbf6f2"; round(170, 430 + 4 * 116 - 20, 140, 72, 36); ctx.fill();
-      for (let i = 0; i < 3; i++) { ctx.fillStyle = "#9a8b93"; ctx.beginPath(); ctx.arc(208 + i * 32, 430 + 4 * 116 + 16 - Math.abs(Math.sin(t * 9 + i)) * 8, 10, 0, 7); ctx.fill(); }
+    if (from === 4.6 && between(t, 5.9, 6.5)) {                    // … tippt … und hört wieder auf
+      ctx.fillStyle = "#fbf6f2"; round(170, 430 + 116 - 30, 140, 72, 36); ctx.fill();
+      for (let i = 0; i < 3; i++) { ctx.fillStyle = "#9a8b93"; ctx.beginPath(); ctx.arc(208 + i * 32, 430 + 116 + 6 - Math.abs(Math.sin(t * 9 + i)) * 8, 10, 0, 7); ctx.fill(); }
     }
   }
 }
 
-// ---------- Ende: 3 Wochen später, Schnee, Antwort kommt endlich (und hilft nicht) ----------
+// ---------- Ende: Winter, Mali immer noch ohne Jacke, scrollt weiter durch Jacken ----------
+const WINTER = 7.9;
 function snowflakes(t, n = 150) {
   ctx.fillStyle = "rgba(255,255,255,.9)";
   for (let i = 0; i < n; i++) {
@@ -197,57 +195,58 @@ function snowflakes(t, n = 150) {
     ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
   }
 }
+const JACKET = ["...XX..XX...", "..XXXwwXXX..", ".XXXXwwXXXX.", "XXXXXwwXXXXX", "XXXXXwwXXXXX",
+                "XX.XXwwXX.XX", "XX.XXwwXX.XX", "XX.XXwwXX.XX", "XX.XXXXXX.XX", "...XXXXXX..."];
+const COAT = ["...XX..XX...", "..XXXXXXXX..", ".XXXXXXXXXX.", "XXXXXXXXXXXX", "XX.XXXXXX.XX",
+              "XX.XXXXXX.XX", "XX.XXXXXX.XX", "XX.XXXXXX.XX", "...XXXXXX...", "...XXXXXX...", "...XX..XX..."];
+const FEED_ITEMS = [[JACKET, "#1e1a1d", "#f3e7ee"], [COAT, "#c9a27a", "#f1ebe2"], [JACKET, "#7fa0c8", "#e3ebf5"],
+                    [COAT, "#3b4a5c", "#eef0f6"], [JACKET, "#c8493c", "#fde2ea"], [COAT, "#e8d9c4", "#f6efe5"],
+                    [JACKET, "#6b7048", "#eef1e4"], [COAT, "#2b2228", "#f3e7ee"]];
+function jacketFeed(t, ph, alpha) {
+  if (alpha <= 0) return;
+  const PX = 200, PY = 250, PW = 680, PH = 760;
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.fillStyle = "rgba(255,255,255,.45)";                                           // Zoom-Spitze zum Handy
+  ctx.beginPath(); ctx.moveTo(W / 2 - 80, PY + PH - 4); ctx.lineTo(W / 2 + 80, PY + PH - 4); ctx.lineTo(ph.x, ph.y); ctx.fill();
+  ctx.save(); ctx.shadowColor = "rgba(30,40,70,.35)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 12;
+  ctx.fillStyle = "#231c20"; round(PX, PY, PW, PH, 48); ctx.fill(); ctx.restore();
+  ctx.save(); round(PX + 12, PY + 12, PW - 24, PH - 24, 38); ctx.clip();
+  ctx.fillStyle = "#fff7fa"; ctx.fillRect(PX, PY, PW, PH);
+  const scroll = (t - WINTER) * 260, cw = (PW - 24 - 42) / 2;                        // scrollt endlos weiter
+  for (let i = 0; i < 24; i++) {
+    const col = i % 2, ch = 230 + (i % 3) * 40;
+    const y = PY + 80 + Math.floor(i / 2) * 290 + (col ? 110 : 0) - scroll;
+    if (y > PY + PH || y + ch < PY) continue;
+    const x = PX + 24 + col * (cw + 18), [rows, color, bg] = FEED_ITEMS[i % FEED_ITEMS.length];
+    ctx.fillStyle = bg; round(x, y, cw, ch, 20); ctx.fill();
+    pixels(rows, x + cw / 2 - rows[0].length * 7, y + ch / 2 - rows.length * 7 - 14, 14, { X: color, w: "#fffaf6" });
+    heart(x + 30, y + ch - 26, 3.5);
+  }
+  ctx.fillStyle = "#e60023"; ctx.beginPath(); ctx.arc(PX + PW / 2, PY + 46, 16, 0, 7); ctx.fill();   // Pinterest-Punkt
+  ctx.restore(); ctx.restore();
+}
 function winter(t) {
-  const zoom = 1.04 + prog(t, 14.6, LEN) * 0.06;
+  const zoom = 1.02 + prog(t, WINTER, LEN) * 0.05;
   ctx.save(); ctx.translate(W / 2, 1200); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -1200);
   park(t);
   ctx.save(); ctx.globalCompositeOperation = "saturation"; ctx.fillStyle = "rgba(128,128,128,.8)"; ctx.fillRect(0, 0, W, H); ctx.restore();
   ctx.fillStyle = "rgba(205,222,255,.38)"; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = "#f3f6fc"; ctx.beginPath(); ctx.moveTo(0, 1075);                 // Schneedecke
+  ctx.fillStyle = "#f3f6fc"; ctx.beginPath(); ctx.moveTo(0, 1075);                  // Schneedecke
   for (let x = 0; x <= W; x += 90) ctx.quadraticCurveTo(x + 45, 1050 + (x % 180 ? 10 : -12), x + 90, 1075);
   ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
-  const cx = W / 2 + Math.sin(t * 70) * 2.5, cy = MY;
-  let face = (t % 1.7) > 1.55 ? "blink" : "tired";
-  if (between(t, 17.0, 18.0)) face = "sad";
-  if (t > 18.4) face = "idle";
-  mali(cx, cy, S, face);
-  ctx.fillStyle = "#ff5a6e"; ctx.fillRect(cx - S, cy + 2 * S, 2 * S, S);                // rote Nase
-  // Schneehäubchen zwischen den Ohren, rutscht bei 18.0 runter
-  const slide = easeOut(prog(t, 18.0, 18.5));
-  if (slide < 1) {
-    ctx.save(); ctx.globalAlpha = 1 - slide; ctx.translate(cx + slide * 120, cy - 5.2 * S + slide * 300); ctx.rotate(slide * 0.8);
-    ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#b9c8e2"; ctx.lineWidth = 7;
-    round(-3.4 * S, -0.9 * S, 6.8 * S, 1.9 * S, S); ctx.fill(); ctx.stroke(); ctx.restore();
-  }
-  if (between(t, 18.0, 18.7)) for (let i = 0; i < 8; i++) {                           // Puderwolke
-    const k = prog(t, 18.0, 18.7), a = i / 8 * Math.PI * 2;
-    ctx.fillStyle = `rgba(255,255,255,${1 - k})`; ctx.beginPath(); ctx.arc(cx + 100 + Math.cos(a) * 90 * k, cy + 60 + Math.sin(a) * 60 * k, 14, 0, 7); ctx.fill();
-  }
-  // Schneehügel bis zur Nase
-  ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#c9d6ea"; ctx.lineWidth = 6;
-  ctx.beginPath(); ctx.ellipse(cx, cy + 6.3 * S, 7.6 * S, 3.3 * S, 0, 0, 7); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "#e6edf8"; ctx.beginPath(); ctx.ellipse(cx + 2 * S, cy + 7.2 * S, 5 * S, 1.6 * S, 0, 0, 7); ctx.fill();
-  const phone = { x: cx + 3.2 * S, y: cy + 3.2 * S };                                 // Handy schaut aus dem Schnee
-  ctx.fillStyle = "#231c20"; round(phone.x - 26, phone.y - 20, 52, 80, 9); ctx.fill();
-  ctx.fillStyle = t > 16.0 ? "#ffffff" : "#c9d4ea"; round(phone.x - 20, phone.y - 14, 40, 68, 6); ctx.fill();
+  const face = (t % 1.9) > 1.75 ? "blink" : "idle";                                  // schaut aufs Handy
+  const ph = maliAt(t, face, { shiver: 3.5 });                                       // immer noch ohne Jacke
+  ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#b9c8e2"; ctx.lineWidth = 6;           // Schneehäubchen
+  round(W / 2 - 3.2 * S, MY - 5.4 * S, 6.4 * S, 1.6 * S, S * 0.8); ctx.fill(); ctx.stroke();
   snowflakes(t);
-  chat(t, { x: phone.x, y: phone.y - 30 });
+  jacketFeed(t, { x: ph.x, y: ph.y }, prog(t, WINTER + 0.5, WINTER + 0.9));
   ctx.restore();
 }
 
 // ---------- Film-Look ----------
-function subtitle(textStr, at, until) {
-  if (t0 < at || t0 > until) return;
-  const a = Math.min(prog(t0, at, at + 0.2), 1 - prog(t0, until - 0.2, until));
-  ctx.save(); ctx.globalAlpha = a; ctx.font = `italic 500 52px Georgia, "DejaVu Serif", serif`;
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.shadowColor = "rgba(0,0,0,.85)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
-  ctx.fillStyle = "#fff6e6"; ctx.fillText(tr(textStr), W / 2, 1495); ctx.restore();
-}
-let t0 = 0;
 function grade(t) {
-  ctx.save(); ctx.globalCompositeOperation = "soft-light";             // warme Farbgebung
-  ctx.fillStyle = t > 14.6 ? "rgba(140,180,255,.3)" : "rgba(255,150,80,.35)"; ctx.fillRect(0, 0, W, H); ctx.restore();
+  ctx.save(); ctx.globalCompositeOperation = "soft-light";             // Farbgebung: warm, im Winter kühl
+  ctx.fillStyle = t > WINTER ? "rgba(140,180,255,.3)" : "rgba(255,150,80,.35)"; ctx.fillRect(0, 0, W, H); ctx.restore();
   const v = ctx.createRadialGradient(W / 2, 1000, 300, W / 2, 1000, 1150);   // Vignette
   v.addColorStop(0, "rgba(30,12,8,0)"); v.addColorStop(1, "rgba(30,12,8,.4)");
   ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
@@ -259,24 +258,22 @@ function grade(t) {
   }
 }
 
-// ---------- Ablauf ----------
+// ---------- Ablauf (ohne Untertitel) ----------
 function scene(t) {
-  t0 = t;
-  if (t >= 14.6) { winter(t); return finish(t); }
-  const zoom = 1 + prog(t, 0, LEN) * 0.08 + gust(t) * 0.006;           // langsamer Kamera-Zoom
+  if (t >= WINTER) { winter(t); return finish(t); }
+  const zoom = 1 + prog(t, 0, WINTER) * 0.06 + gust(t) * 0.006;
   ctx.save(); ctx.translate(W / 2, 1200); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -1200);
   park(t);
   leaves(t, 22);
   windLines(t);
-  let face = "idle", push = 0, shiver = 1.5 + gust(t) * 4, leaf = false;
-  if (t < 1.8) face = "tired";
-  else if (t < 4.4) face = t < 2.9 ? "idle" : "tired";
-  else if (t < 6.8) face = t < 5.2 ? "idle" : "tired";
-  else if (t < 9.4) { face = t < 8.0 ? "idle" : "shock"; push = Math.sin(prog(t, 7.8, 8.8) * Math.PI) * 50; }
-  else if (t < 12.0) { face = t < 11.0 ? "idle" : "sad"; shiver += 2; }
-  else if (t < 13.5) face = t < 12.9 ? "tired" : "sneeze";
-  else face = (t % 2) > 1.85 ? "blink" : "sad";
-  const phone = maliAt(t, face, { push, shiver, leaf });
+  let face = "tired", shiver = 1.5 + gust(t) * 4;
+  if (between(t, 1.8, 2.9)) face = "idle";
+  else if (between(t, 2.9, 4.6)) face = "tired";
+  else if (between(t, 4.6, 5.4)) face = "idle";
+  else if (between(t, 5.4, 6.9)) { face = "sad"; shiver += 2; }
+  else if (between(t, 6.9, 7.2)) face = "tired";
+  else if (t >= 7.2) face = "sneeze";
+  const phone = maliAt(t, face, { shiver });
   leaves(t, 6, true);
   chat(t, phone);
   ctx.restore();
@@ -284,19 +281,9 @@ function scene(t) {
 }
 function finish(t) {
   grade(t);
-  subtitle("4 grad. keine jacke.", 0.2, 1.8);
-  subtitle("danke.", 3.4, 4.3);
-  subtitle("natürlich.", 5.5, 6.7);
-  subtitle("die bio sagt manifesting.", 8.1, 9.3);
-  subtitle("gesehen. 23:02.", 11.0, 11.9);
-  subtitle("hatschi.", 12.9, 13.5);
-  subtitle("immer noch keine jacke.", 13.7, 14.6);
-  subtitle("3 wochen später.", 15.0, 16.0);
-  subtitle("und morgen wieder.", 18.9, LEN - 0.3);
-  const white = Math.max(0, 1 - Math.abs(t - 14.6) / 0.3);                          // weißer Übergang in den Winter
+  const white = Math.max(0, 1 - Math.abs(t - WINTER) / 0.3);                         // weißer Übergang in den Winter
   if (white > 0) { ctx.fillStyle = `rgba(255,255,255,${white})`; ctx.fillRect(0, 0, W, H); }
-  const out = prog(t, LEN - 0.6, LEN), inn = 1 - prog(t, 0, 0.4);
-  const black = Math.max(out, inn);
+  const black = Math.max(prog(t, LEN - 0.6, LEN), 1 - prog(t, 0, 0.4));              // schwarz -> Endlosschleife
   if (black > 0) { ctx.fillStyle = `rgba(11,7,6,${black})`; ctx.fillRect(0, 0, W, H); }
 }
 
