@@ -48,7 +48,7 @@ node render_page.js "$(pwd)" <ausgabe> gatekeeping.html gatekeeping.wav malipin-
 
 ## Herbstpark (herbst.html, 15,5 s)
 
-Illustrierter Herbstpark, die große Mali (frontend/mali-big.js) mit Schal und ohne Jacke, Handy in
+Illustrierter Herbstpark, Mali (Pixel-Mali) sitzt mit Schal und ohne Jacke auf einer Bank, Handy in
 den Pfoten, friert im Wind. Fragt Creator nach der Jacke: "danke", "vintage", "link in bio",
 DMs gesehen, "hatschi". Endet mit "*immer noch keine jacke*". Wind, Laub, Grillen, Spieluhr.
 ```

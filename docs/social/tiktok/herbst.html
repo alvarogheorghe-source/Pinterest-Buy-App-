@@ -4,7 +4,6 @@
 <body>
 <canvas id="c" width="1080" height="1920"></canvas>
 <script src="mali-lib.js"></script>
-<script src="../../../frontend/mali-big.js"></script>
 <script>
 // Herbstpark: Mali friert (Schal, keine Jacke) und fragt Creator, wo die Jacke her ist.
 // Niemand antwortet richtig. Keine Lösung, kein Name, nur der Struggle. ?lang=en
@@ -89,10 +88,6 @@ function park(t) {
   ctx.fillStyle = "#3f4a43"; ctx.fillRect(296, 780, 14, 330); ctx.fillRect(270, 1100, 66, 16);
   ctx.fillStyle = "#3f4a43"; round(272, 730, 62, 60, 10); ctx.fill();
   ctx.fillStyle = "#ffe9a8"; round(282, 742, 42, 38, 6); ctx.fill();
-  // Bank
-  ctx.fillStyle = "#8a5a3b";
-  for (let i = 0; i < 3; i++) round(690, 1150 + i * 26, 250, 16, 6), ctx.fill();
-  ctx.fillStyle = "#5b3a28"; ctx.fillRect(705, 1220, 12, 70); ctx.fillRect(915, 1220, 12, 70);
   // Laub am Boden
   for (let i = 0; i < 70; i++) {
     const x = (i * 157) % W, y = 1120 + ((i * 89) % 780);
@@ -127,37 +122,55 @@ function windLines(t) {
   ctx.restore();
 }
 
-// ---------- Mali ----------
-const OUTFIT = { accessories: ["scarf"], accent: "#c8493c", shade: "#9e3328" };
-const CELL = 12;
-function maliAt(t, face, { cold = true, push = 0, shiver = 0, phone = true, leaf = false } = {}) {
-  const w = window.maliBig.W * CELL, h = window.maliBig.H * CELL;
-  const x = Math.round(W / 2 - w / 2 + push + Math.sin(t * 70) * shiver), y = 905;
-  ctx.fillStyle = "rgba(60,30,20,.18)"; ctx.beginPath(); ctx.ellipse(W / 2 + push, y + h - 22, 180, 24, 0, 0, 7); ctx.fill();
-  // flatternder Schal hinter Mali
+// ---------- Mali auf der Bank (kleine Pixel-Mali) ----------
+MALI.sneeze = mk({ 8: ".owkwwwwwwwwkwo.", 9: ".owbkwwwwwwkbwo.", 10: ".owwwwwkkwwwwwo." });
+const FACES = { open: "idle", tired: "tired", shock: "shock", sad: "sad", sneeze: "sneeze" };
+const S = 21, BENCH_Y = 1340;
+function benchBack() {
+  ctx.fillStyle = "#5b3a28"; ctx.fillRect(330, 1110, 16, 230); ctx.fillRect(734, 1110, 16, 230);
+  ctx.fillStyle = "#9a6644";
+  for (let i = 0; i < 3; i++) { round(300, 1120 + i * 50, 480, 34, 10); ctx.fill(); }
+  ctx.fillStyle = "rgba(255,240,210,.18)"; for (let i = 0; i < 3; i++) ctx.fillRect(310, 1124 + i * 50, 460, 6);
+}
+function benchSeat() {
+  ctx.fillStyle = "#8a5a3b"; round(270, BENCH_Y, 540, 40, 12); ctx.fill();
+  ctx.fillStyle = "#a8714c"; ctx.fillRect(280, BENCH_Y + 4, 520, 8);
+  ctx.fillStyle = "#3f4a43"; ctx.fillRect(310, BENCH_Y + 40, 18, 150); ctx.fillRect(752, BENCH_Y + 40, 18, 150);
+  ctx.fillRect(300, BENCH_Y + 180, 40, 12); ctx.fillRect(742, BENCH_Y + 180, 40, 12);
+}
+function maliAt(t, face, { push = 0, shiver = 0, leaf = false } = {}) {
+  const cx = W / 2 + push + Math.sin(t * 70) * shiver, cy = BENCH_Y - 8 * S + 4;
+  benchBack();
+  // flatternder Schalzipfel hinter Mali
   const g = 0.4 + gust(t);
-  ctx.fillStyle = OUTFIT.accent;
   for (let k = 0; k < 5; k++) {
-    const sx = x + 26 * CELL + k * 30 * g, sy = y + 30 * CELL + Math.sin(t * 10 + k) * 10 * g + k * 6;
-    ctx.fillRect(sx, sy, 34, 26);
-    if (k % 2) { ctx.fillStyle = OUTFIT.shade; ctx.fillRect(sx, sy + 8, 34, 6); ctx.fillStyle = OUTFIT.accent; }
+    const sx = cx + 4 * S + k * 26 * g, sy = cy + 3.2 * S + Math.sin(t * 10 + k) * 9 * g + k * 5;
+    ctx.fillStyle = k % 2 ? "#9e3328" : "#c8493c"; ctx.fillRect(sx, sy, 28, 22);
   }
-  ctx.save(); ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(window.maliBig.draw(OUTFIT, {}, { face, pose: phone ? "phone" : "stand", cold }), x, y, w, h);
-  ctx.restore();
-  if (phone) {                                                       // Handy in den Pfoten
-    const px = x + 20 * CELL, py = y + 35.5 * CELL;
-    ctx.fillStyle = "#231c20"; round(px - 34, py - 52, 68, 104, 12); ctx.fill();
-    ctx.fillStyle = "#dfe7ff"; round(px - 28, py - 46, 56, 92, 8); ctx.fill();
-    ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 6;
-    for (const dx of [-44, 44]) { ctx.beginPath(); ctx.arc(px + dx, py + 18, 22, 0, 7); ctx.fill(); ctx.stroke(); }
-  }
+  mali(cx, cy, S, FACES[face] || "idle");
+  // Schal um den Hals (Pixel), rote Kältenase
+  ctx.fillStyle = "#c8493c"; ctx.fillRect(cx - 5 * S, cy + 3 * S, 10 * S, S);
+  ctx.fillStyle = "#9e3328"; for (let k = -4; k < 5; k += 2) ctx.fillRect(cx + k * S, cy + 3 * S, S / 2, S);
+  ctx.fillStyle = "#c8493c"; ctx.fillRect(cx + 2 * S, cy + 4 * S, S, 2 * S);
+  ctx.fillStyle = "#ff5a6e"; ctx.fillRect(cx - S, cy + 2 * S, 2 * S, S);
+  // baumelnde Füßchen
+  const swing = Math.sin(t * 5) * 6;
+  ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 6;
+  for (const dx of [-55, 55]) { ctx.beginPath(); ctx.ellipse(cx + dx + swing * (dx > 0 ? 1 : -1), BENCH_Y + 62, 26, 20, 0, 0, 7); ctx.fill(); ctx.stroke(); }
+  benchSeat();
+  // Handy in den Pfoten
+  const px = cx, py = cy + 5.3 * S;
+  ctx.fillStyle = "#231c20"; round(px - 30, py - 46, 60, 92, 10); ctx.fill();
+  ctx.fillStyle = "#dfe7ff"; round(px - 24, py - 40, 48, 80, 7); ctx.fill();
+  ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 6;
+  for (const dx of [-38, 38]) { ctx.beginPath(); ctx.arc(px + dx, py + 14, 20, 0, 7); ctx.fill(); ctx.stroke(); }
   if (leaf) {                                                         // Blatt klebt im Gesicht
-    ctx.save(); ctx.translate(x + 15 * CELL, y + 22 * CELL); ctx.rotate(-0.5);
-    ctx.fillStyle = "#e8743b"; ctx.beginPath(); ctx.ellipse(0, 0, 70, 38, 0, 0, 7); ctx.fill();
-    ctx.strokeStyle = "rgba(90,50,30,.6)"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(80, 0); ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.translate(cx - 2.5 * S, cy + 1 * S); ctx.rotate(-0.5);
+    ctx.fillStyle = "#e8743b"; ctx.beginPath(); ctx.ellipse(0, 0, 62, 34, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = "rgba(90,50,30,.6)"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-62, 0); ctx.lineTo(70, 0); ctx.stroke(); ctx.restore();
   }
-  return { phoneX: x + 20 * CELL, phoneY: y + 35.5 * CELL };
+  ctx.fillStyle = "rgba(60,30,20,.16)"; ctx.beginPath(); ctx.ellipse(W / 2, BENCH_Y + 200, 300, 26, 0, 0, 7); ctx.fill();
+  return { phoneX: px, phoneY: py };
 }
 
 // ---------- Handy-Ansicht (Zoom aus Malis Handy) ----------
@@ -250,7 +263,7 @@ function scene(t) {
   else if (t < 13.4) { face = t < 12.6 ? "shock" : (t < 12.9 ? "tired" : "sneeze"); content = post(t, "y2k", "@hasi.style", [["@hasi.style", "y2k", "warum fragt ihr eigentlich immer", 12.1], ["", "y2k", "wo meine sachen her sind 🙄", 12.1]], null); }
   else face = (t % 2) > 1.85 ? "tired" : "sad";
 
-  const ph = maliAt(t, face, { push, shiver, leaf });
+  const ph = maliAt(t, face, { push: push * 0.5, shiver, leaf });
   leaves(t, 6, true);
   if (content) panel(t, ph, content, Math.min(1, prog(t, 1.8, 2.0) * 2) * (1 - prog(t, 13.3, 13.5)));
 
