@@ -53,6 +53,99 @@
       title: "#c93a69", cta: "#c93a69", ctaText: "#ffffff", deco: "#e8789a" },
   };
 
+  // --- Große Mali für die Karte: Ganzkörper, 40 × 50 Pixel, Outfit aus den Pins --------------
+  // Mali wird aus Formen zusammengesetzt (Ohren, Kopf, Körper, Arme, Beine). Jede Zelle bekommt
+  // ein Kürzel; Kleidung färbt Bereiche um, der Umriss wird am Ende automatisch gezogen.
+  const BIG = { w: 40, h: 50 };
+  const FUR = { w: "#fffaf6", s: "#efe0d9", p: "#f6a5b9", b: "#ffc7d1", k: "#2d2326", h: "#ffffff",
+    n: "#f08fac", m: "#6b5656", o: "#6b5656" };
+
+  function bigMali(outfit, fur = {}) {
+    const g = Array.from({ length: BIG.h }, () => Array(BIG.w).fill("."));
+    const set = (x, y, c) => { if (x >= 0 && y >= 0 && x < BIG.w && y < BIG.h) g[y][x] = c; };
+    const ellipse = (cx, cy, rx, ry, c, shade = true) => {
+      for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) {
+        for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) {
+          const d = ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2;
+          if (d > 1) continue;
+          const edge = shade && d > 0.62 && (x + 0.5 - cx) / rx + (y + 0.5 - cy) / ry > 0.55;
+          set(x, y, edge && c === "w" ? "s" : c);
+        }
+      }
+    };
+    const rect = (x0, y0, x1, y1, c) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, c); };
+    const o = outfit || {};
+    const top = o.garment;
+    const sleeves = top && top !== "tee" && top !== "dress";
+
+    // Körper (von hinten nach vorn)
+    ellipse(13.5, 9, 3.4, 8.6, "w"); ellipse(26.5, 9, 3.4, 8.6, "w");          // Ohren
+    ellipse(13.5, 9.5, 1.6, 6.2, "p", false); ellipse(26.5, 9.5, 1.6, 6.2, "p", false);
+    rect(15, 40, 18, 45, top === "dress" ? "w" : "L"); rect(22, 40, 25, 45, top === "dress" ? "w" : "L");  // Beine
+    ellipse(16.5, 46.6, 3.4, 1.9, "F", false); ellipse(23.5, 46.6, 3.4, 1.9, "F", false);                 // Schuhe
+    ellipse(20, 35, 8.2, 7.2, "T");                                                                        // Bauch
+    if (top === "dress") {                                                                                 // Rock
+      for (let y = 37; y <= 44; y++) { const half = 6 + (y - 37) * 0.75; rect(Math.round(20 - half), y, Math.round(19 + half), y, "T"); }
+    }
+    ellipse(11.6, 34.5, 2.7, 5.4, sleeves ? "A" : "w"); ellipse(28.4, 34.5, 2.7, 5.4, sleeves ? "A" : "w");  // Arme
+    if (top === "tee") { ellipse(11.6, 31.5, 2.7, 2.6, "A"); ellipse(28.4, 31.5, 2.7, 2.6, "A"); }         // kurze Ärmel
+    ellipse(11.6, 39.6, 2.1, 1.9, "w", false); ellipse(28.4, 39.6, 2.1, 1.9, "w", false);                  // Pfoten
+    ellipse(20, 20.5, 12.4, 9.6, "w");                                                                     // Kopf
+    if (!top) { for (let y = 0; y < BIG.h; y++) for (let x = 0; x < BIG.w; x++) if ("TAL".includes(g[y][x])) g[y][x] = "w"; }
+
+    // Gesicht: fröhliche Augen (^ ^) mit Glanz, Bäckchen, Näschen, kleiner Mund
+    for (const ex of [15, 25]) { set(ex - 1, 22, "k"); set(ex, 21, "k"); set(ex + 1, 22, "k"); set(ex - 2, 23, "k"); set(ex + 2, 23, "k"); }
+    rect(11, 24, 13, 24, "b"); rect(27, 24, 29, 24, "b");
+    rect(19, 23, 20, 23, "n");
+    set(19, 25, "m"); set(20, 25, "m");
+
+    // Kleidung im Detail
+    const C = { T: o.color, A: o.color, L: o.pants || "#55688f", F: o.shoes || "#fbfaf7", d: o.shade, a: o.accent, e: "#fbf6ef" };
+    if (top === "hoodie") { rect(18, 30, 18, 33, "e"); rect(22, 30, 22, 33, "e"); rect(16, 36, 24, 38, "d"); }
+    if (top === "jacket") { rect(19, 29, 21, 41, "e"); for (let y = 29; y <= 33; y++) { set(18 - (y - 29) % 2, y, "d"); set(22 + (y - 29) % 2, y, "d"); } }
+    if (top === "blazer") { for (let y = 29; y <= 33; y++) rect(20 - (33 - y) / 2 | 0, y, 20 + (33 - y) / 2 | 0, y, "e"); set(20, 36, "d"); set(20, 39, "d"); }
+    if (top === "knit") { for (let y = 29; y < 43; y++) for (let x = 0; x < BIG.w; x++) if ((g[y][x] === "T" || g[y][x] === "A") && (x + y) % 3 === 0) g[y][x] = "d"; }
+    if (top === "dress") { for (let y = 38; y <= 44; y += 3) for (let x = 13; x <= 27; x += 3) if (g[y][x] === "T") g[y][x] = "e"; }
+    if (o.shoes && o.shoes !== "#fbfaf7") rect(15, 44, 18, 45, "F"), rect(22, 44, 25, 45, "F");   // Boots
+    else { for (const x of [14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26]) set(x, 48, "z"); }       // Sohle
+
+    // Accessoires
+    const PAL2 = { G: "#1f1b2e", W: "#ffffff", K: "#241a20", S: "#c4c6cc", Y: "#d4ad4f", P: "#f08fac", D: "#c93a69",
+      t: "#6f4d33", u: "#b98a5e", f: "#ffd1dc", q: "#ffe066", v: "#7a9e7e" };
+    for (const acc of o.accessories || []) {
+      if (acc === "sunglasses") { rect(12, 21, 17, 23, "G"); rect(22, 21, 27, 23, "G"); rect(18, 21, 21, 21, "G"); set(13, 21, "W"); set(23, 21, "W"); }
+      if (acc === "glasses") { for (const ex of [15, 25]) { rect(ex - 3, 20, ex + 3, 20, "t"); rect(ex - 3, 24, ex + 3, 24, "t"); rect(ex - 3, 20, ex - 3, 24, "t"); rect(ex + 3, 20, ex + 3, 24, "t"); } rect(19, 21, 21, 21, "t"); }
+      if (acc === "choker") { rect(14, 29, 26, 29, "K"); set(20, 30, "S"); }
+      if (acc === "pearls") { for (let x = 15; x <= 25; x += 2) set(x, 30, "W"); }
+      if (acc === "goldchain") { rect(16, 31, 24, 31, "Y"); set(20, 32, "Y"); }
+      if (acc === "silverchain") { rect(16, 31, 24, 31, "S"); set(20, 32, "S"); }
+      if (acc === "scarf") { rect(12, 28, 28, 30, "a"); for (let x = 13; x <= 27; x += 3) set(x, 29, "d"); rect(24, 31, 26, 36, "a"); }
+      if (acc === "bow") { rect(25, 1, 26, 3, "P"); rect(29, 1, 30, 3, "P"); rect(27, 2, 28, 2, "D"); }
+      if (acc === "hairclip") { rect(15, 13, 18, 13, "u"); set(16, 13, "t"); set(18, 13, "t"); }
+      if (acc === "flowers") { for (let x = 10; x <= 30; x += 4) { set(x, 12, "f"); set(x + 1, 12, "q"); set(x + 2, 12, "v"); } }
+      if (acc === "headband") { rect(9, 14, 31, 15, "a"); }
+      if (acc === "beanie") { for (let y = 10; y <= 15; y++) for (let x = 8; x <= 32; x++) if (g[y][x] !== "." && g[y][x] !== "p") g[y][x] = y === 15 ? "d" : "a"; }
+      if (acc === "bag") { for (let i = 0; i < 9; i++) set(17 + i, 29 + i, "K"); rect(28, 38, 33, 42, "a"); rect(28, 38, 33, 38, "d"); }
+    }
+
+    // Umriss: jede leere Zelle neben Mali wird dunkel
+    const filled = (x, y) => x >= 0 && y >= 0 && x < BIG.w && y < BIG.h && g[y][x] !== "." && g[y][x] !== "O";
+    for (let y = 0; y < BIG.h; y++) for (let x = 0; x < BIG.w; x++) {
+      if (g[y][x] === "." && (filled(x - 1, y) || filled(x + 1, y) || filled(x, y - 1) || filled(x, y + 1))) g[y][x] = "O";
+    }
+    // Kleidungskanten etwas dunkler (sieht nach Stoff aus)
+    const cloth = (c) => c === "T" || c === "A";
+    for (let y = 0; y < BIG.h; y++) for (let x = 0; x < BIG.w; x++) {
+      if (cloth(g[y][x]) && [[1, 0], [-1, 0], [0, 1]].some(([dx, dy]) => "wsO".includes((g[y + dy] || [])[x + dx] || "."))) g[y][x] = "d";
+    }
+    const palette = { ...FUR, ...fur, O: FUR.o, z: "#9b8f88", ...PAL2, ...C };
+    const canvas = document.createElement("canvas");
+    canvas.width = BIG.w; canvas.height = BIG.h;
+    const c = canvas.getContext("2d");
+    g.forEach((row, y) => row.forEach((cell, x) => { if (palette[cell]) { c.fillStyle = palette[cell]; c.fillRect(x, y, 1, 1); } }));
+    return canvas;
+  }
+
   // --- Zeichnen ------------------------------------------------------------------------------
 
   // Pixel-Raster groß zeichnen: jedes Pixel = size × size. Zeilen dürfen Text oder Arrays sein.
@@ -144,47 +237,39 @@
     ctx.fillStyle = look.muted;
     ctx.fillText(t("MEIN PINTEREST-VIBE"), W / 2, 222);
 
-    // --- Mali im passenden Outfit ---
-    const size = 17;
-    const malTop = 270;
-    const malX = Math.round((W - 16 * size) / 2);
-    drawPixels(ctx, pixels.happy, { ...pixels.palette, ...look.fur }, malX, malTop, size);
-    for (const [grid, gx, gy] of OUTFITS[vibe.look] || []) {
-      drawPixels(ctx, grid, OUTFIT_COLORS, malX + gx * size, malTop + gy * size, size);
-    }
-    // Funkeln um Mali
-    ctx.fillStyle = look.deco;
-    for (const [x, y, s] of [[malX - 70, malTop + 60, 10], [malX + 16 * size + 50, malTop + 30, 12], [malX + 16 * size + 30, malTop + 210, 8]]) {
+    // --- Mali groß in der Mitte, mit Lichtschein ---
+    const cell = 16;
+    const malW = BIG.w * cell, malH = BIG.h * cell;
+    const malX = Math.round((W - malW) / 2), malTop = 235;
+    const glow = ctx.createRadialGradient(W / 2, malTop + malH * 0.5, 40, W / 2, malTop + malH * 0.5, 480);
+    glow.addColorStop(0, vibe.look === "dunkel" ? "rgba(255,143,180,0.22)" : "rgba(255,255,255,0.75)");
+    glow.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, malTop - 120, W, malH + 240);
+    ctx.fillStyle = "rgba(0,0,0,0.12)";
+    ctx.beginPath(); ctx.ellipse(W / 2, malTop + malH - 24, 250, 32, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(bigMali(vibe.outfit, look.fur), malX, malTop, malW, malH);
+    ctx.fillStyle = look.deco;                                      // Funkeln
+    for (const [x, y, s] of [[malX - 10, malTop + 90, 11], [malX + malW + 10, malTop + 40, 13], [malX + malW - 10, malTop + 300, 9], [malX + 20, malTop + 360, 8]]) {
       ctx.fillRect(x, y - s * 2, s, s * 5); ctx.fillRect(x - s * 2, y, s * 5, s);
     }
 
-    // --- "Du bist" + Vibe (groß) ---
-    let y = malTop + 16 * size + 80;
-    ctx.font = `600 40px ${SANS}`;
+    // --- "Du bist" + Vibe ---
+    let y = malTop + malH + 60;
+    ctx.font = `600 38px ${SANS}`;
     ctx.fillStyle = look.muted;
     ctx.fillText(t("Du bist"), W / 2, y);
-    const titleSize = fitFont(ctx, vibe.title, 700, 120, 60, W - 160, SERIF);
+    const titleSize = fitFont(ctx, vibe.title, 700, 116, 60, W - 160, SERIF);
     ctx.font = `700 ${titleSize}px ${SERIF}`;
     ctx.fillStyle = look.accent;
-    for (const line of wrap(ctx, vibe.title, W - 160)) { y += titleSize * 1.02; ctx.fillText(line, W / 2, y); }
-    if (vibe.second_title) {
-      y += 62;
-      ctx.font = `italic 40px ${SERIF}`;
-      ctx.fillStyle = look.muted;
-      ctx.fillText(t("… mit einer Prise {second}", { second: vibe.second_title }), W / 2, y);
-    }
-    if (vibe.pin_count) {
-      y += 54;
-      ctx.font = `500 30px ${SANS}`;
-      ctx.fillStyle = look.muted;
-      ctx.fillText(t("aus {n} deiner Pins gelesen", { n: vibe.pin_count }), W / 2, y);
-    }
+    for (const line of wrap(ctx, vibe.title, W - 160)) { y += titleSize * 1.0; ctx.fillText(line, W / 2, y); }
 
-    // --- drei Eigenschaften als Kärtchen ---
+    // --- drei Eigenschaften ---
     if (vibe.traits && vibe.traits.length) {
-      y += 90;
-      let fontSize = 40;
-      const gap = 18;
+      y += 110;
+      let fontSize = 38;
+      const gap = 16;
       const widths = () => vibe.traits.map((trait) => { ctx.font = `700 ${fontSize}px ${SANS}`; return ctx.measureText(trait).width + fontSize * 1.3; });
       while (widths().reduce((a, b) => a + b, 0) + gap * 2 > W - 120 && fontSize > 26) fontSize -= 2;
       const ws = widths();
@@ -200,68 +285,22 @@
       });
     }
 
-    // --- Superkraft ---
-    if (vibe.power) {
-      y += 70;
-      ctx.font = `italic 46px ${SERIF}`;
-      const lines = wrap(ctx, vibe.power, W - 260);
-      const boxH = 110 + lines.length * 58;
-      ctx.fillStyle = "rgba(255,255,255,0.92)";
-      roundRect(ctx, 90, y, W - 180, boxH, 40);
-      ctx.fill();
-      ctx.font = `800 28px ${SANS}`;
-      ctx.fillStyle = look.accent === "#ff8fb4" ? "#c93a69" : look.accent;
-      ctx.fillText(t("DEINE SUPERKRAFT"), W / 2, y + 62);
-      ctx.font = `italic 46px ${SERIF}`;
-      ctx.fillStyle = "#2f2328";
-      lines.forEach((line, i) => ctx.fillText(line, W / 2, y + 122 + i * 58));
-      y += boxH;
-    }
-
-    // --- Signature-Piece + Farben nebeneinander ---
-    const bottom = H - 300;
-    if (y + 230 <= bottom) {
-      y += 30;
-      const half = (W - 180 - 24) / 2;
-      const boxes = [[90, t("SIGNATURE-PIECE")], [90 + half + 24, t("DEINE FARBEN")]];
-      for (const [bx, label] of boxes) {
-        ctx.fillStyle = "rgba(255,255,255,0.92)";
-        roundRect(ctx, bx, y, half, 200, 34);
-        ctx.fill();
-        ctx.font = `800 24px ${SANS}`;
-        ctx.fillStyle = look.accent === "#ff8fb4" ? "#c93a69" : look.accent;
-        ctx.fillText(label, bx + half / 2, y + 52);
-      }
-      if (vibe.piece) {
-        const pieceSize = fitFont(ctx, vibe.piece, 700, 40, 26, half - 40, SANS);
-        ctx.font = `700 ${pieceSize}px ${SANS}`;
-        ctx.fillStyle = "#2f2328";
-        const lines = wrap(ctx, vibe.piece, half - 40).slice(0, 2);
-        lines.forEach((line, i) => ctx.fillText(line, 90 + half / 2, y + 120 + i * pieceSize * 1.15 - (lines.length - 1) * pieceSize * 0.55));
-      }
-      const colors = (vibe.colors || []).slice(0, 3);
-      const cx0 = 90 + half + 24 + half / 2 - ((colors.length - 1) * 96) / 2;
+    // --- Farben (nur Punkte) + Duo ---
+    const colors = (vibe.colors || []).slice(0, 4);
+    if (colors.length) {
+      y += 120;
+      const x0 = W / 2 - ((colors.length - 1) * 90) / 2;
       colors.forEach((color, i) => {
-        ctx.beginPath();
-        ctx.arc(cx0 + i * 96, y + 125, 36, 0, Math.PI * 2);
-        ctx.fillStyle = color.hex;
-        ctx.fill();
-        ctx.lineWidth = 5;
-        ctx.strokeStyle = "#ead9e0";
-        ctx.stroke();
+        ctx.beginPath(); ctx.arc(x0 + i * 90, y, 30, 0, Math.PI * 2);
+        ctx.fillStyle = color.hex; ctx.fill();
+        ctx.lineWidth = 5; ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.stroke();
       });
-      y += 200;
     }
-
-    // --- Perfektes Duo: Freund:innen markieren ---
-    if (vibe.duo && y + 120 <= bottom + 40) {
-      y += 90;
-      ctx.font = `700 40px ${SANS}`;
+    if (vibe.duo && y + 100 < H - 220) {
+      y += 104;
+      ctx.font = `600 36px ${SANS}`;
       ctx.fillStyle = look.text;
       ctx.fillText(t("Perfektes Duo mit {duo}", { duo: vibe.duo }), W / 2, y);
-      ctx.font = `500 32px ${SANS}`;
-      ctx.fillStyle = look.muted;
-      ctx.fillText(t("Markier dein {duo}", { duo: vibe.duo }), W / 2, y + 50);
     }
 
     // Fuß: Einladung

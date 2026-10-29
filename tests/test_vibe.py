@@ -63,7 +63,7 @@ def test_api_vibe(fake, client):
     result = client.get("/api/vibe").json()
     assert result["title"] == "Goth Baddie"
     assert set(result) == {"title", "emoji", "text", "second", "terms", "colors", "pin_count", "second_title", "look",
-                           "slug", "traits", "power", "piece", "duo"}
+                           "slug", "traits", "power", "piece", "duo", "outfit"}
     assert result["slug"] == "vibe-goth-baddie"                     # Link ins Stil-Lexikon
 
 
@@ -123,3 +123,13 @@ def test_vibe_check_returns_card_profile(fake):
     assert result["title"] == "Goth Baddie"
     assert result["traits"] == ["mutig", "geheimnisvoll", "loyal"]
     assert result["power"].startswith("Du betrittst") and result["duo"] == "Clean Girl"
+
+
+def test_outfit_follows_the_pins():
+    """Malis Outfit auf der Karte kommt aus den Pins: Oberteil, Farbe, Accessoires."""
+    goth = vibe.vibe_check([{"title": "schwarze goth Lederjacke grunge choker"} for _ in range(5)])["outfit"]
+    assert goth["garment"] == "jacket" and goth["color"] == vibe.SWATCHES["schwarz"]
+    assert "choker" in goth["accessories"] and goth["shoes"] == "#2b2228"
+    sweet = vibe.vibe_check([{"title": "rosa coquette Kleid mit Schleife"} for _ in range(5)])["outfit"]
+    assert sweet["garment"] == "dress" and sweet["color"] == vibe.SWATCHES["rosa"] and "bow" in sweet["accessories"]
+    assert len(sweet["accessories"]) <= 2

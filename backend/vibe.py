@@ -185,6 +185,56 @@ NO_PINS = Vibe("Noch ein Geheimnis", "🥕", {}, [
 ])
 
 
+# --- Malis Outfit auf der Vibe-Karte: aus den Pins zusammengesetzt ----------------------------
+# Oberteil nach Stil/Kategorie, Farbe aus der häufigsten Pin-Farbe, bis zu 2 Accessoires.
+GARMENT_BY_STYLE = [
+    ({"coquette", "cottagecore", "romantisch"}, "dress"), ({"elegant", "klassisch"}, "blazer"),
+    ({"cozy", "winter"}, "knit"), ({"goth", "grunge", "utility", "outdoor"}, "jacket"),
+    ({"streetwear", "sportlich", "oversized"}, "hoodie"),
+]
+GARMENT_BY_CATEGORY = {"Kleider&Röcke": "dress", "Jacken": "jacket"}
+ACCESSORY_BY_STYLE = [
+    ("goth", "choker"), ("grunge", "choker"), ("coquette", "bow"), ("romantisch", "bow"),
+    ("y2k", "sunglasses"), ("streetwear", "sunglasses"), ("cottagecore", "flowers"), ("boho", "flowers"),
+    ("elegant", "pearls"), ("klassisch", "pearls"), ("cozy", "scarf"), ("winter", "beanie"),
+    ("outdoor", "beanie"), ("sportlich", "headband"), ("clean", "hairclip"),
+    ("minimalistisch", "hairclip"), ("vintage", "glasses"),
+]
+NOT_FOR_CLOTHES = {"gold", "silber"}
+
+
+def _darker(hex_color: str, factor: float = 0.78) -> str:
+    n = int(hex_color[1:], 16)
+    r, g, b = (int(((n >> s) & 255) * factor) for s in (16, 8, 0))
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def outfit(profile: StyleProfile) -> dict:
+    styles = profile.styles
+    categories = {c: n for c, n in profile.categories.items() if c in GARMENT_BY_CATEGORY}
+    garment = "tee"
+    best_style = max((sum(styles[s] for s in group), kind) for group, kind in GARMENT_BY_STYLE)
+    best_cat = max(((n, GARMENT_BY_CATEGORY[c]) for c, n in categories.items()), default=(0, "tee"))
+    if max(best_style[0], best_cat[0]) > 0:
+        garment = best_style[1] if best_style[0] >= best_cat[0] else best_cat[1]
+    colors = [c for c, _ in profile.colors.most_common() if c in SWATCHES and c not in NOT_FOR_CLOTHES]
+    main = SWATCHES[colors[0]] if colors else "#e8b4bc"
+    accent = SWATCHES[colors[1]] if len(colors) > 1 else _darker(main, 0.6)
+    accessories = []
+    for style, acc in sorted(ACCESSORY_BY_STYLE, key=lambda sa: -styles[sa[0]]):
+        if styles[style] and acc not in accessories:
+            accessories.append(acc)
+    if profile.colors["gold"] > profile.colors["silber"] and profile.colors["gold"]:
+        accessories.append("goldchain")
+    elif profile.colors["silber"]:
+        accessories.append("silverchain")
+    if profile.categories["Accessoires"] and "bag" not in accessories:
+        accessories.append("bag")
+    boots = styles["goth"] + styles["grunge"] > 0
+    return {"garment": garment, "color": main, "shade": _darker(main), "accent": accent,
+            "shoes": "#2b2228" if boots else "#fbfaf7", "accessories": accessories[:2]}
+
+
 def slug(text: str) -> str:
     """"Goth Baddie" -> "goth-baddie" (für Links ins Stil-Lexikon, style_guide.py)."""
     text = text.lower().translate(str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}))
@@ -234,6 +284,7 @@ def vibe_check(pins: list[dict], rng: random.Random | None = None, avoid: str | 
         "pin_count": profile.pin_count,
         # Für die Vibe-Karte: Eigenschaften, Superkraft, Signature-Piece, passender Vibe
         **_card_profile(best.title, second),
+        "outfit": outfit(profile) if profile.pin_count else None,
     }
 
 
