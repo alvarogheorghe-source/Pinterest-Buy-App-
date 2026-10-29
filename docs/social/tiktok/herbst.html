@@ -8,7 +8,7 @@
 // Herbstpark, filmischer Look (warme Farben, Filmkorn, Untertitel, volles 9:16-Bild): Mali friert ohne Jacke und
 // fragt Creator, wo die Jacke her ist. Nachrichten steigen als Blasen aus dem Handy. Kein Name,
 // keine Lösung. ?lang=en
-LEN = 13.4;
+LEN = 14.2;
 Object.assign(EN, {
   "hallo? 🥺": "hello? 🥺",
   "4 grad. keine jacke.": "4°C. no jacket.", "bitte?? 🥺": "please?? 🥺", "ist leider ausverkauft 🥰": "it's sold out sorry 🥰", "wo ist die jacke her?? 🥺": "where is the jacket from?? 🥺",
@@ -225,21 +225,66 @@ function jacketFeed(t, ph, alpha) {
   ctx.fillStyle = "#e60023"; ctx.beginPath(); ctx.arc(PX + PW / 2, PY + 46, 16, 0, 7); ctx.fill();   // Pinterest-Punkt
   ctx.restore(); ctx.restore();
 }
+// Riesige Schneekugel rollt heran, nimmt Mali mit, nur das Handy bleibt im Schnee
+const ROLL = 11.7, HIT = 12.25, GONE = 13.2, R = 270;
+function snowball(t) {
+  if (t < ROLL || t > GONE + 0.2) return;
+  const x = t < HIT ? lerp(-R - 40, W / 2 - 60, easeOut(prog(t, ROLL, HIT)) * 0.4 + prog(t, ROLL, HIT) * 0.6)
+                    : lerp(W / 2 - 60, W + R + 80, prog(t, HIT, GONE));
+  const y = MY + 8 * S - R + 24, rot = x / R;
+  ctx.fillStyle = "rgba(90,110,150,.22)"; ctx.beginPath(); ctx.ellipse(x, y + R - 10, R * 0.95, 34, 0, 0, 7); ctx.fill();
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.fill();
+  ctx.fillStyle = "rgba(170,190,225,.45)"; ctx.beginPath(); ctx.arc(R * 0.18, R * 0.2, R * 0.85, 0, 7); ctx.fill();
+  ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(-R * 0.12, -R * 0.12, R * 0.8, 0, 7); ctx.fill();
+  ctx.rotate(rot);
+  ctx.strokeStyle = "rgba(160,180,215,.7)"; ctx.lineWidth = 10; ctx.lineCap = "round";     // Roll-Spuren
+  for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(0, 0, R * (0.35 + i * 0.15), i, i + 1.2); ctx.stroke(); }
+  ctx.restore();
+  if (t > HIT) {                                     // Mali steckt drin: Ohren oben, Füßchen unten (Cartoon)
+    const wob = Math.sin(t * 14) * 6;
+    pixels(MALI.idle.slice(0, 6), x - 8 * S + wob, y - R - 4.6 * S, S, PAL);
+    ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 6;
+    for (const dx of [-70, 70]) { ctx.beginPath(); ctx.ellipse(x + dx, y + R - 34 + Math.sin(t * 16 + dx) * 6, 30, 22, 0, 0, 7); ctx.fill(); ctx.stroke(); }
+  }
+  if (between(t, HIT - 0.05, HIT + 0.7)) for (let i = 0; i < 16; i++) {               // Schnee spritzt
+    const k = prog(t, HIT - 0.05, HIT + 0.7), a = -Math.PI * (0.1 + 0.8 * (i / 15));
+    ctx.fillStyle = `rgba(255,255,255,${1 - k})`;
+    ctx.beginPath(); ctx.arc(W / 2 + Math.cos(a) * 420 * k, MY + 120 + Math.sin(a) * 380 * k + 300 * k * k, 18 - i % 3 * 4, 0, 7); ctx.fill();
+  }
+}
+function droppedPhone(t) {                                                            // Handy bleibt im Schnee liegen
+  const x = W / 2 + 10, y = MY + 7.4 * S;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(-0.25);
+  ctx.fillStyle = "#231c20"; round(-30, -48, 60, 96, 10); ctx.fill();
+  ctx.fillStyle = "#fff7fa"; round(-24, -42, 48, 84, 7); ctx.fill();
+  const colors = ["#1e1a1d", "#c9a27a", "#7fa0c8", "#c8493c"];
+  for (let i = 0; i < 4; i++) { ctx.fillStyle = colors[(i + Math.floor(t * 2)) % 4]; ctx.fillRect(-20 + (i % 2) * 22, -36 + Math.floor(i / 2) * 40, 18, 32); }
+  ctx.restore();
+  const g = ctx.createRadialGradient(x, y, 10, x, y, 140);
+  g.addColorStop(0, "rgba(255,250,240,.35)"); g.addColorStop(1, "rgba(255,250,240,0)");
+  ctx.fillStyle = g; ctx.fillRect(x - 150, y - 150, 300, 300);
+}
 function winter(t) {
   const zoom = 1.02 + prog(t, WINTER, LEN) * 0.05;
-  ctx.save(); ctx.translate(W / 2, 1200); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -1200);
+  const quake = between(t, HIT, HIT + 0.45) ? Math.sin(t * 90) * 22 * (1 - prog(t, HIT, HIT + 0.45)) : 0;
+  ctx.save(); ctx.translate(W / 2 + quake, 1200); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -1200);
   park(t);
   ctx.save(); ctx.globalCompositeOperation = "saturation"; ctx.fillStyle = "rgba(128,128,128,.8)"; ctx.fillRect(0, 0, W, H); ctx.restore();
   ctx.fillStyle = "rgba(205,222,255,.38)"; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = "#f3f6fc"; ctx.beginPath(); ctx.moveTo(0, 1075);                  // Schneedecke
   for (let x = 0; x <= W; x += 90) ctx.quadraticCurveTo(x + 45, 1050 + (x % 180 ? 10 : -12), x + 90, 1075);
   ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
-  const face = (t % 1.9) > 1.75 ? "blink" : "idle";                                  // schaut aufs Handy
-  const ph = maliAt(t, face, { shiver: 3.5 });                                       // immer noch ohne Jacke
-  ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#b9c8e2"; ctx.lineWidth = 6;           // Schneehäubchen
-  round(W / 2 - 3.2 * S, MY - 5.4 * S, 6.4 * S, 1.6 * S, S * 0.8); ctx.fill(); ctx.stroke();
+  const face = t > ROLL - 0.3 ? "shock" : ((t % 1.9) > 1.75 ? "blink" : "idle");     // schaut aufs Handy … bis es rumpelt
+  let ph = { x: W / 2, y: MY + 5.4 * S - 50 };
+  if (t < HIT) {
+    ph = maliAt(t, face, { shiver: 3.5 });                                           // immer noch ohne Jacke
+    ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#b9c8e2"; ctx.lineWidth = 6;         // Schneehäubchen
+    round(W / 2 - 3.2 * S, MY - 5.4 * S, 6.4 * S, 1.6 * S, S * 0.8); ctx.fill(); ctx.stroke();
+  } else droppedPhone(t);
+  snowball(t);
   snowflakes(t);
-  jacketFeed(t, { x: ph.x, y: ph.y }, prog(t, WINTER + 0.5, WINTER + 0.9));
+  jacketFeed(t, { x: ph.x, y: ph.y }, prog(t, WINTER + 0.5, WINTER + 0.9) * (1 - prog(t, ROLL - 0.4, ROLL)));
   ctx.restore();
 }
 

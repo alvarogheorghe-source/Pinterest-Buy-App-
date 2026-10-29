@@ -11,11 +11,11 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gatekeeping_sound import crickets  # noqa: E402
-from serie_sound import whoosh, write  # noqa: E402
+from serie_sound import thud, whoosh, write  # noqa: E402
 from sound import SR, env, hz, lowpass, music_lofi, noise, placer, sine  # noqa: E402
 from story_sound import musicbox  # noqa: E402
 
-LEN = 13.4
+LEN = 14.2
 GUSTS = [(0.1, 1.0), (3.5, 0.5), (6.4, 0.9), (9.5, 0.5)]
 
 
@@ -75,6 +75,15 @@ def sparkle_soft():
     return out
 
 
+def rumble(dur, rising=True):
+    """Dumpfes Rollen im Schnee."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    x = lowpass(noise(dur), 0.03) * 8 * (1 + 0.4 * np.sin(2 * np.pi * 7 * t))
+    shape = (t / dur) ** 1.5 if rising else (1 - t / dur) ** 1.5
+    return x * shape * 0.6
+
+
 def flick():
     """Wisch übers Display (Feed scrollen)."""
     x = lowpass(noise(0.14), 0.25)
@@ -102,9 +111,15 @@ def render(path):
     put(whoosh(0.6), 7.65, 0.8)                                     # weißer Übergang in den Winter
     put(sparkle_soft(), 7.9)
     t = 8.5
-    while t < LEN - 0.6:                                            # scrollt und scrollt
+    while t < 11.4:                                                 # scrollt und scrollt
         put(flick(), t, 0.8)
         t += 0.55
+    put(rumble(0.8, rising=True), 11.45)                            # Schneekugel rollt heran
+    put(thud(), 12.25)                                              # BAM
+    put(lowpass(noise(0.5), 0.12) * np.exp(-np.arange(int(0.5 * SR)) / SR * 7) * 2.2, 12.25)   # Schnee knirscht
+    put(rumble(1.0, rising=False), 12.3)                            # rollt davon
+    for at in (13.35, 13.8):                                        # das Handy scrollt einfach weiter
+        put(flick(), at, 0.7)
     write(out, LEN, path)
 
 
