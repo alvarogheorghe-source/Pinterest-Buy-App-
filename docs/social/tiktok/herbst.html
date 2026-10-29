@@ -5,34 +5,21 @@
 <canvas id="c" width="1080" height="1920"></canvas>
 <script src="mali-lib.js"></script>
 <script>
-// Herbstpark: Mali friert (Schal, keine Jacke) und fragt Creator, wo die Jacke her ist.
-// Niemand antwortet richtig. Keine Lösung, kein Name, nur der Struggle. ?lang=en
+// Herbstpark, filmischer Look (Kinobalken, Filmkorn, Untertitel): Mali friert ohne Jacke und
+// fragt Creator, wo die Jacke her ist. Nachrichten steigen als Blasen aus dem Handy. Kein Name,
+// keine Lösung. ?lang=en
 LEN = 15.5;
 Object.assign(EN, {
-  "POV: es ist 4 grad": "POV: it's 4°C", "und du hast keine jacke": "and you don't own a jacket",
-  "wo ist die jacke her?? 🥺": "where is the jacket from?? 🥺", "danke 🥰": "thank u 🥰", "danke…???": "thank u…???",
-  "und der mantel?? 🙏": "and the coat?? 🙏", "vintage 💅": "vintage 💅", "vintage. natürlich.": "vintage. of course.",
-  "JACKE PLS 😭": "JACKET PLS 😭", "link in bio ✨": "link in bio ✨", "WELCHER LINK": "WHAT LINK",
-  "hey 🥺": "hey 🥺", "hallo?": "hello?", "die jacke 🥺": "the jacket 🥺", "mir ist kalt": "i'm cold",
-  "ich zahl dir 5 €": "i'll pay u €5", "Gesehen": "Seen", "*tippt…*": "*typing…*", "*tippt nicht mehr*": "*stopped typing*",
+  "4 grad. keine jacke.": "4°C. no jacket.", "wo ist die jacke her?? 🥺": "where is the jacket from?? 🥺",
+  "danke 🥰": "thank u 🥰", "danke.": "thank u.", "und der mantel?? 🙏": "and the coat?? 🙏", "vintage 💅": "vintage 💅",
+  "natürlich.": "of course.", "jacke pls 😭": "jacket pls 😭", "link in bio ✨": "link in bio ✨",
+  "die bio sagt manifesting.": "the bio says manifesting.", "hey 🥺": "hey 🥺", "hallo?": "hello?", "mir ist kalt": "i'm cold",
+  "ich zahl dir 5 €": "i'll pay u €5", "gesehen 23:02": "seen 23:02", "gesehen. 23:02.": "seen. 23:02.",
   "warum fragt ihr eigentlich immer": "why do you guys always ask", "wo meine sachen her sind 🙄": "where my stuff is from 🙄",
-  "hatschi!": "achoo!", "*immer noch keine jacke*": "*still no jacket*", "du": "you",
-  "Kommentar schreiben…": "Add a comment…", "Nachricht…": "Message…", "living my best life 🍂": "living my best life 🍂",
+  "hatschi.": "achoo.", "immer noch keine jacke.": "still no jacket.",
 });
 
 const punch = (t, at, len = 0.22) => (t >= at && t < at + len) ? 1 - (t - at) / len : 0;
-function bigText(lines, cy, size, { scale = 1, rot = -0.03, fill = "#fff" } = {}) {
-  if (scale <= 0) return;
-  lines = lines.map(tr);
-  ctx.save(); ctx.translate(W / 2, cy); ctx.rotate(rot); ctx.scale(scale, scale);
-  ctx.font = `900 ${size}px ${FONT}`;
-  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width)) + size * 0.2;
-  if (widest > 800) { size *= 800 / widest; ctx.font = `900 ${size}px ${FONT}`; }
-  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round";
-  ctx.lineWidth = size * 0.2; ctx.strokeStyle = "#2a1712";
-  lines.forEach((l, i) => { const y = (i - (lines.length - 1) / 2) * size * 1.08; ctx.strokeText(l, 0, y); ctx.fillStyle = Array.isArray(fill) ? fill[i] : fill; ctx.fillText(l, 0, y); });
-  ctx.restore();
-}
 function txt(str, x, y, size, color, weight = 600, align = "left") {
   ctx.fillStyle = color; ctx.font = `${weight} ${size}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = "middle";
   ctx.fillText(tr(str), x, y);
@@ -122,165 +109,136 @@ function windLines(t) {
   ctx.restore();
 }
 
-// ---------- Mali auf der Bank (kleine Pixel-Mali) ----------
+// ---------- Mali steht im Laub (kleine Pixel-Mali) ----------
 MALI.sneeze = mk({ 8: ".owkwwwwwwwwkwo.", 9: ".owbkwwwwwwkbwo.", 10: ".owwwwwkkwwwwwo." });
-const FACES = { open: "idle", tired: "tired", shock: "shock", sad: "sad", sneeze: "sneeze" };
-const S = 21, BENCH_Y = 1340;
-function benchBack() {
-  ctx.fillStyle = "#5b3a28"; ctx.fillRect(330, 1110, 16, 230); ctx.fillRect(734, 1110, 16, 230);
-  ctx.fillStyle = "#9a6644";
-  for (let i = 0; i < 3; i++) { round(300, 1120 + i * 50, 480, 34, 10); ctx.fill(); }
-  ctx.fillStyle = "rgba(255,240,210,.18)"; for (let i = 0; i < 3; i++) ctx.fillRect(310, 1124 + i * 50, 460, 6);
-}
-function benchSeat() {
-  ctx.fillStyle = "#8a5a3b"; round(270, BENCH_Y, 540, 40, 12); ctx.fill();
-  ctx.fillStyle = "#a8714c"; ctx.fillRect(280, BENCH_Y + 4, 520, 8);
-  ctx.fillStyle = "#3f4a43"; ctx.fillRect(310, BENCH_Y + 40, 18, 150); ctx.fillRect(752, BENCH_Y + 40, 18, 150);
-  ctx.fillRect(300, BENCH_Y + 180, 40, 12); ctx.fillRect(742, BENCH_Y + 180, 40, 12);
-}
+const S = 22, MY = 1230;
 function maliAt(t, face, { push = 0, shiver = 0, leaf = false } = {}) {
-  const cx = W / 2 + push + Math.sin(t * 70) * shiver, cy = BENCH_Y - 8 * S + 4;
-  benchBack();
-  // flatternder Schalzipfel hinter Mali
-  const g = 0.4 + gust(t);
+  const cx = W / 2 + push + Math.sin(t * 70) * shiver, cy = MY;
+  ctx.fillStyle = "rgba(60,30,20,.22)"; ctx.beginPath(); ctx.ellipse(W / 2 + push, cy + 8.6 * S, 150, 22, 0, 0, 7); ctx.fill();
+  const g = 0.4 + gust(t);                                        // Schalzipfel im Wind
   for (let k = 0; k < 5; k++) {
     const sx = cx + 4 * S + k * 26 * g, sy = cy + 3.2 * S + Math.sin(t * 10 + k) * 9 * g + k * 5;
     ctx.fillStyle = k % 2 ? "#9e3328" : "#c8493c"; ctx.fillRect(sx, sy, 28, 22);
   }
-  mali(cx, cy, S, FACES[face] || "idle");
-  // Schal um den Hals (Pixel), rote Kältenase
-  ctx.fillStyle = "#c8493c"; ctx.fillRect(cx - 5 * S, cy + 3 * S, 10 * S, S);
+  mali(cx, cy, S, face);
+  ctx.fillStyle = "#c8493c"; ctx.fillRect(cx - 5 * S, cy + 3 * S, 10 * S, S);              // Schal
   ctx.fillStyle = "#9e3328"; for (let k = -4; k < 5; k += 2) ctx.fillRect(cx + k * S, cy + 3 * S, S / 2, S);
   ctx.fillStyle = "#c8493c"; ctx.fillRect(cx + 2 * S, cy + 4 * S, S, 2 * S);
-  ctx.fillStyle = "#ff5a6e"; ctx.fillRect(cx - S, cy + 2 * S, 2 * S, S);
-  // baumelnde Füßchen
-  const swing = Math.sin(t * 5) * 6;
-  ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 6;
-  for (const dx of [-55, 55]) { ctx.beginPath(); ctx.ellipse(cx + dx + swing * (dx > 0 ? 1 : -1), BENCH_Y + 62, 26, 20, 0, 0, 7); ctx.fill(); ctx.stroke(); }
-  benchSeat();
-  // Handy in den Pfoten
-  const px = cx, py = cy + 5.3 * S;
+  ctx.fillStyle = "#ff5a6e"; ctx.fillRect(cx - S, cy + 2 * S, 2 * S, S);                    // Kältenase
+  const px = cx, py = cy + 5.4 * S;                                                          // Handy
   ctx.fillStyle = "#231c20"; round(px - 30, py - 46, 60, 92, 10); ctx.fill();
   ctx.fillStyle = "#dfe7ff"; round(px - 24, py - 40, 48, 80, 7); ctx.fill();
   ctx.fillStyle = "#fffaf6"; ctx.strokeStyle = "#6b5656"; ctx.lineWidth = 6;
   for (const dx of [-38, 38]) { ctx.beginPath(); ctx.arc(px + dx, py + 14, 20, 0, 7); ctx.fill(); ctx.stroke(); }
-  if (leaf) {                                                         // Blatt klebt im Gesicht
+  if (leaf) {
     ctx.save(); ctx.translate(cx - 2.5 * S, cy + 1 * S); ctx.rotate(-0.5);
-    ctx.fillStyle = "#e8743b"; ctx.beginPath(); ctx.ellipse(0, 0, 62, 34, 0, 0, 7); ctx.fill();
-    ctx.strokeStyle = "rgba(90,50,30,.6)"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-62, 0); ctx.lineTo(70, 0); ctx.stroke(); ctx.restore();
+    ctx.fillStyle = "#e8743b"; ctx.beginPath(); ctx.ellipse(0, 0, 66, 36, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = "rgba(90,50,30,.6)"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-66, 0); ctx.lineTo(74, 0); ctx.stroke(); ctx.restore();
   }
-  ctx.fillStyle = "rgba(60,30,20,.16)"; ctx.beginPath(); ctx.ellipse(W / 2, BENCH_Y + 200, 300, 26, 0, 0, 7); ctx.fill();
-  return { phoneX: px, phoneY: py };
+  return { x: px, y: py - 50 };
 }
 
-// ---------- Handy-Ansicht (Zoom aus Malis Handy) ----------
-const PX = 150, PY = 210, PW = 780, PH = 640;
-function panel(t, ph, draw, alpha = 1) {
-  ctx.save(); ctx.globalAlpha = alpha;
-  ctx.fillStyle = "rgba(255,255,255,.55)";                            // Zoom-Spitze zum Handy
-  ctx.beginPath(); ctx.moveTo(W / 2 - 90, PY + PH - 4); ctx.lineTo(W / 2 + 90, PY + PH - 4); ctx.lineTo(ph.phoneX, ph.phoneY - 50); ctx.fill();
-  ctx.save(); ctx.shadowColor = "rgba(60,30,20,.35)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 12;
-  ctx.fillStyle = "#231c20"; round(PX, PY, PW, PH, 46); ctx.fill(); ctx.restore();
-  ctx.save(); round(PX + 12, PY + 12, PW - 24, PH - 24, 36); ctx.clip();
-  ctx.fillStyle = "#fff"; ctx.fillRect(PX, PY, PW, PH);
-  draw(PX + 12, PY + 12, PW - 24, PH - 24);
-  ctx.restore(); ctx.restore();
+// ---------- Chat-Blasen, die aus dem Handy aufsteigen ----------
+// [Text, Zeit, von mir?, Avatar-Look]
+const ROUNDS = [
+  [1.9, 4.3, [["wo ist die jacke her?? 🥺", 1.9, true], ["danke 🥰", 2.9, false, "leather"]]],
+  [4.4, 6.7, [["und der mantel?? 🙏", 4.4, true], ["vintage 💅", 5.2, false, "trench"]]],
+  [6.8, 9.3, [["jacke pls 😭", 6.8, true], ["link in bio ✨", 7.5, false, "street"]]],
+  [9.4, 11.9, [["hey 🥺", 9.4, true], ["hallo?", 9.8, true], ["mir ist kalt", 10.2, true], ["ich zahl dir 5 €", 10.6, true]]],
+  [12.0, 13.5, [["warum fragt ihr eigentlich immer", 12.0, false, "y2k"], ["wo meine sachen her sind 🙄", 12.0, false, null]]],
+];
+function bubble(t, msg, at, mine, look, slot, phone, fade) {
+  const pop = easeBack(prog(t, at, at + 0.3)), rise = easeOut(prog(t, at, at + 0.6));
+  if (pop <= 0) return;
+  ctx.font = `500 46px ${FONT}`;
+  const tw = ctx.measureText(tr(msg)).width, bw = tw + 64, bh = 86;
+  const tx = mine ? 900 - bw / 2 : 170 + bw / 2;                // eigene rechts, Antworten links
+  const ty = 430 + slot * 116;
+  const x = lerp(phone.x, tx, rise), y = lerp(phone.y, ty, rise);
+  ctx.save(); ctx.globalAlpha = fade; ctx.translate(x, y); ctx.scale(pop, pop);
+  ctx.shadowColor = "rgba(60,30,20,.25)"; ctx.shadowBlur = 20; ctx.shadowOffsetY = 6;
+  ctx.fillStyle = mine ? "#e8577e" : "#fbf6f2"; round(-bw / 2, -bh / 2, bw, bh, 43); ctx.fill();
+  ctx.shadowColor = "transparent";
+  ctx.fillStyle = mine ? "#fff" : "#2a1712"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(tr(msg), 0, 3);
+  if (!mine && look) {
+    ctx.beginPath(); ctx.arc(-bw / 2 - 48, 0, 36, 0, 7); ctx.fillStyle = LOOKS[look].bg; ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.arc(-bw / 2 - 48, 0, 36, 0, 7); ctx.clip(); bunny(look, -bw / 2 - 48, 9, 4.8); ctx.restore();
+  }
+  ctx.restore();
 }
-function avatar(look, cx, cy, r) {
-  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fillStyle = LOOKS[look].bg; ctx.fill(); ctx.clip();
-  bunny(look, cx, cy + r * 0.25, r / 7.5); ctx.restore();
+function chat(t, phone) {
+  for (const [from, to, msgs] of ROUNDS) {
+    if (t < from || t > to) continue;
+    const fade = 1 - prog(t, to - 0.25, to);
+    msgs.forEach(([msg, at, mine, look], slot) => bubble(t, msg, at, mine, look, slot, phone, fade));
+    if (from === 9.4 && t > 11.0) {
+      ctx.globalAlpha = fade; ctx.fillStyle = "#fff"; ctx.font = `600 28px ${FONT}`; ctx.textAlign = "right";
+      ctx.fillText(tr("gesehen 23:02"), 900, 430 + 4 * 116 - 50); ctx.globalAlpha = 1;
+    }
+    if (from === 9.4 && between(t, 11.2, 11.7)) {                  // tippt … und hört auf
+      ctx.fillStyle = "#fbf6f2"; round(170, 430 + 4 * 116 - 20, 140, 72, 36); ctx.fill();
+      for (let i = 0; i < 3; i++) { ctx.fillStyle = "#9a8b93"; ctx.beginPath(); ctx.arc(208 + i * 32, 430 + 4 * 116 + 16 - Math.abs(Math.sin(t * 9 + i)) * 8, 10, 0, 7); ctx.fill(); }
+    }
+  }
 }
-function post(t, look, user, comments, input) {
-  return (x, y, w, h) => {
-    avatar(look, x + 48, y + 42, 26); txt(user, x + 88, y + 42, 28, "#1b1418", 800);
-    ctx.fillStyle = LOOKS[look].bg; ctx.fillRect(x, y + 82, w, 210);
-    bunny(look, x + w / 2, y + 190, 8.5);
-    heart(x + 38, y + 322, 4); txt("48,2k", x + 66, y + 322, 26, "#1b1418", 700);
-    let cy = y + 382;
-    for (const [u, lk, msg, at] of comments) {
-      if (t < at) continue;
-      if (!u) cy -= 52;
-      const pop = easeBack(prog(t, at, at + 0.18));
-      ctx.save(); ctx.translate(x + 28, cy); ctx.scale(pop, pop);
-      if (u) { avatar(lk, 22, 0, 22); txt(u, 60, -18, 26, "#1b1418", 800); }
-      txt(msg, 60, 18, 36, "#1b1418", 500); ctx.restore(); cy += 96;
-    }
-    if (input) {
-      const [msg, from, to, sent] = input;
-      ctx.fillStyle = "#f3eef1"; round(x + 18, y + h - 76, w - 36, 58, 29); ctx.fill();
-      const s = t < sent ? typed(t, msg, from, to) : "";
-      txt(s || tr("Kommentar schreiben…"), x + 48, y + h - 47, 34, s ? "#1b1418" : "#9a8b93", 500);
-      if (s && (t * 3) % 1 < 0.5) { ctx.font = `500 34px ${FONT}`; ctx.fillStyle = "#c93a69"; ctx.fillRect(x + 50 + ctx.measureText(s).width, y + h - 64, 3, 34); }
-    }
-  };
+
+// ---------- Film-Look ----------
+function subtitle(textStr, at, until) {
+  if (t0 < at || t0 > until) return;
+  const a = Math.min(prog(t0, at, at + 0.2), 1 - prog(t0, until - 0.2, until));
+  ctx.save(); ctx.globalAlpha = a; ctx.font = `italic 500 52px Georgia, "DejaVu Serif", serif`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.shadowColor = "rgba(0,0,0,.85)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+  ctx.fillStyle = "#fff6e6"; ctx.fillText(tr(textStr), W / 2, 1495); ctx.restore();
 }
-function bio(t) {
-  return (x, y, w) => {
-    avatar("street", x + w / 2, y + 110, 76);
-    txt("@bunny.fits", x + w / 2, y + 225, 40, "#1b1418", 800, "center");
-    txt("✨ manifesting ✨", x + w / 2, y + 292, 38, "#1b1418", 500, "center");
-    txt("living my best life 🍂", x + w / 2, y + 345, 34, "#6f5a63", 500, "center");
-    ["leather", "y2k", "trench"].forEach((lk, i) => { ctx.fillStyle = LOOKS[lk].bg; ctx.fillRect(x + 8 + i * (w - 16) / 3, y + 400, (w - 32) / 3, 230); bunny(lk, x + 8 + i * (w - 16) / 3 + (w - 32) / 6, y + 520, 6); });
-  };
-}
-function dms(t) {
-  return (x, y, w, h) => {
-    ctx.fillStyle = "#faf6f8"; ctx.fillRect(x, y, w, 84);
-    avatar("leather", x + 48, y + 42, 26); txt("@hasi.style", x + 88, y + 42, 30, "#1b1418", 800);
-    let my = y + 120;
-    for (const [m, at] of [["hey 🥺", 9.5], ["hallo?", 9.8], ["die jacke 🥺", 10.1], ["mir ist kalt", 10.4], ["ich zahl dir 5 €", 10.7]]) {
-      if (t < at) continue;
-      const pop = easeBack(prog(t, at, at + 0.15));
-      ctx.font = `500 34px ${FONT}`; const bw = ctx.measureText(tr(m)).width + 50;
-      ctx.save(); ctx.translate(x + w - 28 - bw / 2, my + 30); ctx.scale(pop, pop);
-      ctx.fillStyle = "#c93a69"; round(-bw / 2, -30, bw, 60, 30); ctx.fill(); txt(m, 0, 2, 34, "#fff", 500, "center"); ctx.restore();
-      my += 72;
-    }
-    if (t > 11.0) txt("Gesehen", x + w - 32, my + 2, 24, "#9a8b93", 600, "right");
-    if (between(t, 11.2, 11.7)) {
-      ctx.fillStyle = "#efe7eb"; round(x + 28, my + 30, 120, 58, 29); ctx.fill();
-      for (let i = 0; i < 3; i++) { ctx.fillStyle = "#9a8b93"; ctx.beginPath(); ctx.arc(x + 60 + i * 28, my + 59 - Math.abs(Math.sin(t * 9 + i)) * 8, 8, 0, 7); ctx.fill(); }
-    }
-    ctx.fillStyle = "#f3eef1"; round(x + 18, y + h - 76, w - 36, 58, 29); ctx.fill();
-    txt("Nachricht…", x + 48, y + h - 47, 30, "#9a8b93", 500);
-  };
+let t0 = 0;
+function grade(t) {
+  ctx.save(); ctx.globalCompositeOperation = "soft-light";             // warme Farbgebung
+  ctx.fillStyle = "rgba(255,150,80,.35)"; ctx.fillRect(0, 0, W, H); ctx.restore();
+  const v = ctx.createRadialGradient(W / 2, 1000, 300, W / 2, 1000, 1150);   // Vignette
+  v.addColorStop(0, "rgba(30,12,8,0)"); v.addColorStop(1, "rgba(30,12,8,.55)");
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  const frame = Math.floor(t * 30);                                    // Filmkorn
+  for (let i = 0; i < 900; i++) {
+    const x = (Math.sin(i * 12.9898 + frame * 78.233) * 43758.5453 % 1 + 1) % 1 * W;
+    const y = (Math.sin(i * 39.346 + frame * 11.135) * 23421.631 % 1 + 1) % 1 * H;
+    ctx.fillStyle = i % 2 ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.08)"; ctx.fillRect(x, y, 3, 3);
+  }
+  ctx.fillStyle = "#0b0706"; ctx.fillRect(0, 0, W, 200); ctx.fillRect(0, 1580, W, H - 1580);   // Kinobalken
 }
 
 // ---------- Ablauf ----------
 function scene(t) {
-  const shake = (punch(t, 8.0, 0.4) + punch(t, 12.9, 0.4)) * 14 * Math.sin(t * 90);
-  ctx.save(); ctx.translate(shake, 0);
+  t0 = t;
+  const zoom = 1 + prog(t, 0, LEN) * 0.08 + gust(t) * 0.006;           // langsamer Kamera-Zoom
+  ctx.save(); ctx.translate(W / 2, 1200); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -1200);
   park(t);
   leaves(t, 22);
   windLines(t);
-
-  let face = "open", push = 0, shiver = 1.5 + gust(t) * 4, leaf = false, content = null;
-  if (t < 1.8) face = "shock";
-  else if (t < 4.4) { face = t < 3.4 ? "open" : "tired"; content = post(t, "leather", "@hasi.style", [["du", "hoodie", "wo ist die jacke her?? 🥺", 2.9], ["@hasi.style", "leather", "danke 🥰", 3.4]], ["wo ist die jacke her?? 🥺", 2.0, 2.8, 2.9]); }
-  else if (t < 6.8) { face = t < 5.4 ? "open" : "tired"; leaf = between(t, 5.9, 6.7); content = post(t, "trench", "@hasi.style", [["du", "hoodie", "und der mantel?? 🙏", 5.0], ["@hasi.style", "trench", "vintage 💅", 5.4]], ["und der mantel?? 🙏", 4.5, 4.9, 5.0]); }
-  else if (t < 9.4) { face = t < 8.0 ? "open" : "shock"; push = Math.sin(prog(t, 7.8, 8.8) * Math.PI) * 70; content = t < 8.0 ? post(t, "street", "@bunny.fits", [["du", "hoodie", "JACKE PLS 😭", 7.3], ["@bunny.fits", "street", "link in bio ✨", 7.6]], ["JACKE PLS 😭", 6.9, 7.2, 7.3]) : bio(t); }
-  else if (t < 12.0) { face = t < 11.0 ? "open" : "sad"; content = dms(t); shiver += 2; }
-  else if (t < 13.4) { face = t < 12.6 ? "shock" : (t < 12.9 ? "tired" : "sneeze"); content = post(t, "y2k", "@hasi.style", [["@hasi.style", "y2k", "warum fragt ihr eigentlich immer", 12.1], ["", "y2k", "wo meine sachen her sind 🙄", 12.1]], null); }
-  else face = (t % 2) > 1.85 ? "tired" : "sad";
-
-  const ph = maliAt(t, face, { push: push * 0.5, shiver, leaf });
+  let face = "idle", push = 0, shiver = 1.5 + gust(t) * 4, leaf = false;
+  if (t < 1.8) face = "tired";
+  else if (t < 4.4) face = t < 2.9 ? "idle" : "tired";
+  else if (t < 6.8) { face = t < 5.2 ? "idle" : "tired"; leaf = between(t, 5.9, 6.7); }
+  else if (t < 9.4) { face = t < 8.0 ? "idle" : "shock"; push = Math.sin(prog(t, 7.8, 8.8) * Math.PI) * 50; }
+  else if (t < 12.0) { face = t < 11.0 ? "idle" : "sad"; shiver += 2; }
+  else if (t < 13.5) face = t < 12.9 ? "tired" : "sneeze";
+  else face = (t % 2) > 1.85 ? "blink" : "sad";
+  const phone = maliAt(t, face, { push, shiver, leaf });
   leaves(t, 6, true);
-  if (content) panel(t, ph, content, Math.min(1, prog(t, 1.8, 2.0) * 2) * (1 - prog(t, 13.3, 13.5)));
-
-  // Texte
-  if (t < 1.8) bigText(["POV: es ist 4 grad", "und du hast keine jacke"], 470, 100, { scale: lerp(1.5, 1, easeOut(prog(t, 0, 0.18))), fill: ["#fff", "#ffe066"] });
-  if (between(t, 3.6, 4.4)) bigText(["danke…???"], 330, 120, { scale: easeBack(prog(t, 3.6, 3.85)) });
-  if (between(t, 5.6, 6.8)) bigText(["vintage. natürlich."], 330, 100, { scale: easeBack(prog(t, 5.6, 5.85)) });
-  if (between(t, 8.1, 9.4)) bigText(["WELCHER LINK"], 330, 130, { scale: lerp(1.6, 1, easeOut(prog(t, 8.1, 8.25))), fill: "#ffe066" });
-  if (between(t, 11.2, 11.7)) bigText(["*tippt…*"], 330, 100, { scale: easeBack(prog(t, 11.2, 11.4)) });
-  if (between(t, 11.7, 12.0)) bigText(["*tippt nicht mehr*"], 330, 100, { scale: easeBack(prog(t, 11.7, 11.85)) });
-  if (between(t, 12.9, 13.6)) bigText(["hatschi!"], 900, 110, { scale: lerp(1.8, 1, easeOut(prog(t, 12.9, 13.05))), rot: 0.08, fill: "#ffe066" });
-  if (t > 13.6) narrate(["*immer noch keine jacke*"], 470, { scale: easeBack(prog(t, 13.7, 14.0)), size: 80 });
+  chat(t, phone);
   ctx.restore();
-  const k = punch(t, 0, 0.2) * 0.9 + punch(t, 8.0, 0.2) * 0.4;     // Blitze
-  if (k > 0) { ctx.fillStyle = `rgba(255,255,255,${k})`; ctx.fillRect(0, 0, W, H); }
-  const out = prog(t, LEN - 0.5, LEN);
-  if (out > 0) { ctx.fillStyle = `rgba(40,20,15,${out})`; ctx.fillRect(0, 0, W, H); }
+  grade(t);
+  subtitle("4 grad. keine jacke.", 0.2, 1.8);
+  subtitle("danke.", 3.4, 4.3);
+  subtitle("natürlich.", 5.5, 6.7);
+  subtitle("die bio sagt manifesting.", 8.1, 9.3);
+  subtitle("gesehen. 23:02.", 11.0, 11.9);
+  subtitle("hatschi.", 12.9, 13.5);
+  subtitle("immer noch keine jacke.", 13.7, LEN - 0.2);
+  const out = prog(t, LEN - 0.6, LEN), inn = 1 - prog(t, 0, 0.4);
+  const black = Math.max(out, inn);
+  if (black > 0) { ctx.fillStyle = `rgba(11,7,6,${black})`; ctx.fillRect(0, 0, W, H); }
 }
 
 window.duration = LEN;

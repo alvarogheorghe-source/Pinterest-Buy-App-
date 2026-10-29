@@ -48,9 +48,10 @@ node render_page.js "$(pwd)" <ausgabe> gatekeeping.html gatekeeping.wav malipin-
 
 ## Herbstpark (herbst.html, 15,5 s)
 
-Illustrierter Herbstpark, Mali (Pixel-Mali) sitzt mit Schal und ohne Jacke auf einer Bank, Handy in
-den Pfoten, friert im Wind. Fragt Creator nach der Jacke: "danke", "vintage", "link in bio",
-DMs gesehen, "hatschi". Endet mit "*immer noch keine jacke*". Wind, Laub, Grillen, Spieluhr.
+Filmischer Look (Kinobalken, warme Farben, Filmkorn, langsamer Zoom, Untertitel): Pixel-Mali steht
+mit Schal und ohne Jacke im Herbstlaub und friert. Nachrichten steigen als Blasen aus dem Handy:
+"danke", "vintage", "link in bio", gesehen 23:02, "hatschi". Endet mit "immer noch keine jacke."
+Ruhiger Lo-Fi mit Wind und Vinyl statt Meme-Effekten.
 ```
 python3 herbst_sound.py <ausgabe>
 node render_page.js "$(pwd)" <ausgabe> herbst.html herbst.wav malipin-herbst de   # oder en

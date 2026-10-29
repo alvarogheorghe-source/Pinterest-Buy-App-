@@ -1,5 +1,5 @@
-"""Sound für herbst.html (15,5 s): Wind mit Böen, Zähneklappern, raschelndes Laub, leiser
-Schleich-Beat, Tippen, Benachrichtigungen, Grillen, "hatschi", am Ende traurige Spieluhr.
+"""Sound für herbst.html (15,5 s), filmisch und ruhig: Lo-Fi mit weichen Akkorden und Vinyl,
+Wind mit Böen, raschelndes Laub, sanfte Blasen-Töne, Grillen, "hatschi", traurige Spieluhr.
 
 Aufruf: python3 herbst_sound.py <ordner>  -> herbst.wav
 """
@@ -10,10 +10,10 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gatekeeping_sound import crickets, key_click, notif, sneaky  # noqa: E402
-from serie_sound import scratch, slide, sting, thud, whoosh, write  # noqa: E402
-from sound import SR, boom, env, hz, lowpass, noise, placer, pop, sine, square  # noqa: E402
-from story_sound import bonk, musicbox, womp  # noqa: E402
+from gatekeeping_sound import crickets  # noqa: E402
+from serie_sound import whoosh, write  # noqa: E402
+from sound import SR, env, hz, lowpass, music_lofi, noise, placer, sine  # noqa: E402
+from story_sound import musicbox  # noqa: E402
 
 LEN = 15.5
 GUSTS = [(0.1, 1.0), (3.7, 0.5), (7.8, 1.2), (10.6, 0.6), (12.9, 0.9)]
@@ -62,49 +62,32 @@ def sneeze():
     return out
 
 
+def blip(freq, vol=0.22):
+    """Sanfter Blasen-Ton (Nachricht steigt auf)."""
+    return sine(freq, 0.35, decay=9, attack=0.004, vol=vol, harmonics=(1.0, 0.25))
+
+
 def render(path):
     out = np.zeros(int((LEN + 1) * SR))
     put = placer(out)
-    rng = np.random.default_rng(5)
 
+    put(lowpass(music_lofi(LEN, 1.8, 13.5, 99), 0.18), 0, 0.55)     # ruhiger Lo-Fi, ab der ersten Nachricht
     put(wind(LEN), 0)
     for at, s in GUSTS:
         put(rustle(0.8), at + 0.1, 0.8 * s)
-        put(whoosh(0.6), at + 0.05, 0.6 * s)
-    put(boom(), 0, 0.7)
-    put(chatter(1.3), 0.3)
+        put(whoosh(0.6), at + 0.05, 0.5 * s)
+    put(chatter(1.0), 0.4)                                          # Zähneklappern, leise
 
-    sneaky(put, 1.8, 11.0)                                          # leiser Schleich-Beat
-    for frm, to in ((2.0, 2.8), (4.5, 4.9), (6.9, 7.2)):            # Tippen
-        t = frm
-        while t < to:
-            put(key_click(), t)
-            t += 0.05 + rng.uniform(0, 0.03)
-    for at in (2.9, 5.0, 7.3):
-        put(whoosh(0.18), at, 0.6)
-        put(pop(), at + 0.05, 0.5)
-    for at in (3.4, 5.4, 7.6):
-        put(notif(), at)
-    put(bonk(), 3.6)
-    put(womp(hz("G", 3), 0.3), 3.65)
-    put(womp(hz("F#", 3), 0.55, wobble=True), 3.95)
-    put(pop(), 5.9, 0.8)                                            # Blatt klatscht ins Gesicht
-    put(slide(700, 300, 0.3, 0.2), 5.9)
-    put(scratch(), 5.6)
-    put(boom(), 8.05)                                               # WELCHER LINK + Windstoß
-    put(sting(), 8.1)
-    for at in (9.5, 9.8, 10.1, 10.4, 10.7):                         # DMs
-        put(square(1046.5, 0.05, duty=0.25, decay=40, vol=0.15), at)
-        put(pop(), at, 0.4)
-    put(sine(880.0, 0.25, decay=10, vol=0.15), 11.0)                # gesehen
-    put(crickets(1.0), 11.0)
-    put(slide(500, 900, 0.15, 0.12), 11.2)
-    put(slide(900, 300, 0.25, 0.14), 11.7)
-    put(thud(), 12.1)
-    put(sneeze(), 12.45)                                            # hatschi bei 12.9
-    put(chatter(0.8), 13.6)
+    for at in (1.9, 4.4, 6.8, 9.4, 9.8, 10.2, 10.6):                # eigene Nachrichten
+        put(blip(988.0), at)
+    for at in (2.9, 5.2, 7.5, 12.0):                                # Antworten
+        put(blip(659.3, 0.18), at)
+        put(blip(523.3, 0.14), at + 0.1)
+    put(sine(880.0, 0.25, decay=10, vol=0.1), 11.0)                 # gesehen
+    put(crickets(0.9), 11.0, 0.7)
+    put(sneeze(), 12.45, 0.8)
     for k, (n_, o) in enumerate([("E", 5), ("D", 5), ("C", 5), ("B", 4), ("A", 4)]):   # traurige Spieluhr
-        put(musicbox(hz(n_, o), dur=1.4, vol=0.14), 13.6 + k * 0.38)
+        put(musicbox(hz(n_, o), dur=1.6, vol=0.12), 13.7 + k * 0.4)
     write(out, LEN, path)
 
 
