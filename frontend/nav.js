@@ -84,7 +84,18 @@ function hit(data) {
   }
 }
 
-hit({ type: "view", page: location.pathname });
+// Woher? ?von=tiktok (Bio-Link) bzw. utm_source, sonst die verweisende Seite. Danach den
+// Zusatz aus der Adresse nehmen, damit er beim Weiterteilen nicht mitwandert.
+(() => {
+  const params = new URLSearchParams(location.search);
+  const source = params.get("von") || params.get("utm_source") || params.get("ref") || "";
+  hit({ type: "view", page: location.pathname, source, referrer: document.referrer });
+  if (source) {
+    ["von", "utm_source", "utm_medium", "utm_campaign", "ref"].forEach((key) => params.delete(key));
+    const rest = params.toString();
+    history.replaceState(null, "", location.pathname + (rest ? `?${rest}` : "") + location.hash);
+  }
+})();
 document.addEventListener("click", (event) => {
   const link = event.target.closest?.("a[href^='http']");
   if (link && link.host !== location.host) hit({ type: "click", url: link.href });

@@ -334,14 +334,19 @@ class Hit(BaseModel):
     type: Literal["view", "click"]
     page: str = Field("", max_length=100)
     url: str = Field("", max_length=2000)
+    source: str = Field("", max_length=60)         # ?von=… / utm_source aus dem Link
+    referrer: str = Field("", max_length=2000)     # woher (document.referrer)
 
 
 @app.post("/api/hit", status_code=204)
 def hit(data: Hit, request: Request):
     """Besucherzählung ohne Cookies (backend/stats.py): Seite aufgerufen / zu einem Shop geklickt."""
+    user_agent = request.headers.get("user-agent", "")
+    source = (stats.source_of(data.source, data.referrer, user_agent, request.url.hostname or "")
+              if data.type == "view" else "")
     stats.record(data.type, ip=request.client.host if request.client else "",
-                 user_agent=request.headers.get("user-agent", ""),
-                 page=data.page, shop=stats.shop_name(data.url))
+                 user_agent=user_agent, page=data.page, shop=stats.shop_name(data.url),
+                 source=source)
 
 
 @app.get("/api/admin/stats")

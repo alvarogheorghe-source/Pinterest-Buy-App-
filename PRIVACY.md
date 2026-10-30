@@ -65,7 +65,9 @@ Malipin only uses what is needed for the site to work, so there is no cookie ban
 
 There is no analytics service, no tracking and no advertising cookie. Malipin only counts, per
 day, how many pages were opened, how many people visited, how often someone clicked through to
-a shop and how many photo searches there were. To count visitors without cookies, a checksum is
+a shop, how many photo searches there were, and roughly where visitors came from (for example
+"tiktok" or "google": a tag in the link, the name of the referring website or the app's
+in-app browser, never the full address). To count visitors without cookies, a checksum is
 made from the IP address, the browser name and a random value that changes every day. It is
 only kept in memory and forgotten at midnight. Only the totals are stored.
 

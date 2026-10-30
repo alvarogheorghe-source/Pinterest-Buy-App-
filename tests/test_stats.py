@@ -33,3 +33,27 @@ def test_admin_stats_need_login(fake, client, monkeypatch):
 
 def test_bad_hit_is_rejected(fake, client):
     assert client.post("/api/hit", json={"type": "delete"}).status_code == 422
+
+
+def test_where_visitors_come_from():
+    from backend.stats import source_of
+    assert source_of("TikTok") == "tiktok"                                   # ?von=tiktok
+    assert source_of("<script>") == "script"                                 # nur harmlose Zeichen
+    assert source_of("", "https://l.instagram.com/?u=x") == "instagram"
+    assert source_of("", "https://www.google.at/") == "google"
+    assert source_of("", "https://www.reddit.com/r/x") == "reddit"           # nicht "x" wegen t.co
+    assert source_of("", "https://t.co/abc") == "x"
+    assert source_of("", "https://modeblog.example/post") == "modeblog.example"
+    assert source_of("", "", "Mozilla/5.0 ... Instagram 300.0") == "instagram"   # In-App-Browser
+    assert source_of("", "", "Mozilla/5.0 ... musical_ly_2023") == "tiktok"
+    assert source_of("", "https://malipin.com/shop.html", "Mozilla", "malipin.com") == "direkt"
+    assert source_of("", "", "Mozilla/5.0") == "direkt"
+
+
+def test_sources_are_counted_once_per_visitor_and_day(fake, client):
+    agent = {"User-Agent": "Mozilla/5.0 Instagram"}
+    client.post("/api/hit", json={"type": "view", "page": "/", "source": "tiktok"}, headers=agent)
+    client.post("/api/hit", json={"type": "view", "page": "/shop.html"}, headers=agent)   # gleiche Person
+    client.post("/api/hit", json={"type": "view", "page": "/",
+                                  "referrer": "https://www.google.de/"}, headers={"User-Agent": "Mozilla/5.0 B"})
+    assert dict(stats.summary()["sources"]) == {"tiktok": 1, "google": 1}

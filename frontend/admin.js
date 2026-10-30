@@ -56,7 +56,7 @@ async function start() {
 
 // --- Besucherzahlen ----------------------------------------------------------------------------
 
-function renderStats({ days, totals, top_shops: topShops }) {
+function renderStats({ days, totals, top_shops: topShops, sources = [] }) {
   const labels = { visitors: "Besucher", views: "Seitenaufrufe", clicks: "Klicks zu Shops",
                    photos: "Foto-Suchen" };
   document.getElementById("stats-totals").replaceChildren(...Object.entries(labels).map(([key, label]) => {
@@ -73,6 +73,9 @@ function renderStats({ days, totals, top_shops: topShops }) {
     for (const key of Object.keys(labels)) row.append(el("td", "", String(day[key])));
     return row;
   }));
+  document.getElementById("stats-sources").textContent = sources.length
+    ? "Woher: " + sources.map(([source, count]) => `${source} (${count})`).join(", ")
+    : "Noch keine Besucher-Quellen. Tipp: in der Bio malipin.com/?von=tiktok verlinken.";
   document.getElementById("stats-shops").textContent = topShops.length
     ? "Meiste Klicks: " + topShops.map(([shop, count]) => `${shop} (${count})`).join(", ")
     : "Noch keine Klicks zu Shops.";
