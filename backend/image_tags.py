@@ -251,6 +251,21 @@ def tag(pin_vector: list[float], labels: dict[str, list[float]], force: bool = F
     return result
 
 
+def gender_of(vectors: list[list[float]], labels: dict[str, list[float]]) -> str | None:
+    """Damen/Herren aus mehreren Ansichten desselben Fotos (ganzes Bild + Ausschnitt um die
+    Person): die Wahrscheinlichkeiten werden gemittelt – eine Ansicht allein kippt leicht."""
+    total: dict[str, float] = {}
+    for vector in vectors:
+        scores = {key[len("gender:"):]: cosine(vector, v) for key, v in labels.items()
+                  if key.startswith("gender:")}
+        for name, p in softmax(scores).items():
+            total[name] = total.get(name, 0.0) + p / len(vectors)
+    if not total:
+        return None
+    name, p = max(total.items(), key=lambda kv: kv[1])
+    return name if p >= GENDER_MIN else None
+
+
 def image_details(detail_scores: dict[str, float], categories: list[str]) -> list[list[str]]:
     """Schnitt & Details der erkannten Teile -> [["Hosen", "Bootcut"], ["Hosen", "Light Wash"]].
 

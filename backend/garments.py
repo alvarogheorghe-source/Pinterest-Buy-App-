@@ -47,7 +47,6 @@ CATEGORY = {
     "pants": "Hosen", "shorts": "Hosen",
     "skirt": "Kleider & Röcke", "dress": "Kleider & Röcke", "jumpsuit": "Kleider & Röcke",
     "shoe": "Schuhe", "bag, wallet": "Accessoires", "hat": "Accessoires", "scarf": "Accessoires",
-    "glasses": "Accessoires",
     # gröbere Modelle benennen so
     "top": "Oberteile", "outer": "Jacken", "bottom": "Hosen", "shoes": "Schuhe", "bag": "Accessoires",
 }

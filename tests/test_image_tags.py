@@ -165,3 +165,9 @@ def test_every_detail_prompt_is_a_sensible_phrase():
     assert image_tags.DETAIL_PROMPTS["Hosen|Mom Jeans"] == "mom jeans"
     assert image_tags.DETAIL_PROMPTS["Schuhe|Low Top"] == "low top shoes"
     assert image_tags.DETAIL_PROMPTS["Schuhe|Chelsea Boots"] == "chelsea boots"
+
+
+def test_gender_from_two_views_of_the_same_photo():
+    herren, damen = axis(("gender:herren", 1.0)), axis(("gender:damen", 1.0))
+    assert image_tags.gender_of([herren, herren], LABELS) == "herren"
+    assert image_tags.gender_of([herren, damen], LABELS) is None       # uneinig -> nicht raten

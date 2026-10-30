@@ -62,6 +62,18 @@ def main() -> None:
     print("Über der Grenze:", sum(1 for s, _ in sims if s and s >= photo.PHOTO_MIN))
     pieces = garments.find(data)
     print("Ausgeschnittene Teile:", [(p.label, p.category, p.score) for p in pieces] or "keine")
+    # Je Teil: die ähnlichsten Kandidaten, auch unter der Grenze (zum Einstellen der Grenzen)
+    for piece, piece_vector in zip(pieces, embedder.embed_image_bytes([p.crop for p in pieces])):
+        piece_pin = {**pin, "image_categories": garments.search_categories(piece.category),
+                     "image_department": "mode"}
+        sims = []
+        for p in photo.candidates(piece_pin):
+            if p.category in piece_pin["image_categories"]:
+                v = store.get(f"product:{p.id}")
+                if v:
+                    sims.append((round(vision.visual_score(vision.cosine(piece_vector, v)), 2), p.name[:40]))
+        sims.sort(reverse=True)
+        print(f"  {piece.label}: {len(sims)} Kandidaten mit Bild, beste:", sims[:3])
     result = photo.recommend(data)
     print("Mali sieht:", result["found"])
     for group in result.get("groups") or [{"category": "ganzes Bild", "color": "", "products": result["products"]}]:

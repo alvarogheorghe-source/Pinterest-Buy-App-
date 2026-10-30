@@ -109,15 +109,17 @@ def closest(pin: dict, vector: list[float], found: list[Product], embedder, stor
     return top[:limit]
 
 
-def retag_person(pin: dict, data: bytes, pieces: list, embedder, store) -> None:
+def retag_person(pin: dict, data: bytes, whole: list[float], pieces: list, embedder, store) -> None:
     """Stil, Damen/Herren, Marke noch einmal auf dem Ausschnitt um die Person bestimmen –
     ohne Hintergrund rät FashionCLIP hier deutlich besser."""
     person = garments.person_crop(data, pieces)
     vector = embedder.embed_image_bytes([person])[0] if person else None
     if vector is None:
         return
-    tags = image_tags.tag(vector, image_tags.label_vectors(embedder, store), force=True)
-    pin.update(image_styles=tags["styles"] or pin["image_styles"], image_gender=tags["gender"] or pin["image_gender"],
+    labels = image_tags.label_vectors(embedder, store)
+    tags = image_tags.tag(vector, labels, force=True)
+    pin.update(image_styles=tags["styles"] or pin["image_styles"],
+               image_gender=image_tags.gender_of([whole, vector], labels),
                image_brands=tags["brands"], image_details=tags["details"])
 
 
@@ -141,7 +143,7 @@ def recommend(data: bytes, force: bool = False) -> dict:
     vectors = embedder.embed_image_bytes([p.crop for p in pieces]) if pieces else []
     looks = [(p, v) for p, v in zip(pieces, vectors) if v is not None]
     if looks:
-        retag_person(pin, data, [p for p, _ in looks], embedder, store)
+        retag_person(pin, data, vector, [p for p, _ in looks], embedder, store)
         searches = [({**pin, "image_categories": garments.search_categories(p.category),
                       "image_department": "mode",
                       "dominant_color": pin_colors.dominant_hex(p.crop)}, v) for p, v in looks]
