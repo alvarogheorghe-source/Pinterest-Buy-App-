@@ -32,7 +32,7 @@ class FakeDetector:
 OUTFIT = [
     {"label": "jacket", "score": 0.93, "box": box(40, 40, 160, 200)},
     {"label": "LABEL_6", "score": 0.88, "box": box(50, 200, 150, 370)},     # pants
-    {"label": "shoe", "score": 0.81, "box": box(60, 375, 80, 390)},         # winzig -> weg
+    {"label": "watch", "score": 0.81, "box": box(60, 100, 90, 130)},        # suchen wir nicht
     {"label": "sleeve", "score": 0.95, "box": box(40, 40, 70, 150)},        # kein Teil -> weg
     {"label": "shirt, blouse", "score": 0.3, "box": box(60, 60, 140, 120)},  # unsicher -> weg
 ]
@@ -63,3 +63,17 @@ def test_person_crop_leaves_out_the_background():
     pieces = garments.find(outfit_photo(), FakeDetector(OUTFIT))
     person = Image.open(BytesIO(garments.person_crop(outfit_photo(), pieces)))
     assert person.width < 200 and person.height < 400
+
+
+def test_small_shoes_count_and_both_shoes_are_one_crop():
+    shoes = [{"label": "shoe", "score": 0.9, "box": box(50, 372, 75, 392)},
+             {"label": "shoe", "score": 0.85, "box": box(120, 372, 148, 392)}]
+    pieces = garments.find(outfit_photo(), FakeDetector(OUTFIT + shoes))
+    shoe = next(p for p in pieces if p.category == "Schuhe")
+    assert shoe.box[0] < 50 and shoe.box[2] > 148                      # beide Schuhe drauf
+
+
+def test_upper_body_searches_tops_and_jackets():
+    """Zip-Hoodie heißt beim Modell "jacket", liegt bei uns aber unter Oberteile."""
+    assert set(garments.search_categories("Jacken")) == {"Jacken", "Oberteile"}
+    assert garments.search_categories("Hosen") == ["Hosen"]

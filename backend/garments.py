@@ -23,7 +23,9 @@ FALLBACK_PROCESSOR = "hustvl/yolos-small"
 
 MIN_SCORE = 0.5      # so sicher muss das Modell sein
 MIN_AREA = 0.015     # Ausschnitt mindestens 1,5 % des Bildes (keine winzigen Uhren o.ä.)
-MAX_PIECES = 3       # höchstens so viele Teile pro Foto suchen
+# Schuhe und Taschen sind auf Ganzkörperfotos klein – die dürfen kleiner sein
+SMALL_AREA = {"Schuhe": 0.003, "Accessoires": 0.005}
+MAX_PIECES = 4       # höchstens so viele Teile pro Foto suchen
 PADDING = 0.06       # etwas Rand um den Kasten, damit das Teil ganz drauf ist
 
 # Fashionpedia-Klassen in der Reihenfolge des Modells (falls es nur "LABEL_7" sagt)
@@ -37,7 +39,7 @@ FASHIONPEDIA = [
 ]
 
 # Teil -> unsere Kategorie (matching.CATEGORY_SYNONYMS). Was fehlt (Ärmel, Taschen,
-# Reißverschluss, Brille …), wird nicht gesucht.
+# Reißverschluss …), wird nicht gesucht.
 CATEGORY = {
     "shirt, blouse": "Oberteile", "top, t-shirt, sweatshirt": "Oberteile",
     "sweater": "Oberteile", "cardigan": "Oberteile", "vest": "Oberteile",
@@ -45,9 +47,19 @@ CATEGORY = {
     "pants": "Hosen", "shorts": "Hosen",
     "skirt": "Kleider & Röcke", "dress": "Kleider & Röcke", "jumpsuit": "Kleider & Röcke",
     "shoe": "Schuhe", "bag, wallet": "Accessoires", "hat": "Accessoires", "scarf": "Accessoires",
+    "glasses": "Accessoires",
     # gröbere Modelle benennen so
     "top": "Oberteile", "outer": "Jacken", "bottom": "Hosen", "shoes": "Schuhe", "bag": "Accessoires",
 }
+
+
+# Das Modell verwechselt Hoodie, Zip-Hoodie, Jacke und Cardigan leicht – bei uns liegen
+# Hoodies aber unter "Oberteile". Darum für den Oberkörper in beiden suchen.
+SEARCH = {"Oberteile": ["Oberteile", "Jacken"], "Jacken": ["Jacken", "Oberteile"]}
+
+
+def search_categories(category: str) -> list[str]:
+    return SEARCH.get(category, [category])
 
 
 @dataclass
@@ -120,13 +132,18 @@ def find(image_bytes: bytes, detector=None) -> list[Piece]:
         category = CATEGORY.get(name)
         if not category or item["score"] < MIN_SCORE:
             continue
-        box = item["box"]
+        box = dict(item["box"])
+        if category == "Schuhe" and category in best:
+            # Zwei Schuhe -> ein Ausschnitt mit beiden
+            other = best[category][1]["box"]
+            box = {"xmin": min(box["xmin"], other["xmin"]), "ymin": min(box["ymin"], other["ymin"]),
+                   "xmax": max(box["xmax"], other["xmax"]), "ymax": max(box["ymax"], other["ymax"])}
         area = (box["xmax"] - box["xmin"]) * (box["ymax"] - box["ymin"]) / (width * height)
-        if area < MIN_AREA:
+        if area < SMALL_AREA.get(category, MIN_AREA):
             continue
-        # Pro Kategorie nur das größte Teil (zwei Schuhe -> einmal Schuhe)
+        # Pro Kategorie nur das größte Teil
         if category not in best or area > best[category][0]:
-            best[category] = (area, item, name)
+            best[category] = (area, {**item, "box": box}, name)
 
     pieces = []
     for category, (_, item, name) in sorted(best.items(), key=lambda kv: -kv[1][0])[:MAX_PIECES]:

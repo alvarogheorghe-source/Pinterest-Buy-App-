@@ -10,6 +10,7 @@ Ablauf:
 """
 
 import io
+from collections import Counter
 
 from backend import garments, image_tags, pin_colors, vision
 from backend.brands import BRANDS
@@ -141,7 +142,8 @@ def recommend(data: bytes, force: bool = False) -> dict:
     looks = [(p, v) for p, v in zip(pieces, vectors) if v is not None]
     if looks:
         retag_person(pin, data, [p for p, _ in looks], embedder, store)
-        searches = [({**pin, "image_categories": [p.category], "image_department": "mode",
+        searches = [({**pin, "image_categories": garments.search_categories(p.category),
+                      "image_department": "mode",
                       "dominant_color": pin_colors.dominant_hex(p.crop)}, v) for p, v in looks]
     else:
         searches = [(pin, vector)]          # ein einzelnes Teil, Deko … -> ganzes Bild
@@ -156,8 +158,13 @@ def recommend(data: bytes, force: bool = False) -> dict:
                if item["id"] not in shown]
         shown |= {item["id"] for item in top}
         color = color_from_hex(search_pin["dominant_color"])
-        groups.append({"category": search_pin["image_categories"][0] if looks else None,
-                       "color": color, "products": top})
+        # Überschrift nach dem, was gefunden wurde (Zip-Hoodie -> "Oberteile", nicht "Jacken")
+        shown_categories = Counter(item["category"] for item in top)
+        category = None
+        if looks:
+            category = (shown_categories.most_common(1)[0][0] if shown_categories
+                        else search_pin["image_categories"][0])
+        groups.append({"category": category, "color": color, "products": top})
     store.save()
     remember_photo_results([p for p in everything if p.id in shown])
 
