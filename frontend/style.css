@@ -1808,6 +1808,13 @@ section + section {
   gap: 28px 18px;         /* mehr Luft zwischen den Reihen */
 }
 
+/* Foto-Suche: Überschrift je Kleidungsstück, über die ganze Breite */
+.photo-group {
+  grid-column: 1 / -1;
+  margin: 8px 0 -12px;
+  font-size: 1.05rem;
+}
+
 @media (max-width: 640px) {
   .row-track {
     scroll-padding-inline: 16px;   /* erste Karte nicht am Bildschirmrand kleben */

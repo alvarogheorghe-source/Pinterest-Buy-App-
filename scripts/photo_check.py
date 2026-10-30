@@ -10,7 +10,7 @@ from collections import Counter
 import httpx
 
 from backend import config  # noqa: F401  (lädt .env)
-from backend import photo, vision
+from backend import garments, photo, vision
 from backend.matching import build_style_profile, rank_products
 from backend.products import online_sources
 
@@ -60,8 +60,12 @@ def main() -> None:
     for s, name in sims[:10]:
         print(f"  {s}  {name}")
     print("Über der Grenze:", sum(1 for s, _ in sims if s and s >= photo.PHOTO_MIN))
+    pieces = garments.find(data)
+    print("Ausgeschnittene Teile:", [(p.label, p.category, p.score) for p in pieces] or "keine")
     result = photo.recommend(data)
-    print("Foto-Suche liefert:", [p["name"][:40] for p in result["products"]])
+    print("Mali sieht:", result["found"])
+    for group in result.get("groups") or [{"category": "ganzes Bild", "color": "", "products": result["products"]}]:
+        print(f"  {group['category']} {group['color'] or ''}:", [p["name"][:40] for p in group["products"]])
 
 
 if __name__ == "__main__":

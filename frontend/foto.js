@@ -171,7 +171,17 @@ function showResult(data) {
   if (!data.products.length) {
     say("Dazu hab ich leider nichts Passendes gefunden. Probier ein anderes Foto!");
   }
-  for (const product of data.products) grid.appendChild(card(product));
+  if (data.groups?.length > 1) {
+    // Outfit-Foto: je Kleidungsstück eine eigene Reihe ("Jacken · schwarz")
+    for (const group of data.groups) {
+      if (!group.products.length) continue;
+      const title = [t(group.category), group.color && t(group.color)].filter(Boolean).join(" · ");
+      grid.appendChild(el("h3", "photo-group", title));
+      for (const product of group.products) grid.appendChild(card(product));
+    }
+  } else {
+    for (const product of data.products) grid.appendChild(card(product));
+  }
   addAgainButton();
   if (data.amazon_url) actions.appendChild(amazonLink(data.amazon_url, "Mehr bei Amazon suchen"));
 }

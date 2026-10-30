@@ -96,6 +96,13 @@ def no_exchange_rate_downloads(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def no_garment_model(monkeypatch):
+    """Das Kleidungs-Erkennungsmodell wird in Tests nie geladen (backend/garments.py)."""
+    from backend import garments
+    monkeypatch.setattr(garments, "get_detector", lambda: None)
+
+
+@pytest.fixture(autouse=True)
 def no_image_downloads(monkeypatch):
     """Pin-Bilder werden in Tests nie wirklich geladen (backend/pin_colors.py)."""
     from backend import pin_colors

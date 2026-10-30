@@ -137,3 +137,27 @@ def test_photo_compares_all_precomputed_images(fake, client, model, monkeypatch)
     store.save()
     products = upload(client, jpeg()).json()["products"]
     assert [p["id"] for p in products] == ["prod-006"]
+
+
+def test_outfit_photo_is_searched_piece_by_piece(fake, client, monkeypatch):
+    """Straßenfoto: Jacke und Hose werden ausgeschnitten und einzeln gesucht, jedes mit
+    seiner eigenen Farbe – die grüne Wiese drumherum zählt nicht."""
+    from backend import garments
+    from tests.test_garments import OUTFIT, FakeDetector, outfit_photo
+
+    class OutfitEmbedder(PhotoEmbedder):
+        def embed_image_bytes(self, images):
+            def look(data):
+                r, g, b = Image.open(BytesIO(data)).convert("RGB").resize((1, 1)).getpixel((0, 0))
+                return axis(("category:Hosen", 1.0)) if b > r + 40 else PHOTO_VECTOR
+            return [look(data) for data in images]
+
+    monkeypatch.setattr(vision, "get_embedder", OutfitEmbedder)
+    monkeypatch.setattr(garments, "get_detector", lambda: FakeDetector(OUTFIT))
+    result = upload(client, outfit_photo()).json()
+    groups = result["groups"]
+    assert [(g["category"], g["color"]) for g in groups] == [("Jacken", "schwarz"), ("Hosen", "blau")]
+    assert [p["id"] for p in groups[0]["products"]] == ["prod-006"]
+    assert groups[1]["products"] and all(p["category"] == "Hosen" for p in groups[1]["products"])
+    assert result["found"]["colors"] == ["schwarz", "blau"]                 # kein Oliv
+    assert result["products"] == groups[0]["products"] + groups[1]["products"]
