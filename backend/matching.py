@@ -93,7 +93,7 @@ CATEGORY_SYNONYMS = {
                              "kette", "necklace", "*gürtel", "belt", "beanie", "*mütze", "cap",
                              "rucksack", "backpack", "ohrringe", "earrings", "creolen",
                              "armband", "bracelet", "sonnenbrille", "sunglasses", "schal",
-                             "scarf", "clutch", "claw clip"]),
+                             "scarf", "clutch", "claw clip", "*handschuhe", "gloves"]),
     "Deko": ("wohnen", ["*vase", "*vasen", "*kerze", "*kerzen", "candle", "deko", "decor",
                         "dekoration"]),
     "Leuchten": ("wohnen", ["*lampe", "*lampen", "lamp", "*leuchte", "*lichterkette",
@@ -123,13 +123,18 @@ DEPARTMENT_WORDS = {
 }
 
 
+# Zusammengesetzte Wörter, die NICHT gemeint sind: "Handschuhe" sind keine Schuhe
+NOT_COMPOUND = {"*schuhe": "hand"}
+
+
 def _word_pattern(word: str) -> str:
     """Ein Wort als Suchausdruck. Ein * vorne erlaubt deutsche zusammengesetzte
     Wörter: "*vase" findet auch "Keramikvase" und "Glasvase"."""
     ending = r"\w*" if word.endswith("~") else ""      # "~" = beliebige Endung (languages.py)
     word = word.rstrip("~")
     if word.startswith("*"):
-        return r"\w*" + re.escape(word[1:]) + ending
+        exclude = f"(?<!{NOT_COMPOUND[word]})" if word in NOT_COMPOUND else ""
+        return r"\w*" + exclude + re.escape(word[1:]) + ending
     return re.escape(word) + ending
 
 

@@ -234,3 +234,10 @@ def test_german_color_endings():
     assert find_terms("Schwarze Jacke", COLOR_PATTERNS) == {"schwarz"}
     assert find_terms("beiger Pullover, weißes Regal", COLOR_PATTERNS) == {"beige", "weiß"}
     assert find_terms("Rotkehlchen Rotor", COLOR_PATTERNS) == set()   # keine Fehltreffer
+
+
+def test_gloves_are_not_shoes():
+    from backend.matching import CATEGORY_PATTERNS, find_terms
+    assert find_terms("Handschuhe Action Gloves flammhemmend", CATEGORY_PATTERNS) == {"Accessoires"}
+    assert find_terms("Lederhandschuhe schwarz", CATEGORY_PATTERNS) == {"Accessoires"}
+    assert find_terms("Laufschuhe Herren", CATEGORY_PATTERNS) == {"Schuhe"}
