@@ -1818,8 +1818,36 @@ section + section {
 /* Foto-Suche: Überschrift je Kleidungsstück, über die ganze Breite */
 .photo-group {
   grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
   margin: 8px 0 -12px;
+}
+
+.photo-group h3 {
+  margin: 0;
   font-size: 1.05rem;
+}
+
+.photo-group .secondhand-links {
+  margin: 0;
+}
+
+/* Second Hand bei Vinted/willhaben suchen (nav.js secondhandLinks) */
+.secondhand-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.secondhand-links .chip {
+  text-decoration: none;
 }
 
 @media (max-width: 640px) {
@@ -2797,3 +2825,12 @@ a.chip { text-decoration: none; color: inherit; }
 p.amazon-link { margin-top: 12px; font-size: .92rem; }
 p.amazon-link a { color: var(--text); text-underline-offset: 3px; }
 .amazon-note { font-size: .85rem; color: var(--muted); }
+
+/* Stil-Seite: Second-Hand-Suche unter dem Foto-Knopf etwas absetzen */
+.vibe-cta .vibe-sub {
+  margin-top: 32px;
+}
+
+.vibe-cta .secondhand-links {
+  justify-content: center;
+}

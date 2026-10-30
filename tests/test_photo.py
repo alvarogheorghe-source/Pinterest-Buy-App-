@@ -161,6 +161,7 @@ def test_outfit_photo_is_searched_piece_by_piece(fake, client, monkeypatch):
     assert groups[1]["products"] and all(p["category"] == "Hosen" for p in groups[1]["products"])
     assert result["found"]["colors"] == ["schwarz", "blau"]                 # kein Oliv
     assert result["products"] == groups[0]["products"] + groups[1]["products"]
+    assert "search_text=schwarz+jacken" in groups[0]["secondhand"][0]["url"]   # je Teil eigene Suche
 
 
 def test_photo_search_does_not_rewrite_the_big_vector_file(fake, client, model):

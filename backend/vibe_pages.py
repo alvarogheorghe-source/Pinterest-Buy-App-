@@ -9,7 +9,7 @@ damit alle Seiten gleich aussehen.
 import re
 from html import escape
 
-from backend import i18n, style_guide
+from backend import i18n, secondhand, style_guide
 from backend.config import FRONTEND_DIR
 
 SITE_URL = "https://malipin.com"
@@ -62,6 +62,14 @@ def render(name: str) -> str | None:
                      for s in vibe["styles"])
     quote = (f'<blockquote class="vibe-mali"><span class="vibe-mali-label">{tr("Mali sagt")}</span>'
              f"<span>{escape(_no_emoji(vibe['mali']))}</span></blockquote>" if vibe["mali"] else "")
+    # Typische Teile second hand suchen (Vinted/willhaben, nur Such-Links, backend/secondhand.py)
+    used = "".join(
+        f'<p class="secondhand-links"><span>{escape(site)}:</span> ' + " ".join(
+            f'<a class="chip" href="{escape(secondhand.search_url(site, [piece]))}" target="_blank" '
+            f'rel="noopener">{escape(piece)}</a>' for piece in vibe["pieces"]) + "</p>"
+        for site in secondhand.sites())
+    used = (f'<h3 class="vibe-sub">{tr("Second Hand im {title}-Vibe", title=vibe["title"])}</h3>'
+            + used if used else "")
     others = "".join(f'<a class="chip" href="{path(v["slug"])}">{escape(v["title"])}</a>'
                      for v in guide["vibes"] if v["slug"] != vibe["slug"])
 
@@ -80,6 +88,7 @@ def render(name: str) -> str | None:
       <h2>{tr("Finde Teile im {title}-Vibe", title=vibe["title"])}</h2>
       <p class="muted">{tr("Lade ein Outfit-Foto hoch, das dir gefällt. Mali sucht dir ähnliche Teile, neu und Second Hand.")}</p>
       <a class="button" href="/foto.html">{tr("Foto hochladen")}</a>
+      {used}
     </section>
 
     <h2 class="styles-heading">{tr("Weitere Vibes")}</h2>

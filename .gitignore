@@ -38,3 +38,4 @@ data/product_checks.json
 # Tägliche Sicherungen (backend/backup.py)
 backups/
 data/stats.json
+.audit/

@@ -19,7 +19,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from backend import (amazon, analysis, currency, feedback, i18n, looks, matching, photo, pins,
-                     pinterest, product_checks, products, quality, rate_limit, region,
+                     pinterest, product_checks, products, quality, rate_limit, region, secondhand,
                      shop_links, shops, similar, skimlinks, stats, storage, style_guide, vibe,
                      vibe_pages, vision)
 from backend.config import FRONTEND_DIR, ConfigError
@@ -405,6 +405,11 @@ async def analyse_photo(request: Request, force: bool) -> dict:
             result["amazon_url"] = amazon.search_url([
                 *found.get("colors", [])[:1], *found.get("brands", [])[:1],
                 *found.get("categories", [])[:1], found.get("gender") or ""])
+            gender = found.get("gender") or ""
+            result["secondhand"] = secondhand.links([
+                *found.get("colors", [])[:1], *found.get("categories", [])[:1], gender])
+            for group in result.get("groups", []):      # je Kleidungsstück eigene Suche
+                group["secondhand"] = secondhand.links([group["color"], group["category"], gender])
         return result
     except photo.PhotoError as err:
         raise HTTPException(400, str(err))
@@ -486,6 +491,7 @@ def get_product_detail(product_id: str, limit: int = Query(12, ge=1, le=48)):
     return {
         "product": local([detail])[0],
         "amazon_url": amazon.search_url(amazon.terms_for(detail)),
+        "secondhand": secondhand.links(amazon.terms_for(detail)),
         "has_profile": profile.pin_count > 0,
         "similar": local(similar_items),
     }

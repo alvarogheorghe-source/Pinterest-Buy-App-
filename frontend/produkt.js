@@ -42,7 +42,7 @@ function shopButton(product) {
   return actions;
 }
 
-function renderDetail(product, hasProfile, amazonUrl) {
+function renderDetail(product, hasProfile, amazonUrl, secondhand) {
   document.title = `${product.name} | Malipin`;
   // Zurück in die richtige Welt des Shops
   backLink.href = `/shop.html#${product.department}`;
@@ -79,6 +79,8 @@ function renderDetail(product, hasProfile, amazonUrl) {
       { href: amazonUrl, target: "_blank", rel: "sponsored noopener" }), el("span", "ad-label", "Werbung"));
     info.append(more);
   }
+  const used = secondhandLinks(secondhand);       // Vinted/willhaben (nav.js)
+  if (used) info.append(used);
 
   detail.replaceChildren(imageBox, info);
 }
@@ -137,7 +139,7 @@ async function init() {
     return;
   }
   const data = await response.json();
-  renderDetail(data.product, data.has_profile, data.amazon_url);
+  renderDetail(data.product, data.has_profile, data.amazon_url, data.secondhand);
   renderSimilar(data.similar);
   showEtsyAttribution([data.product, ...data.similar.map((item) => item.product || item)]);
 }

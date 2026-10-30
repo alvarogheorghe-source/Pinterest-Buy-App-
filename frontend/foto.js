@@ -176,7 +176,11 @@ function showResult(data) {
     for (const group of data.groups) {
       if (!group.products.length) continue;
       const title = [t(group.category), group.color && t(group.color)].filter(Boolean).join(" · ");
-      grid.appendChild(el("h3", "photo-group", title));
+      const head = el("div", "photo-group");
+      head.append(el("h3", "", title));
+      const used = secondhandLinks(group.secondhand, "Second Hand:");
+      if (used) head.append(used);
+      grid.appendChild(head);
       for (const product of group.products) grid.appendChild(card(product));
     }
   } else {
@@ -184,6 +188,11 @@ function showResult(data) {
   }
   addAgainButton();
   if (data.amazon_url) actions.appendChild(amazonLink(data.amazon_url, "Mehr bei Amazon suchen"));
+  // Bei Outfit-Fotos stehen die Second-Hand-Knöpfe schon je Teil über den Treffern
+  if (!(data.groups?.length > 1)) {
+    const used = secondhandLinks(data.secondhand);
+    if (used) actions.appendChild(used);
+  }
 }
 
 // Suche bei Amazon mit den erkannten Begriffen (Partnerlink -> "Werbung", backend/amazon.py)

@@ -89,3 +89,19 @@ document.addEventListener("click", (event) => {
   const link = event.target.closest?.("a[href^='http']");
   if (link && link.host !== location.host) hit({ type: "click", url: link.href });
 }, true);
+
+
+// Second Hand: Such-Knöpfe zu Vinted/willhaben (backend/secondhand.py). Normale Links ohne
+// Provision -> keine "Werbung"-Kennzeichnung. Gibt null zurück, wenn es keine gibt.
+function secondhandLinks(links, label = "Second Hand suchen:") {
+  if (!links?.length) return null;
+  const row = document.createElement("p");
+  row.className = "secondhand-links";
+  row.append(Object.assign(document.createElement("span"), { textContent: t(label) }));
+  for (const link of links) {
+    row.append(Object.assign(document.createElement("a"), {
+      className: "chip", href: link.url, target: "_blank", rel: "noopener", textContent: link.name,
+    }));
+  }
+  return row;
+}
