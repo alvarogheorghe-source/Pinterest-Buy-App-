@@ -72,6 +72,11 @@ def render(name: str) -> str | None:
             + used if used else "")
     others = "".join(f'<a class="chip" href="{path(v["slug"])}">{escape(v["title"])}</a>'
                      for v in guide["vibes"] if v["slug"] != vibe["slug"])
+    from backend import outfit_pages   # hier, sonst importieren sich beide Dateien gegenseitig
+    outfits = "".join(f'<a class="chip" href="{outfit_pages.path(p.slug)}">{escape(p.title)}</a>'
+                      for p in outfit_pages.PAGES if name in p.related)
+    outfits = (f'<h2 class="styles-heading">{tr("Komplette Outfits")}</h2>'
+               f'<div class="vibe-others">{outfits}</div>' if outfits else "")
 
     main = f"""<main class="styles-page vibe-page">
     <nav class="vibe-crumbs" aria-label="{tr("Pfad")}"><a href="/stile.html">{tr("Stil-Lexikon")}</a> <span aria-hidden="true">›</span> {title}</nav>
@@ -91,6 +96,7 @@ def render(name: str) -> str | None:
       {used}
     </section>
 
+    {outfits}
     <h2 class="styles-heading">{tr("Weitere Vibes")}</h2>
     <div class="vibe-others">{others}</div>
   </main>"""

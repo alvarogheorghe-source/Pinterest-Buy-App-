@@ -18,10 +18,10 @@ from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from backend import (amazon, analysis, currency, feedback, i18n, looks, matching, photo, pins,
-                     pinterest, product_checks, products, quality, rate_limit, region, secondhand,
-                     shop_links, shops, similar, skimlinks, stats, storage, style_guide, vibe,
-                     vibe_pages, vision)
+from backend import (amazon, analysis, currency, feedback, i18n, looks, matching, outfit_pages,
+                     photo, pins, pinterest, product_checks, products, quality, rate_limit,
+                     region, secondhand, shop_links, shops, similar, skimlinks, stats, storage,
+                     style_guide, vibe, vibe_pages, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
 app = FastAPI(title="Malipin")
@@ -814,9 +814,23 @@ def vibe_page(name: str):
     return page
 
 
+@app.get("/outfits", response_class=HTMLResponse)
+def outfit_index():
+    return outfit_pages.render_index()
+
+
+@app.get("/outfits/{slug}", response_class=HTMLResponse)
+def outfit_page(slug: str):
+    """Outfit-Seiten für Google/Pinterest, Produkte live aus dem Katalog (outfit_pages.py)."""
+    page = outfit_pages.render(slug)
+    if page is None:
+        raise HTTPException(404, "Diese Outfit-Seite gibt es nicht.")
+    return page
+
+
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap():
-    paths = ["/", "/foto.html", "/stile.html", *vibe_pages.all_paths()]
+    paths = ["/", "/foto.html", "/stile.html", *vibe_pages.all_paths(), *outfit_pages.all_paths()]
     urls = "".join(f"  <url><loc>{vibe_pages.SITE_URL}{p}</loc></url>\n" for p in paths)
     xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + "</urlset>\n")
