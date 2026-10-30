@@ -48,6 +48,9 @@ def main() -> None:
     print(f"Top {len(top)}: {have} mit gespeichertem Bild-Vektor, Rest wird jetzt berechnet …")
     print("  Ergebnis:", vision.index(store, embedder, [(f"product:{p['id']}", p["image_url"]) for p in top]))
     print("  Beispiel-Bildadresse:", top[0]["image_url"][:90] if top else "-")
+    extra = [r for r in ranked[photo.VISUAL_CHECK:] if store.get(f"product:{r['id']}")]
+    print(f"Dazu {len(extra)} weitere Kandidaten mit schon berechnetem Bild")
+    top += extra
     sims = []
     for p in top:
         v = store.get(f"product:{p['id']}")
@@ -57,6 +60,8 @@ def main() -> None:
     for s, name in sims[:10]:
         print(f"  {s}  {name}")
     print("Über der Grenze:", sum(1 for s, _ in sims if s and s >= photo.PHOTO_MIN))
+    result = photo.recommend(data)
+    print("Foto-Suche liefert:", [p["name"][:40] for p in result["products"]])
 
 
 if __name__ == "__main__":
