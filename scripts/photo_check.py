@@ -45,7 +45,9 @@ def main() -> None:
         ranked = same or ranked
     top = ranked[:photo.VISUAL_CHECK]
     have = sum(1 for p in top if store.get(f"product:{p['id']}"))
-    print(f"Top {len(top)}: {have} mit gespeichertem Bild-Vektor")
+    print(f"Top {len(top)}: {have} mit gespeichertem Bild-Vektor, Rest wird jetzt berechnet …")
+    print("  Ergebnis:", vision.index(store, embedder, [(f"product:{p['id']}", p["image_url"]) for p in top]))
+    print("  Beispiel-Bildadresse:", top[0]["image_url"][:90] if top else "-")
     sims = []
     for p in top:
         v = store.get(f"product:{p['id']}")
