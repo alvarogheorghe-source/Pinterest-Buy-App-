@@ -313,17 +313,15 @@
   // Rosa Bildschirm, großer Mali hüpft herein, Text tippt sich ein, dann fliegt
   // Mali klein an seinen Platz unten. Geht von selbst weg (Antippen überspringt).
 
+  // Kurz halten: Wer über eine Anzeige kommt, will schnell zur Seite (ca. 4 Sekunden)
   const WELCOME = [
-    t(`Hi, ich bin ${NAME}! Klein, flauschig und voller Stil-Ideen. 🐰`,
-      `Hi, I'm ${NAME}! Small, fluffy and full of style ideas. 🐰`),
-    t("Ich schnupper durch deine Pinterest-Boards und finde Mode & Deko, die zu dir passt. 💕",
-      "I sniff through your Pinterest boards and find fashion & decor that suits you. 💕"),
-    t("Und ich pass auf dein Budget auf. Karotten-Ehrenwort! 🥕",
-      "And I keep an eye on your budget. Carrot promise! 🥕"),
+    t(`Hi, ich bin ${NAME}! 🐰`, `Hi, I'm ${NAME}! 🐰`),
+    t("Zeig mir ein Outfit, ich find's dir. Passend zu deinem Budget. 🥕",
+      "Show me an outfit, I'll find it for you. Within your budget. 🥕"),
   ];
-  const TYPE_SPEED = 30;      // ms pro Buchstabe – ruhig genug zum Mitlesen
-  const LINE_PAUSE = 1300;    // Lesezeit nach jeder Zeile ...
-  const PAUSE_PER_CHAR = 10;  // ... plus etwas mehr bei langen Sätzen
+  const TYPE_SPEED = 18;      // ms pro Buchstabe
+  const LINE_PAUSE = 550;     // Lesezeit nach jeder Zeile ...
+  const PAUSE_PER_CHAR = 6;   // ... plus etwas mehr bei langen Sätzen
 
   async function welcome() {
     // Nur beim allerersten Besuch: localStorage bleibt auch nach dem Schließen des Browsers
@@ -390,8 +388,7 @@
         }
       }
       if (i === 0) { draw(big, FRAMES.happy); hearts(); }               // Freude!
-      if (i === 1) { draw(big, FRAMES.blink); await pause(200); draw(big, FRAMES.idle); } // zwinkern
-      if (i === 2) draw(big, FRAMES.eat1);                               // Karotte!
+      if (i === 1) draw(big, FRAMES.eat1);                               // Karotte!
       // ohne Tippen-Animation etwas mehr Lesezeit
       await pause(LINE_PAUSE + text.length * PAUSE_PER_CHAR + (reduceMotion ? 450 : 0));
     }

@@ -86,3 +86,12 @@ def test_every_public_page_has_amazon_disclosure():
     for page in FRONTEND_DIR.glob("*.html"):
         if page.name != "admin.html":
             assert "Als Amazon-Partner verdienen wir an qualifizierten Verkäufen." in page.read_text("utf-8"), page.name
+
+
+def test_unknown_page_shows_friendly_404(client):
+    response = client.get("/gibtsnicht.html", headers={"Accept": "text/html"})
+    assert response.status_code == 404
+    assert "Hoppla" in response.text and 'href="/foto.html"' in response.text
+    assert 'name="robots" content="noindex"' in response.text
+    api = client.get("/api/gibtsnicht", headers={"Accept": "text/html"})
+    assert api.status_code == 404 and api.json()["detail"]

@@ -58,7 +58,8 @@ def static_index(source: str) -> str:
         lambda m: f'<span class="button{m.group(1)} soon" aria-disabled="true">Foto-Suche {SOON.lower()}</span>',
         page, flags=re.DOTALL)
     # "Shop ansehen", Shop/Merkliste im Kopf -> weg
-    page = re.sub(r'\s*<a href="/shop\.html" class="button large outline">.*?</a>', "", page)
+    page = re.sub(r'\s*<a href="/shop\.html" class="button large outline"[^>]*>.*?</a>', "", page,
+                  flags=re.DOTALL)
     page = re.sub(r'\s*<a href="/shop\.html" class="header-link">.*?</a>', "", page)
     page = re.sub(r'\s*<a href="/merkliste\.html"[^>]*>.*?</a>', "", page, flags=re.DOTALL)
     page = re.sub(r'\s*<a href="/foto\.html"[^>]*>.*?</a>', "", page, flags=re.DOTALL)
@@ -92,6 +93,15 @@ def logo() -> str:
     match = re.search(r"<!-- logo -->.*?<!-- /logo -->", (FRONTEND / "index.html").read_text("utf-8"),
                       re.DOTALL)
     return match.group(0)
+
+
+def not_found_page() -> str:
+    """Freundliche 404-Seite (statisch und von der App für falsche Adressen)."""
+    return subpage("Nicht gefunden / Not found", "    <h1>Hoppla! / Oops!</h1>\n"
+        "    <p>Diese Seite gibt es nicht. Mali hat überall geschnuppert – nichts.</p>\n"
+        '    <p lang="en">This page doesn\'t exist. Mali sniffed everywhere – nothing.</p>\n'
+        '    <p><a class="button" href="/">Zur Startseite</a> '
+        '<a class="button secondary" href="/foto.html">Fit per Foto finden</a></p>')
 
 
 def subpage(title: str, body: str, description: str = "", path: str | None = None,
@@ -316,11 +326,7 @@ def build() -> None:
         "Privacy Policy", privacy, "How Malipin handles your data: read-only Pinterest access, "
         "no sharing, delete any time.", "/privacy.html", lang="en"), "utf-8")
     (OUT / "impressum.html").write_text(impressum_page(), "utf-8")
-    (OUT / "404.html").write_text(subpage("Nicht gefunden / Not found", "    <h1>Hoppla! / Oops!</h1>\n"
-        "    <p>Diese Seite gibt es nicht. Mali hat überall geschnuppert – nichts.</p>\n"
-        '    <p lang="en">This page doesn\'t exist. Mali sniffed everywhere – nothing.</p>\n'
-        '    <p><a class="button" href="/">Zur Startseite</a> '
-        '<a class="button secondary" href="/en/" lang="en">Go to homepage</a></p>'), "utf-8")
+    (OUT / "404.html").write_text(not_found_page(), "utf-8")
     (OUT / "robots.txt").write_text(robots_txt(), "utf-8")
     (OUT / "sitemap.xml").write_text(sitemap_xml(), "utf-8")
     print(f"Fertig: {OUT}")

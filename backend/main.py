@@ -91,6 +91,11 @@ def config_missing(request: Request, exc: ConfigError):
 
 @app.exception_handler(StarletteHTTPException)
 def http_error(request: Request, exc: StarletteHTTPException):
+    # Falsche Adresse im Browser -> freundliche Seite statt JSON (API bleibt JSON)
+    if (exc.status_code == 404 and not request.url.path.startswith("/api/")
+            and "text/html" in request.headers.get("accept", "")):
+        from scripts import build_site
+        return HTMLResponse(build_site.not_found_page(), status_code=404)
     detail = i18n.tr(exc.detail) if isinstance(exc.detail, str) else exc.detail
     return JSONResponse(status_code=exc.status_code, content={"detail": detail},
                         headers=getattr(exc, "headers", None))

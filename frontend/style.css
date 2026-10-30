@@ -692,6 +692,13 @@ select {
   color: var(--muted);
 }
 
+/* Am Handy sitzt Mali fest rechts unten – Platz lassen, damit er keinen Footer-Text verdeckt */
+@media (max-width: 640px) {
+  .site-footer {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+}
+
 /* --- Konto-Seite: Board-Liste und Pin-Vorschau ---------------------------------------------- */
 
 section + section {

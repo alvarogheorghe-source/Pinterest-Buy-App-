@@ -27,7 +27,17 @@ updateSavedCount();
   if (open) return;
   const SELECTOR = ".connect, a[href='/auth/login']";
   const soon = (el) => {
-    if (el.classList.contains("soon")) return;
+    if (el.classList.contains("soon") || el.dataset.photo) return;
+    // Große Haupt-Buttons (Startseite) nicht tot stehen lassen: dort geht's zur Foto-Suche,
+    // die ohne Pinterest funktioniert. Kleine Buttons sagen "bald verfügbar".
+    if (el.classList.contains("large")) {
+      el.dataset.photo = "1";
+      el.classList.remove("connect");
+      el.href = "/foto.html";
+      el.innerHTML = '<svg class="icon"><use href="#i-camera"/></svg>';
+      el.append(t("Fit per Foto finden"));
+      return;
+    }
     el.classList.add("soon");
     el.removeAttribute("href");
     el.setAttribute("aria-disabled", "true");
@@ -41,6 +51,11 @@ updateSavedCount();
     root.querySelectorAll(SELECTOR).forEach(soon);
   };
   scan(document.body);
+  // Zweiter Button, der ohne Pinterest woanders hinführen soll (data-closed-href/-text)
+  document.querySelectorAll("[data-closed-href]").forEach((a) => {
+    a.href = a.dataset.closedHref;
+    a.textContent = t(a.dataset.closedText);
+  });
   // "Kostenlos starten" in der Kopfzeile -> zur Foto-Suche (geht ohne Pinterest)
   document.querySelectorAll(".site-header a[href='/konto.html'].button").forEach((a) => {
     a.href = "/foto.html";
