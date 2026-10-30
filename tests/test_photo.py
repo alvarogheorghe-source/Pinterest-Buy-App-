@@ -125,3 +125,15 @@ def test_too_many_photos_are_slowed_down(fake, client, model):
         assert upload(client, jpeg()).status_code == 200
     response = upload(client, jpeg())
     assert response.status_code == 429 and "Minuten" in response.json()["detail"]
+
+
+def test_photo_compares_all_precomputed_images(fake, client, model, monkeypatch):
+    """Ein Foto hat keinen Text: auch Produkte jenseits der Text-Besten zählen, wenn ihr Bild
+    schon berechnet ist (nächtliche Bilderkennung)."""
+    from backend import photo
+    monkeypatch.setattr(photo, "VISUAL_CHECK", 0)            # kein Text-Treffer wird nachgeladen
+    store = vision.EmbeddingStore(PhotoEmbedder.name)
+    store.put("product:prod-006", "/img/products/prod-006.png", PHOTO_VECTOR)
+    store.save()
+    products = upload(client, jpeg()).json()["products"]
+    assert [p["id"] for p in products] == ["prod-006"]

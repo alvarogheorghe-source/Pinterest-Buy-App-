@@ -98,10 +98,13 @@ def recommend(data: bytes, force: bool = False) -> dict:
     if pin["image_categories"]:
         ranked = [r for r in ranked if r["category"] in pin["image_categories"]] or ranked
 
-    # Die besten Text-Treffer direkt mit dem Foto vergleichen (fehlende Bilder berechnen)
+    # Die besten Text-Treffer direkt mit dem Foto vergleichen (fehlende Bilder berechnen).
+    # Ein Foto hat keinen Text – darum zusätzlich ALLE Kandidaten, deren Bild schon
+    # berechnet ist (nächtliche Bilderkennung): sonst gewinnen nur zufällige Text-Treffer.
     top = ranked[:VISUAL_CHECK]
     vision.index(store, embedder, [(f"product:{p['id']}", p["image_url"]) for p in top])
     store.save()
+    top += [r for r in ranked[VISUAL_CHECK:] if store.get(f"product:{r['id']}")]
     brands = [b.lower() for b in pin["image_brands"]]
     for item in top:
         product_vector = store.get(f"product:{item['id']}")
