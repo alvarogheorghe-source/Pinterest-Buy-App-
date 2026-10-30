@@ -21,7 +21,8 @@ from backend.products import (DEPARTMENTS, JsonProductSource, Product, online_so
 MAX_BYTES = 8 * 1024 * 1024
 RESULTS = 8           # höchstens so viele Produkte zeigen (Qualität statt Menge)
 PHOTO_MIN = 0.3       # so ähnlich muss ein Produktbild dem Foto mindestens sehen (0..1)
-VISUAL_CHECK = 36     # so viele der Text-Besten vergleicht das Modell direkt mit dem Foto
+VISUAL_CHECK = 8      # so viele Text-Beste ohne fertiges Bild werden sofort angeschaut
+                      # (Download kostet Zeit; die übrigen rechnet die Nacht/der Shop)
 VISUAL_WEIGHT = 6.0   # beim Foto zählt "sieht genauso aus" viel mehr als Text-Begriffe
 GENDER_MIN = 0.8      # Damen/Herren nur, wenn Mali sich sehr sicher ist (sonst beides zeigen)
 BRAND_BONUS = 1.5
@@ -88,17 +89,16 @@ def closest(pin: dict, vector: list[float], found: list[Product], embedder, stor
     if pin["image_categories"]:
         ranked = [r for r in ranked if r["category"] in pin["image_categories"]] or ranked
 
-    # Die besten Text-Treffer direkt mit dem Foto vergleichen (fehlende Bilder berechnen).
-    # Ein Foto hat keinen Text – darum zusätzlich ALLE Kandidaten, deren Bild schon
-    # berechnet ist (nächtliche Bilderkennung): sonst gewinnen nur zufällige Text-Treffer.
-    top = ranked[:visual_check]
-    vision.index(store, embedder, [(f"product:{p['id']}", p["image_url"]) for p in top])
-    top += [r for r in ranked[visual_check:] if store.get(f"product:{r['id']}")]
+    # Ein Foto hat keinen Text – darum ALLE Kandidaten, deren Bild schon berechnet ist
+    # (nächtliche Bilderkennung), plus die paar Text-Besten ohne Bild: die werden sofort
+    # angeschaut, aber nur im Speicher (die große Datei zu schreiben dauert Sekunden).
+    fresh = [p for p in ranked[:visual_check] if not store.get(f"product:{p['id']}")]
+    vision.index(store, embedder, [(f"product:{p['id']}", p["image_url"]) for p in fresh])
+    top = [r for r in ranked if store.get(f"product:{r['id']}")]
+    sims = vision.similarities(store, vector, [f"product:{r['id']}" for r in top])
     brands = [b.lower() for b in pin["image_brands"]]
     for item in top:
-        product_vector = store.get(f"product:{item['id']}")
-        similarity = (vision.visual_score(vision.cosine(vector, product_vector))
-                      if product_vector else 0.0)
+        similarity = vision.visual_score(sims.get(f"product:{item['id']}", 0.0))
         item["similarity"] = similarity
         item["looks_like_photo"] = similarity >= vision.VISUAL_HINT_THRESHOLD
         item["score"] = round(item["score"] + VISUAL_WEIGHT * similarity, 3)
@@ -129,7 +129,10 @@ def recommend(data: bytes, force: bool = False) -> dict:
     force: "Da ist doch ein Fit drauf" -> trotzdem suchen."""
     check_image(data)
     embedder = vision.get_embedder()       # wirft VisionUnavailable ohne KI-Pakete
-    store = vision.EmbeddingStore(embedder.name)
+    # Der gespeicherte Stand bleibt im Speicher (die Datei ist ~100 MB groß)
+    store = vision.EmbeddingStore.load_existing()
+    if store is None or store.model != embedder.name:
+        store = vision.EmbeddingStore(embedder.name)
     vector = embedder.embed_image_bytes([data])[0]
     if vector is None:
         raise PhotoError("Das Foto konnte ich nicht öffnen.")
@@ -157,7 +160,7 @@ def recommend(data: bytes, force: bool = False) -> dict:
         found = candidates(search_pin)
         everything += found
         top = [item for item in closest(search_pin, search_vector, found, embedder, store,
-                                        per_search, max(12, VISUAL_CHECK // len(searches)))
+                                        per_search, max(3, VISUAL_CHECK // len(searches)))
                if item["id"] not in shown]
         shown |= {item["id"] for item in top}
         color = color_from_hex(search_pin["dominant_color"])
@@ -168,7 +171,6 @@ def recommend(data: bytes, force: bool = False) -> dict:
             category = (shown_categories.most_common(1)[0][0] if shown_categories
                         else search_pin["image_categories"][0])
         groups.append({"category": category, "color": color, "products": top})
-    store.save()
     remember_photo_results([p for p in everything if p.id in shown])
 
     categories = ([g["category"] for g in groups] if looks else pin["image_categories"])

@@ -266,6 +266,33 @@ class EmbeddingStore:
                 for key, entry in self.items.items() if key.startswith(prefix)}
 
 
+_matrix: dict = {}   # Produkt-Vektoren als eine Matrix (Foto-Suche), je geladenem Stand
+
+
+def similarities(store: EmbeddingStore, vector: list[float], keys: list[str]) -> dict[str, float]:
+    """Kosinus von `vector` zu vielen gespeicherten Vektoren auf einmal. Mit NumPy eine
+    Matrix-Multiplikation (Millisekunden statt Sekunden bei 20.000 Produkten)."""
+    try:
+        import numpy as np
+    except ImportError:
+        np = None
+    if np is not None and _matrix.get("store") is not store:
+        # Einmal pro geladenem Stand bauen; was danach dazukommt, rechnet unten Python
+        known = [k for k, e in store.items.items() if k.startswith("product:")]
+        _matrix.update(store=store, index={k: i for i, k in enumerate(known)},
+                       matrix=np.asarray([store.items[k]["vector"] for k in known], dtype=np.float32))
+    index = _matrix.get("index", {}) if np is not None else {}
+    fast = [k for k in keys if k in index]
+    result = {}
+    if fast:
+        sims = _matrix["matrix"][[index[k] for k in fast]] @ np.asarray(vector, dtype=np.float32)
+        result = {k: float(s) for k, s in zip(fast, sims)}
+    for k in keys:
+        if k not in result and k in store.items:
+            result[k] = cosine(vector, store.items[k]["vector"])
+    return result
+
+
 def missing(store: EmbeddingStore, entries: list[tuple[str, str]]) -> list[tuple[str, str]]:
     """Welche Bilder müssen (neu) berechnet werden?"""
     return [(key, url) for key, url in entries if url and store.get(key, url) is None]

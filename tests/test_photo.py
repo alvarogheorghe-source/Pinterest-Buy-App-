@@ -161,3 +161,14 @@ def test_outfit_photo_is_searched_piece_by_piece(fake, client, monkeypatch):
     assert groups[1]["products"] and all(p["category"] == "Hosen" for p in groups[1]["products"])
     assert result["found"]["colors"] == ["schwarz", "blau"]                 # kein Oliv
     assert result["products"] == groups[0]["products"] + groups[1]["products"]
+
+
+def test_photo_search_does_not_rewrite_the_big_vector_file(fake, client, model):
+    """embeddings.json ist am Server ~100 MB – schreiben kostet Sekunden pro Foto."""
+    store = vision.EmbeddingStore(PhotoEmbedder.name)
+    store.put("product:prod-006", "/img/products/prod-006.png", PHOTO_VECTOR)
+    store.save()
+    path = storage.DATA_DIR / vision.EMBEDDINGS_FILE
+    before = path.stat().st_mtime_ns
+    assert upload(client, jpeg()).json()["products"][0]["id"] == "prod-006"
+    assert path.stat().st_mtime_ns == before
