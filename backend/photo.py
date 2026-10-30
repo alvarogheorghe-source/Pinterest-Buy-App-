@@ -22,7 +22,8 @@ MAX_BYTES = 8 * 1024 * 1024
 RESULTS = 8           # höchstens so viele Produkte zeigen (Qualität statt Menge)
 PHOTO_MIN = 0.3       # so ähnlich muss ein Produktbild dem Foto mindestens sehen (0..1)
 VISUAL_CHECK = 36     # so viele der Text-Besten vergleicht das Modell direkt mit dem Foto
-VISUAL_WEIGHT = 3.0   # beim Foto zählt "sieht genauso aus" mehr als bei vielen Pins
+VISUAL_WEIGHT = 6.0   # beim Foto zählt "sieht genauso aus" viel mehr als Text-Begriffe
+GENDER_MIN = 0.8      # Damen/Herren nur, wenn Mali sich sehr sicher ist (sonst beides zeigen)
 BRAND_BONUS = 1.5
 
 
@@ -119,7 +120,7 @@ def retag_person(pin: dict, data: bytes, whole: list[float], pieces: list, embed
     labels = image_tags.label_vectors(embedder, store)
     tags = image_tags.tag(vector, labels, force=True)
     pin.update(image_styles=tags["styles"] or pin["image_styles"],
-               image_gender=image_tags.gender_of([whole, vector], labels),
+               image_gender=image_tags.gender_of([whole, vector], labels, GENDER_MIN),
                image_brands=tags["brands"], image_details=tags["details"])
 
 

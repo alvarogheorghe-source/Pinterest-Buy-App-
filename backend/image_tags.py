@@ -251,7 +251,8 @@ def tag(pin_vector: list[float], labels: dict[str, list[float]], force: bool = F
     return result
 
 
-def gender_of(vectors: list[list[float]], labels: dict[str, list[float]]) -> str | None:
+def gender_of(vectors: list[list[float]], labels: dict[str, list[float]],
+              minimum: float = GENDER_MIN) -> str | None:
     """Damen/Herren aus mehreren Ansichten desselben Fotos (ganzes Bild + Ausschnitt um die
     Person): die Wahrscheinlichkeiten werden gemittelt – eine Ansicht allein kippt leicht."""
     total: dict[str, float] = {}
@@ -263,7 +264,7 @@ def gender_of(vectors: list[list[float]], labels: dict[str, list[float]]) -> str
     if not total:
         return None
     name, p = max(total.items(), key=lambda kv: kv[1])
-    return name if p >= GENDER_MIN else None
+    return name if p >= minimum else None
 
 
 def image_details(detail_scores: dict[str, float], categories: list[str]) -> list[list[str]]:

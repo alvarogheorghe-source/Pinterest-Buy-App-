@@ -113,6 +113,17 @@ def get_detector():
         return _detector["model"]
 
 
+def square(crop):
+    """Ausschnitt mittig auf ein weißes Quadrat setzen, wie ein Produktfoto. FashionCLIP
+    schneidet sonst die Mitte quadratisch heraus – bei zwei Schuhen nebeneinander bliebe nur
+    die Lücke dazwischen übrig, bei einer langen Hose nur die Knie."""
+    from PIL import Image
+    side = max(crop.size)
+    canvas = Image.new("RGB", (side, side), "white")
+    canvas.paste(crop, ((side - crop.width) // 2, (side - crop.height) // 2))
+    return canvas
+
+
 def find(image_bytes: bytes, detector=None) -> list[Piece]:
     """Foto -> die größten erkannten Kleidungsstücke (je Kategorie eins), größtes zuerst."""
     detector = detector or get_detector()
@@ -151,7 +162,7 @@ def find(image_bytes: bytes, detector=None) -> list[Piece]:
         box = (max(0, int(b["xmin"] - pad_x)), max(0, int(b["ymin"] - pad_y)),
                min(width, int(b["xmax"] + pad_x)), min(height, int(b["ymax"] + pad_y)))
         buffer = io.BytesIO()
-        image.crop(box).save(buffer, "JPEG", quality=90)
+        square(image.crop(box)).save(buffer, "JPEG", quality=90)
         pieces.append(Piece(category, name, round(item["score"], 3), box, buffer.getvalue()))
     return pieces
 

@@ -77,3 +77,13 @@ def test_upper_body_searches_tops_and_jackets():
     """Zip-Hoodie heißt beim Modell "jacket", liegt bei uns aber unter Oberteile."""
     assert set(garments.search_categories("Jacken")) == {"Jacken", "Oberteile"}
     assert garments.search_categories("Hosen") == ["Hosen"]
+
+
+def test_crops_are_square_with_white_border():
+    """Breite Schuh-Ausschnitte nicht beschneiden lassen: aufs weiße Quadrat setzen."""
+    shoes = [{"label": "shoe", "score": 0.9, "box": box(20, 372, 75, 392)},
+             {"label": "shoe", "score": 0.85, "box": box(120, 372, 180, 392)}]
+    pieces = garments.find(outfit_photo(), FakeDetector(shoes))
+    crop = Image.open(BytesIO(pieces[0].crop))
+    assert crop.width == crop.height
+    assert crop.getpixel((crop.width // 2, 2)) > (240, 240, 240)          # weißer Rand oben
