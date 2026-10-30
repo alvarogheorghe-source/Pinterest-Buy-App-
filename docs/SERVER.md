@@ -18,12 +18,14 @@ Hetzner verkauft die günstigen Cloud-Server seit Sommer 2026 nicht mehr, deshal
    - Mit 8 GB (VPS 1000) läuft die Bilderkennung schneller, nötig ist es am Anfang nicht.
      Netcup kann später hochstufen.
 2. Nach der Bestellung kommen per E-Mail die Zugangsdaten zum **Server Control Panel**
-   (SCP). Dort: Server -> Medien -> Images -> **Ubuntu 24.04** installieren und dabei deinen
-   **SSH-Schlüssel** hinterlegen. Auf dem Mac:
+   (SCP). Vorinstalliertes **Debian 12/13** oder **Ubuntu 24.04** passt beides.
+   Mit **SSH-Schlüssel** einloggen statt Passwort. Auf dem Mac:
    ```
-   ssh-keygen -t ed25519        # Enter, Enter, Enter
-   cat ~/.ssh/id_ed25519.pub    # diese Zeile im SCP einfügen
+   ssh-keygen -t ed25519                  # Enter, Enter, Enter
+   ssh-copy-id root@<IP>                  # einmal noch mit dem Server-Passwort
    ```
+   Locale-Warnung beim Login (`LC_CTYPE=UTF-8`) ist harmlos. Weg damit: Mac-Terminal ->
+   Einstellungen -> Profile -> Erweitert -> "Locale-Umgebungsvariablen beim Start setzen" aus.
 3. Im SCP steht die **IP-Adresse** des Servers (z.B. `91.98.12.34`).
 
 ## 2. Domain auf den Server zeigen lassen

@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# Malipin auf einem frischen Ubuntu-24.04-Server einrichten (einmal als root ausführen).
+# Malipin auf einem frischen Debian-12/13- oder Ubuntu-24.04-Server einrichten (einmal als root ausführen).
 #   bash setup.sh
 # Danach: /opt/malipin/.env anlegen (siehe docs/SERVER.md) und  systemctl restart malipin
 set -euo pipefail
 
 REPO="https://github.com/alvarogheorghe-source/Pinterest-Buy-App-.git"
 DIR=/opt/malipin
+export LC_ALL=C.UTF-8 DEBIAN_FRONTEND=noninteractive   # keine Locale-Warnungen, keine Rückfragen
 
 echo "== Pakete =="
 apt-get update -q
-apt-get install -y -q git python3-venv python3-pip debian-keyring debian-archive-keyring apt-transport-https curl ufw
+apt-get install -y -q git python3-venv python3-pip debian-keyring debian-archive-keyring apt-transport-https curl gnupg ufw
 # Caddy (Webserver mit automatischem HTTPS) aus der offiziellen Quelle
 if ! command -v caddy >/dev/null; then
   curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
@@ -25,7 +26,7 @@ if ! swapon --show | grep -q /swapfile; then
 fi
 
 echo "== Firewall: nur SSH und Web =="
-ufw allow OpenSSH && ufw allow 80 && ufw allow 443 && ufw --force enable
+ufw allow 22/tcp && ufw allow 80 && ufw allow 443 && ufw --force enable
 
 echo "== Benutzer & Code =="
 git config --global --add safe.directory "$DIR"   # Code gehört "malipin", root darf trotzdem pullen
