@@ -223,78 +223,14 @@
 
   // --- Vorschau + Teilen -----------------------------------------------------------------------
 
-  function toBlob(canvas) {
-    return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-  }
-
-  function download(blob, filename) {
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-  }
-
-  async function open(vibe, pixels) {
-    const canvas = draw(vibe, pixels);
-    const blob = await toBlob(canvas);
-    const filename = `malipin-vibe-${vibe.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`;
-    const file = new File([blob], filename, { type: "image/png" });
-    const canShare = Boolean(navigator.canShare && navigator.canShare({ files: [file] }));
-
-    const overlay = document.createElement("div");
-    overlay.className = "vibecard-overlay";
-    overlay.setAttribute("role", "dialog");
-    overlay.setAttribute("aria-label", t("Deine Vibe-Karte"));
-    const box = document.createElement("div");
-    box.className = "vibecard-box";
-    const img = Object.assign(document.createElement("img"), {
-      src: URL.createObjectURL(blob),
+  // Teilen-Fenster: share.js (wird vorher geladen, siehe bunny.js)
+  function open(vibe, pixels) {
+    return window.shareImage(draw(vibe, pixels), {
+      filename: `malipin-vibe-${vibe.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`,
+      title: "Mein Malipin-Vibe",
+      text: t("Mein Pinterest-Vibe ist {title}. Finde deinen auf {site}", { title: vibe.title, site: SITE }),
       alt: t("Vibe-Karte: {title}", { title: vibe.title }),
-      className: "vibecard-image",
     });
-    const actions = document.createElement("div");
-    actions.className = "vibecard-actions";
-
-    const share = Object.assign(document.createElement("button"), {
-      className: "button", textContent: canShare ? "Teilen" : "Bild speichern",
-    });
-    share.addEventListener("click", async () => {
-      if (!canShare) return download(blob, filename);
-      try {
-        await navigator.share({
-          files: [file],
-          title: "Mein Malipin-Vibe",
-          text: t("Mein Pinterest-Vibe ist {title}. Finde deinen auf {site}", { title: vibe.title, site: SITE }),
-        });
-      } catch (error) {
-        // Abgebrochen ist okay; bei anderen Fehlern einfach herunterladen
-        if (error.name !== "AbortError") download(blob, filename);
-      }
-    });
-    const close = Object.assign(document.createElement("button"), {
-      className: "button secondary", textContent: "Schließen",
-    });
-
-    function closeOverlay() {
-      URL.revokeObjectURL(img.src);
-      overlay.remove();
-      document.removeEventListener("keydown", onKey);
-    }
-    function onKey(event) {
-      if (event.key === "Escape") closeOverlay();
-    }
-    close.addEventListener("click", closeOverlay);
-    overlay.addEventListener("click", (event) => { if (event.target === overlay) closeOverlay(); });
-    document.addEventListener("keydown", onKey);
-
-    actions.append(share, close);
-    box.append(img, actions);
-    overlay.appendChild(box);
-    document.body.appendChild(overlay);
-    share.focus();
   }
 
   window.vibeCard = { open, draw };

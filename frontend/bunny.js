@@ -480,12 +480,13 @@
     hideBubble();
     const pixels = { happy: FRAMES.happy, heart: HEART, palette: PALETTE };
     if (window.vibeCard) return window.vibeCard.open(vibe, pixels);
-    // erst die große Mali (mali-big.js), dann die Karte
+    // erst die große Mali (mali-big.js) und das Teilen-Fenster (share.js), dann die Karte
     const load = (src) => new Promise((resolve) => {
       const script = Object.assign(document.createElement("script"), { src, onload: resolve });
       document.head.appendChild(script);
     });
-    (window.maliBig ? Promise.resolve() : load("/mali-big.js")).then(() => load("/vibecard.js"))
+    Promise.all([window.maliBig || load("/mali-big.js"), window.shareImage || load("/share.js")])
+      .then(() => load("/vibecard.js"))
       .then(() => window.vibeCard.open(vibe, pixels));
   }
 

@@ -187,6 +187,12 @@ function showResult(data) {
     for (const product of data.products) grid.appendChild(card(product));
   }
   addAgainButton();
+  // Fund als Story-Bild teilen (fitcard.js + share.js) – nur, wenn es etwas zu zeigen gibt
+  if (data.products.length && window.fitCard) {
+    const share = Object.assign(el("button", "button", t("Fund teilen")), { type: "button" });
+    share.addEventListener("click", () => window.fitCard.open(lastBlob, data));
+    actions.appendChild(share);
+  }
   if (data.amazon_url) actions.appendChild(amazonLink(data.amazon_url, "Mehr bei Amazon suchen"));
   // Bei Outfit-Fotos stehen die Second-Hand-Knöpfe schon je Teil über den Treffern
   if (!(data.groups?.length > 1)) {

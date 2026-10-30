@@ -16,7 +16,8 @@ from scripts import i18n as page_i18n
 
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
 APP_PAGES = ["index", "shop", "produkt", "konto", "merkliste", "foto", "stile"]
-APP_SCRIPTS = ["shop", "produkt", "konto", "merkliste", "foto", "feedback", "analysis", "vibecard"]
+APP_SCRIPTS = ["shop", "produkt", "konto", "merkliste", "foto", "feedback", "analysis", "vibecard",
+               "fitcard", "share", "nav"]
 DICT = i18n.dictionary()
 _, SAME = page_i18n.load()
 
