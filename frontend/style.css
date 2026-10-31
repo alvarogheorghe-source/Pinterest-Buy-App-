@@ -1999,7 +1999,8 @@ section + section {
 
 /* Nur am Computer zeigen (z.B. "Stile" in der Kopfzeile – am Handy zu eng) */
 @media (max-width: 640px) {
-  .hide-mobile {
+  .hide-mobile,
+  .header-nav .header-link.hide-mobile {   /* sonst gewinnt .header-nav .header-link */
     display: none;
   }
 }
@@ -2763,9 +2764,7 @@ body[data-big-mali] .mali-return {
 .footer-label {
   display: block;
   margin-bottom: 2px;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-weight: 600;     /* normal geschrieben und lesbar groß – ist ein Rechtshinweis */
 }
 
 /* Einladung ohne Pins und Foto (shop.js: renderNeedsInput) */

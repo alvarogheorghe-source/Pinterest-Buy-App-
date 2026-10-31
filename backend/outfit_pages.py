@@ -16,6 +16,7 @@ import itertools
 import re
 import time
 from dataclasses import dataclass, field
+from datetime import date
 from html import escape
 from urllib.parse import quote
 
@@ -171,7 +172,7 @@ PAGES = [
         "damen", ["goth-baddie"]),
 ]
 BY_SLUG = {p.slug: p for p in PAGES}
-_cache: dict = {}
+_cache: dict = {}   # (slug, Land) -> (Zeit, (Teile, Outfit))
 
 
 def path(slug: str) -> str:
@@ -251,22 +252,26 @@ def _card(item: dict) -> str:
             f'<strong class="outfit-item-price">{money(item["local_price"])}</strong></a>')
 
 
-def render(slug: str) -> str | None:
-    page = BY_SLUG.get(slug)
-    if page is None:
-        return None
-    key = (slug, region.current().code)
+def selection(page: OutfitPage) -> tuple[list[dict], list[dict]]:
+    """(passende Teile, Outfit) – höchstens stündlich neu gerechnet, je Land (Währung,
+    Lieferbarkeit). Gemeinsam für die Outfit-Seite und die Startseite."""
+    key = (page.slug, region.current().code)
     cached = _cache.get(key)
     if cached and cached[0] > time.time() - CACHE_SECONDS:
         return cached[1]
-    html = _render(page)
-    _cache[key] = (time.time(), html)
-    return html
+    ranked = candidates(page)
+    result = (ranked, outfit(page, ranked))
+    _cache[key] = (time.time(), result)
+    return result
+
+
+def render(slug: str) -> str | None:
+    page = BY_SLUG.get(slug)
+    return _render(page) if page else None
 
 
 def _render(page: OutfitPage) -> str:
-    ranked = candidates(page)
-    look = outfit(page, ranked)
+    ranked, look = selection(page)
     chosen = {item["id"] for item in look}
     more = [r for r in ranked if r["id"] not in chosen][:MORE]
     total = sum(item["local_price"] for item in look)
@@ -339,3 +344,48 @@ def render_index() -> str:
                              "Streetwear, Old Money, Gorpcore und mehr. Täglich neu.",
                  url=SITE_URL + "/outfits")
     return head + main + foot
+
+
+# --- Startseite: echte Outfits statt Platzhalter-Grafik ------------------------------------------
+
+def _looks_from_today() -> list[tuple[OutfitPage, list[dict]]]:
+    """Outfit-Seiten mit fertigem Outfit (mindestens zwei Teile), jeden Tag ab einer anderen."""
+    start = date.today().toordinal() % len(PAGES)
+    pages = PAGES[start:] + PAGES[:start]
+    return [(page, look) for page in pages if len(look := selection(page)[1]) >= 2]
+
+
+def _pictures(look: list[dict], eager: bool = False) -> str:
+    """Bis zu drei Produktbilder. eager: das erste sofort laden (erster Bildschirm)."""
+    tags = []
+    for n, item in enumerate(look[:3]):
+        lazy = "" if eager and n == 0 else ' loading="lazy"'
+        tags.append(f'<img src="{escape(item["image_url"])}" alt="{escape(item["name"])}"{lazy}>')
+    return "".join(tags)
+
+
+def home_hero() -> str:
+    """Malis Outfit des Tages für den ersten Bildschirm. Ohne Katalog: Mali selbst."""
+    looks = _looks_from_today()
+    if not looks:
+        return ('<figure class="hero-outfit is-empty"><img src="/img/icon-512.png" '
+                'alt="Mali, der Malipin-Hase" width="320" height="320"></figure>')
+    page, look = looks[0]
+    total = sum(item["local_price"] for item in look)
+    return (f'<figure class="hero-outfit">'
+            f'<a class="hero-outfit-pics" href="{path(page.slug)}">{_pictures(look, eager=True)}</a>'
+            f'<figcaption><img src="/img/favicon.svg" alt="" width="48" height="48">'
+            f'<span><strong>Malis Outfit des Tages</strong> '
+            f'<a href="{path(page.slug)}">{escape(page.title)}</a> · '
+            f'<span>zusammen</span> {money(total)}</span></figcaption></figure>')
+
+
+def home_ideas(count: int = 3) -> str:
+    """Ein paar weitere Outfits mit echten Bildern (nach dem Outfit des Tages)."""
+    looks = _looks_from_today()[1:count + 1]
+    cards = "".join(
+        f'<a class="idea" href="{path(page.slug)}"><span class="idea-pics">{_pictures(look)}</span>'
+        f'<strong>{escape(page.title)}</strong>'
+        f'<span class="idea-total"><span>zusammen</span> {money(sum(i["local_price"] for i in look))}</span></a>'
+        for page, look in looks)
+    return f'<div class="ideas">{cards}</div>' if cards else ""

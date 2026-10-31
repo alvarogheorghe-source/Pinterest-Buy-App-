@@ -4,7 +4,9 @@ Starten mit:  uvicorn backend.main:app --reload
 """
 
 import asyncio
+import logging
 import os
+import re
 import secrets
 import time
 from typing import Literal
@@ -806,7 +808,19 @@ def start_page():
     der Startseite. (Die Startseite bleibt unter /index.html erreichbar.)"""
     if storage.load_tokens():
         return RedirectResponse("/shop.html")
-    return FileResponse(FRONTEND_DIR / "index.html")
+    return landing_page()
+
+
+@app.get("/index.html", include_in_schema=False)
+def landing_page():
+    """Startseite mit echten Outfits aus dem Katalog (outfit_pages.py) statt Platzhaltern."""
+    page = (FRONTEND_DIR / "index.html").read_text("utf-8")
+    try:
+        page = re.sub(r"<!-- HERO_OUTFIT[^>]*-->", lambda m: outfit_pages.home_hero(), page, count=1)
+        page = page.replace("<!-- OUTFIT_IDEAS -->", outfit_pages.home_ideas(), 1)
+    except Exception as err:  # noqa: BLE001  (Katalog kaputt -> Seite trotzdem zeigen)
+        logging.getLogger(__name__).warning("Outfits für die Startseite fehlen: %s", err)
+    return HTMLResponse(page, headers={"Cache-Control": "no-cache"})
 
 
 # --- Impressum & Datenschutz (gleiche Seiten wie auf der Vorstellungsseite) ----------------

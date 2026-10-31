@@ -140,22 +140,28 @@
   show("idle");
 
   // Position (x = Abstand vom linken Rand) – über Seiten hinweg gemerkt.
-  // Am Handy sitzt Mali fest rechts unten (bunny.css) – dort hoppelt er nicht über den Inhalt.
+  // Mali hoppelt nie über Text: Auf breiten Bildschirmen bleibt er im freien Rand rechts neben
+  // dem Inhalt (max. 1200px breit). Ist dort kein Platz (Handy, Tablet, kleiner Laptop), sitzt
+  // er fest in der Ecke rechts unten (am Handy auf einem Kissen, bunny.css).
+  const CONTENT_WIDTH = 1200;
   const phone = window.matchMedia("(max-width: 640px)");
   const width = () => el.offsetWidth || 64;
-  const maxX = () => Math.max(8, window.innerWidth - width() - (phone.matches ? 16 : 8));
+  const freeRight = () => (window.innerWidth - CONTENT_WIDTH) / 2;
+  const corner = () => phone.matches || freeRight() < width() + 16;
+  const maxX = () => Math.max(8, window.innerWidth - width() - (corner() ? 16 : 8));
+  const minX = () => (corner() ? maxX() : Math.min(maxX(), window.innerWidth - freeRight() + 8));
   let x = Number(recall(sessionStorage, "mali-x"));
-  if (!Number.isFinite(x) || x <= 0) x = random(8, maxX());
-  x = phone.matches ? maxX() : Math.min(x, maxX());
+  if (!Number.isFinite(x) || x <= 0) x = random(minX(), maxX());
+  x = Math.max(minX(), Math.min(x, maxX()));
   el.style.left = `${x}px`;
 
   function setX(newX) {
-    x = Math.max(8, Math.min(newX, maxX()));
+    x = Math.max(minX(), Math.min(newX, maxX()));
     el.style.left = `${x}px`;
-    if (!phone.matches) remember(sessionStorage, "mali-x", String(Math.round(x)));
+    if (!corner()) remember(sessionStorage, "mali-x", String(Math.round(x)));
   }
 
-  window.addEventListener("resize", () => setX(phone.matches ? maxX() : x));
+  window.addEventListener("resize", () => setX(x));
 
   // --- Bewegungen -------------------------------------------------------------------------------
 
@@ -178,8 +184,7 @@
   }
 
   async function hopTo(targetX) {
-    if (phone.matches) targetX = maxX();      // Handy: bleibt in seiner Ecke
-    targetX = Math.max(8, Math.min(targetX, maxX()));
+    targetX = Math.max(minX(), Math.min(targetX, maxX()));   // im freien Rand bzw. in der Ecke
     const distance = Math.abs(targetX - x);
     if (distance < 10) return;
     if (reduceMotion) { setX(targetX); return; }
@@ -326,6 +331,13 @@
   async function welcome() {
     // Nur beim allerersten Besuch: localStorage bleibt auch nach dem Schließen des Browsers
     if (el.hidden || recall(localStorage, "mali-welcome") === "done") return;
+    // Über einen Werbe- oder Bio-Link (?von=…, nav.js) gekommen: Wer auf eine Anzeige tippt,
+    // will die Seite sehen, nicht erst ein Intro. Mali hüpft dann nur kurz unten (life()).
+    const params = new URLSearchParams(location.search);
+    if (document.documentElement.dataset.fromLink || params.has("von") || params.has("utm_source")) {
+      remember(localStorage, "mali-welcome", "done");
+      return;
+    }
     remember(localStorage, "mali-welcome", "done");
 
     // Aufbau: Bildschirm > Bühne > großer Mali, Name, Text
@@ -547,7 +559,7 @@
       busy = true;
       const roll = Math.random();
       if (roll < 0.4) {
-        await hopTo(random(8, maxX()));
+        await hopTo(random(minX(), maxX()));
       } else if (roll < 0.55 && mouse && Date.now() - mouse.at < 3000) {
         await hopTo(mouse.x - width() / 2); // dir hinterher!
       } else if (roll < 0.72) {

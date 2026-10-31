@@ -32,7 +32,7 @@ def test_missing_translation_stops_the_build():
 
 def test_english_page(site):  # noqa: F811
     en = (site / "en" / "index.html").read_text()
-    assert '<html lang="en">' in en and "Your Pinterest." in en and "Dein Pinterest." not in en
+    assert '<html lang="en">' in en and "Saw an outfit?" in en and "Outfit gesehen?" not in en
     assert '<link rel="canonical" href="https://malipin.com/en/">' in en
     assert 'hreflang="de" href="https://malipin.com/"' in en
     assert "/img/og-image-en.png" in en and '"inLanguage": "en"' in en

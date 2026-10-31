@@ -6,7 +6,7 @@
   <!-- Sprache (Deutsch/Englisch) – vor allen anderen Skripten -->
   <script src="/i18n-en.js"></script>
   <script src="/i18n.js"></script>
-  <title>Malipin | Outfits &amp; Deko nach deinem Pinterest-Stil</title>
+  <title>Malipin | Outfits per Foto oder Pinterest finden</title>
   <meta name="description" content="Malipin erkennt deinen Stil aus Pinterest-Boards oder einem Outfit-Foto und findet passende Mode &amp; Deko. Neu und Second Hand, passend zu deinem Budget.">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="canonical" href="https://malipin.com/">
@@ -21,7 +21,7 @@
   <meta property="og:site_name" content="Malipin">
   <meta property="og:locale" content="de_AT">
   <meta property="og:url" content="https://malipin.com/">
-  <meta property="og:title" content="Malipin | Outfits &amp; Deko nach deinem Pinterest-Stil">
+  <meta property="og:title" content="Malipin | Outfits per Foto oder Pinterest finden">
   <meta property="og:description" content="Malipin erkennt deinen Stil aus Pinterest-Boards oder einem Outfit-Foto und findet passende Mode &amp; Deko. Neu und Second Hand, passend zu deinem Budget.">
   <meta property="og:image" content="https://malipin.com/img/og-image.png">
   <meta property="og:image:width" content="1200">
@@ -85,10 +85,10 @@
         },
         {
           "@type": "Question",
-          "name": "Was zählt zu „Wohnen & Deko“?",
+          "name": "Wird mein Foto gespeichert?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Alles für dein Zuhause. Deko wie Vasen und Kerzen, Leuchten, Kissen und Decken, Küche & Tisch, Möbel, Pflanzen und Wanddeko."
+            "text": "Nein. Mali schaut sich dein Foto nur kurz im Arbeitsspeicher an, um die Teile zu erkennen. Danach ist es weg."
           }
         },
         {
@@ -96,23 +96,7 @@
           "name": "Woher kommen die Produkte?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Von Shops und Marktplätzen wie eBay und Etsy und aus deinen eigenen Pins, wenn diese zu einem Shop oder Second-Hand-Angebot führen."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Brauche ich ein Pinterest-Business-Konto?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Nein, dein normales Pinterest-Konto reicht."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Kann ich ein Outfit per Foto finden?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Ja. Lade einen Screenshot von TikTok, Instagram oder Pinterest hoch. Mali erkennt Teil, Farbe, Stil und bekannte Sneaker-Modelle und zeigt dir ähnliche Teile, neu und Second Hand. Das Foto wird nicht gespeichert."
+            "text": "Von Shops und Marktplätzen wie eBay und Etsy sowie aus Partner-Shops. Second Hand findest du zusätzlich über die Knöpfe zu Vinted und willhaben."
           }
         },
         {
@@ -125,10 +109,10 @@
         },
         {
           "@type": "Question",
-          "name": "Gibt es auch Second Hand und Vintage?",
+          "name": "Wann kann ich mein Pinterest verbinden?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Ja. Neben Neuware zeigt Malipin Second-Hand- und Vintage-Angebote, zum Beispiel von eBay und Etsy. So findest du deinen Stil oft günstiger und nachhaltiger."
+            "text": "Sobald Pinterest unsere App freigibt. Dann reicht dein normales Pinterest-Konto, ein Business-Konto brauchst du nicht."
           }
         },
         {
@@ -144,7 +128,7 @@
           "name": "Kann ich meine Daten löschen?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Ja. Unter „Mein Pinterest“ trennst du die Verbindung, und deine gespeicherten Zugangsdaten werden gelöscht. Zusätzlich kannst du den Zugriff in deinen Pinterest-Einstellungen widerrufen."
+            "text": "Ja. Fotos speichern wir gar nicht. Deine Merkliste löschst du dort mit einem Klick, und eine Pinterest-Verbindung trennst du unter „Mein Pinterest“."
           }
         }
       ]
@@ -199,223 +183,70 @@
   </header>
 
   <main id="main">
-  <!-- 1. Hero ------------------------------------------------------------------------ -->
+  <!-- 1. Hero: Foto-Suche zuerst (geht ohne Pinterest), daneben ein echtes Outfit -------- -->
   <section class="hero">
-    <div class="hero-bg" aria-hidden="true">
-      <span class="blob blob-rose"></span>
-      <span class="blob blob-lilac"></span>
-      <span class="blob blob-pink"></span>
-    </div>
-
     <div class="hero-text">
-      <p class="eyebrow-chip">
-        <svg class="icon"><use href="#i-sparkle"/></svg>
-        Mode · Wohnen · Second Hand
-      </p>
-      <h1>Dein Pinterest.<br>Dein Stil. <em>Zum kleinen Preis.</em></h1>
+      <h1>Outfit gesehen?<br>Mali findet's.</h1>
       <p class="lead">
-        Malipin liest deine Pinterest-Boards, erkennt deinen Stil und findet passende
-        Kleidung und Deko aus vielen Shops und Second Hand. Sortiert nach deinem Budget.
+        Lad einen Screenshot von TikTok, Instagram oder Pinterest hoch. Mali erkennt jedes Teil
+        und zeigt dir ähnliche, neu und Second Hand, passend zu deinem Budget.
       </p>
       <div class="hero-actions">
-        <a href="/konto.html" class="button large connect">
-          <svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden
+        <a href="/foto.html" class="button large">
+          <svg class="icon"><use href="#i-camera"/></svg>Foto hochladen
         </a>
-        <a href="/shop.html" class="button large outline" data-closed-href="/stile.html"
-           data-closed-text="Stile entdecken">Shop ansehen</a>
+        <a href="/outfits" class="button large outline">Outfit-Ideen ansehen</a>
       </div>
-      <ul class="trust-row">
-        <li><svg class="icon"><use href="#i-shield"/></svg> Nur Lesezugriff</li>
-        <li><svg class="icon"><use href="#i-key"/></svg> Kein neues Passwort</li>
-        <li><svg class="icon"><use href="#i-tag"/></svg> Mit Budgetfilter</li>
-      </ul>
+      <p class="hero-note">Kostenlos. Dein Foto wird nicht gespeichert.</p>
     </div>
-
-    <!-- App-Vorschau: Pinterest-Board aus Farbflächen + schwebende Karten (nur HTML/CSS) -->
-    <div class="hero-visual" aria-hidden="true">
-      <div class="board">
-        <div class="board-pin tile-rose" style="--h: 150px"><svg class="icon"><use href="#i-shirt"/></svg></div>
-        <div class="board-pin tile-plum" style="--h: 104px"><svg class="icon"><use href="#i-bag"/></svg></div>
-        <div class="board-pin tile-lilac" style="--h: 128px"><svg class="icon"><use href="#i-lamp"/></svg></div>
-        <div class="board-pin tile-peach" style="--h: 160px"><svg class="icon"><use href="#i-vase"/></svg></div>
-        <div class="board-pin tile-shell" style="--h: 96px"><svg class="icon"><use href="#i-shoe"/></svg></div>
-        <div class="board-pin tile-cream" style="--h: 132px"><svg class="icon"><use href="#i-plant"/></svg></div>
-      </div>
-
-      <div class="float-card card-fashion">
-        <div class="float-image grad-shell"></div>
-        <p class="card-shop">Nordfaden · Oberteile</p>
-        <p class="card-name">Oversized Hoodie Sand</p>
-        <p class="card-price" data-price="34.99">€ 34,99</p>
-      </div>
-
-      <div class="float-card card-home">
-        <div class="float-image grad-rose"></div>
-        <p class="card-shop">Tonwerk · Deko</p>
-        <p class="card-name">Keramikvase Sand</p>
-        <p class="card-price" data-price="24.99">€ 24,99</p>
-      </div>
-
-      <div class="float-tags">
-        <span class="soft-chip chip-rose">streetwear</span>
-        <span class="soft-chip chip-lilac">japandi</span>
-        <span class="soft-chip chip-cream">beige</span>
-      </div>
-    </div>
+    <!-- HERO_OUTFIT: echtes Outfit aus dem Katalog (backend/outfit_pages.py, vom Server eingesetzt) -->
   </section>
 
-  <!-- 1b. Foto-Suche: Fit gesehen? Hochladen! ---------------------------------------------- -->
-  <section class="section photo-spot">
-    <div class="photo-spot-text">
-      <p class="section-kicker">Neu · auch ohne Pinterest</p>
-      <h2 class="section-title">Hat dir ein Fit auf TikTok oder Instagram gefallen?</h2>
-      <p class="section-lead">
-        Mach einen Screenshot und lad ihn hier hoch. Mali erkennt Teil, Farbe, Stil und sogar Sneaker-Modelle und findet dir ähnliche Teile, neu und Second Hand.
-      </p>
-      <a href="/foto.html" class="button large photo-cta">
-        <svg class="icon"><use href="#i-camera"/></svg>Fit hochladen
-      </a>
-      <p class="photo-spot-note">
-        <svg class="icon"><use href="#i-shield"/></svg> Dein Foto wird nur kurz angeschaut und nicht gespeichert.
-      </p>
-    </div>
-
-    <!-- Grafik: Screenshot im Handy -> Mali erkennt -> passendes Teil (nur HTML/CSS) -->
-    <div class="photo-spot-visual" aria-hidden="true">
-      <div class="phone">
-        <div class="phone-screen">
-          <div class="fit-head"></div>
-          <div class="fit-jacket"></div>
-          <div class="fit-pants"></div>
-          <div class="fit-shoes"><span></span><span></span></div>
-          <div class="phone-ui"><span>♡</span><span>💬</span><span>↗</span></div>
-        </div>
-      </div>
-      <div class="photo-spot-flow">
-        <img src="/img/favicon.svg" alt="" class="photo-spot-mali" width="64" height="64">
-        <div class="photo-spot-chips">
-          <span class="soft-chip chip-rose">Jacke</span>
-          <span class="soft-chip chip-lilac">schwarz</span>
-          <span class="soft-chip chip-cream">streetwear</span>
-          <span class="soft-chip chip-rose">Onitsuka Tiger</span>
-        </div>
-        <div class="float-card photo-spot-card">
-          <div class="float-image grad-plum"></div>
-          <p class="card-shop">eBay · Second Hand</p>
-          <p class="card-name">Bomberjacke Schwarz</p>
-          <p class="card-price" data-price="39.00">€ 39,00</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 2. Zwei Welten ------------------------------------------------------------------ -->
-  <section class="section" id="welten">
-    <p class="section-kicker">Zwei Welten, ein Stil</p>
-    <h2 class="section-title">Für deinen Kleiderschrank und dein Zuhause</h2>
-    <p class="section-lead">
-      Wir erkennen, ob ein Pin ein Outfit oder ein Wohnzimmer zeigt, und trennen beides sauber.
-      So kann dein Mode-Stil Streetwear sein und dein Wohnstil Japandi.
-    </p>
-
-    <div class="worlds">
-      <a href="/shop.html#mode" class="world world-mode">
-        <span class="world-icon"><svg class="icon"><use href="#i-shirt"/></svg></span>
-        <h3>Mode</h3>
-        <p>Oberteile, Hosen, Jacken, Kleider, Schuhe und Accessoires, passend zu deinen Outfit-Pins.</p>
-        <ul class="world-chips">
-          <li>Oberteile</li><li>Hosen</li><li>Jacken</li><li>Schuhe</li><li>Accessoires</li>
-        </ul>
-        <span class="world-link">Mode entdecken <svg class="icon"><use href="#i-arrow"/></svg></span>
-      </a>
-
-      <a href="/shop.html#wohnen" class="world world-home">
-        <span class="world-icon"><svg class="icon"><use href="#i-lamp"/></svg></span>
-        <h3>Wohnen &amp; Deko</h3>
-        <p>Vasen, Leuchten, Kissen, Möbel und Pflanzen. Wir erkennen die Gegenstände in deinen Pins.</p>
-        <ul class="world-chips">
-          <li>Deko</li><li>Leuchten</li><li>Textilien</li><li>Möbel</li><li>Pflanzen</li>
-        </ul>
-        <span class="world-link">Wohnen entdecken <svg class="icon"><use href="#i-arrow"/></svg></span>
-      </a>
-    </div>
-
-    <div class="connect-row">
-      <p>Deine Pins entscheiden, was du siehst.</p>
-      <a href="/konto.html" class="button connect"><svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden</a>
-    </div>
-  </section>
-
-  <!-- 3. So funktioniert's ------------------------------------------------------------- -->
-  <section class="section" id="so-gehts">
-    <p class="section-kicker">In drei Schritten</p>
-    <h2 class="section-title">So funktioniert's</h2>
-    <ol class="steps">
-      <li class="step">
-        <span class="step-icon tint-peach"><svg class="icon"><use href="#i-link"/></svg></span>
-        <span class="step-number">01</span>
-        <h3>Pinterest verbinden</h3>
-        <p>Du meldest dich direkt bei Pinterest an. Wir sehen dein Passwort nie und können nichts verändern.</p>
+  <!-- 2. So funktioniert's (Foto-Suche) ---------------------------------------------------- -->
+  <section class="section how" id="so-gehts">
+    <h2 class="section-title">So findet Mali dein Fit</h2>
+    <ol class="how-steps">
+      <li>
+        <h3>Screenshot hochladen</h3>
+        <p>Ein Outfit von TikTok, Instagram, Pinterest oder ein Foto von dir. Am besten der ganze Look.</p>
       </li>
-      <li class="step">
-        <span class="step-icon tint-cream"><svg class="icon"><use href="#i-grid"/></svg></span>
-        <span class="step-number">02</span>
-        <h3>Boards auswählen</h3>
-        <p>Wähle die Boards, die dich zeigen. Daraus entstehen deine Stilprofile für Mode und Wohnen.</p>
+      <li>
+        <h3>Mali schneidet jedes Teil aus</h3>
+        <p>Jacke, Hose, Schuhe, Tasche: Jedes Teil bekommt seine eigene Farbe und seine eigene Suche.</p>
       </li>
-      <li class="step">
-        <span class="step-icon tint-berry"><svg class="icon"><use href="#i-bag"/></svg></span>
-        <span class="step-number">03</span>
-        <h3>Passendes entdecken</h3>
-        <p>Stell dein Budget ein und sieh, was zu dir passt. Zu jedem Teil sagen wir dir, warum.</p>
+      <li>
+        <h3>Ähnliches im Budget</h3>
+        <p>Neu aus vielen Shops und Second Hand bei Vinted und willhaben. Das Günstigere zuerst.</p>
       </li>
     </ol>
   </section>
 
-  <!-- 4. Vorteile ------------------------------------------------------------------------ -->
-  <section class="section">
-    <p class="section-kicker">Warum Malipin?</p>
-    <h2 class="section-title">Gemacht für guten Geschmack und kleines Budget</h2>
-    <div class="features">
-      <article class="feature">
-        <span class="feature-icon tint-cream"><svg class="icon"><use href="#i-sparkle"/></svg></span>
-        <h3>Dein Stil, erkannt</h3>
-        <p>Beige, oversized, Japandi? Wir lesen deinen Stil aus deinen Pins, nicht aus einem Fragebogen.</p>
-      </article>
-      <article class="feature">
-        <span class="feature-icon tint-rose"><svg class="icon"><use href="#i-layers"/></svg></span>
-        <h3>Mode und Wohnen getrennt</h3>
-        <p>Outfit-Pins und Interior-Pins bekommen eigene Profile, damit Vorschläge wirklich passen.</p>
-      </article>
-      <article class="feature">
-        <span class="feature-icon tint-lilac"><svg class="icon"><use href="#i-tag"/></svg></span>
-        <h3>Budget im Blick</h3>
-        <p>Zeig nur, was du dir leisten willst. Bei gleicher Passung kommt das günstigere Teil zuerst.</p>
-      </article>
-      <article class="feature">
-        <span class="feature-icon tint-peach"><svg class="icon"><use href="#i-loop"/></svg></span>
-        <h3>Second Hand aus deinen Pins</h3>
-        <p>Führt ein Pin zu Depop, Vinted oder Etsy, zeigen wir dir genau dieses Teil. Gut für Geldbörse und Umwelt.</p>
-      </article>
-      <article class="feature">
-        <span class="feature-icon tint-berry"><svg class="icon"><use href="#i-eye"/></svg></span>
-        <h3>Ehrlich gekennzeichnet</h3>
-        <p>Links, an denen wir verdienen, sind als „Werbung“ markiert. Für dich ändert sich der Preis nicht.</p>
-      </article>
-      <article class="feature">
-        <span class="feature-icon tint-lilac"><svg class="icon"><use href="#i-shield"/></svg></span>
-        <h3>Deine Daten bleiben deine</h3>
-        <p>Nur Lesezugriff, keine Weitergabe, Verbindung jederzeit mit einem Klick trennen.</p>
-      </article>
-    </div>
+  <!-- 3. Echte Outfits (backend/outfit_pages.py) -------------------------------------------- -->
+  <section class="section ideas-section">
+    <h2 class="section-title">Komplette Outfits, jeden Tag neu</h2>
+    <p class="section-lead">Mali stellt aus echten Shops Looks zusammen, immer im Budget. Such dir einen Stil aus.</p>
+    <!-- OUTFIT_IDEAS -->
+    <a href="/outfits" class="button outline">Alle Outfit-Ideen</a>
   </section>
 
-  <!-- 5. Stil-Band ---------------------------------------------------------------------- -->
+  <!-- 4. Warum Malipin: eine ruhige Liste statt Icon-Kärtchen ------------------------------ -->
+  <section class="section why">
+    <h2 class="section-title">Gemacht für guten Geschmack und kleines Budget</h2>
+    <dl class="why-list">
+      <div><dt>Mode und Wohnen</dt><dd>Outfits und Deko getrennt, damit dein Mode-Stil Streetwear sein darf und dein Wohnstil Japandi.</dd></div>
+      <div><dt>Budget im Blick</dt><dd>Du siehst nur, was du dir leisten willst. Passen zwei Teile gleich gut, kommt das günstigere zuerst.</dd></div>
+      <div><dt>Second Hand mit drin</dt><dd>Zu jedem Fund ein Knopf zu Vinted und willhaben. Gut für Geldbörse und Umwelt.</dd></div>
+      <div><dt>Ehrlich gekennzeichnet</dt><dd>Links, an denen wir verdienen, sind als „Werbung“ markiert. Für dich ändert sich der Preis nicht.</dd></div>
+    </dl>
+  </section>
+
+  <!-- 5. Stil-Band ------------------------------------------------------------------------- -->
   <section class="style-band">
     <div class="style-band-inner">
       <div>
         <h2>Wir sprechen deinen Stil</h2>
-        <p>Auf Deutsch und Englisch, von „cozy“ bis „Japandi“. Aus „cream knit“ wird beige, und Mali erkennt sogar Schnitte wie Bootcut, Wide Leg oder Cropped.</p>
+        <p>Von „cozy“ bis „Japandi“, auf Deutsch und Englisch. Mali erkennt sogar Schnitte wie Bootcut, Wide Leg oder Cropped.</p>
+        <a href="/stile.html" class="button light">Alle Stile ansehen</a>
       </div>
       <ul class="style-words">
         <li class="w-rose">streetwear</li>
@@ -437,64 +268,47 @@
     </div>
   </section>
 
-  <!-- 6. Datenschutz ---------------------------------------------------------------------- -->
-  <section class="section">
-    <div class="privacy">
-      <div>
-        <p class="section-kicker">Datenschutz</p>
-        <h2 class="section-title">Deine Daten bleiben deine</h2>
-        <p class="section-lead">Wir nutzen nur, was wir für deine Vorschläge brauchen, und verkaufen nichts davon.</p>
-      </div>
-      <ul class="checklist">
-        <li><span class="check"><svg class="icon"><use href="#i-check"/></svg></span>Nur Lesezugriff auf Konto, Boards und Pins</li>
-        <li><span class="check"><svg class="icon"><use href="#i-check"/></svg></span>Kein Passwort, keine Cookies von Pinterest gespeichert</li>
-        <li><span class="check"><svg class="icon"><use href="#i-check"/></svg></span>Verbindung jederzeit mit einem Klick trennen</li>
-        <li><span class="check"><svg class="icon"><use href="#i-check"/></svg></span>Keine Weitergabe an Dritte</li>
-      </ul>
-    </div>
+  <!-- 6. Bald: Pinterest ------------------------------------------------------------------- -->
+  <section class="section soon-pinterest">
+    <h2 class="section-title">Bald: dein ganzes Pinterest-Board</h2>
+    <p class="section-lead">
+      Verbinde dein Pinterest, und Mali liest deinen Stil aus all deinen Pins, nicht aus einem
+      Fragebogen. Nur Lesezugriff, kein neues Passwort, jederzeit trennbar. Wir arbeiten an der
+      Freigabe durch Pinterest.
+    </p>
   </section>
 
-  <!-- 7. Konto / Start --------------------------------------------------------------------- -->
+  <!-- 7. Start ----------------------------------------------------------------------------- -->
   <section class="cta" id="konto">
-    <span class="cta-glow" aria-hidden="true"></span>
-    <h2>Starte in einer Minute</h2>
-    <p>Dein Konto ist dein Pinterest-Login. Kein neues Passwort, kein Formular.</p>
-    <a href="/konto.html" class="button large light connect">
-      <svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden
+    <h2>Probier's mit deinem nächsten Screenshot</h2>
+    <p>Kein Konto, kein Formular. Foto hochladen, und Mali sucht los.</p>
+    <a href="/foto.html" class="button large light">
+      <svg class="icon"><use href="#i-camera"/></svg>Foto hochladen
     </a>
   </section>
 
   <!-- 8. Häufige Fragen: <details> klappt ohne JavaScript auf und zu ---------------------- -->
   <section class="section narrow-section">
-    <p class="section-kicker">FAQ</p>
     <h2 class="section-title">Häufige Fragen</h2>
     <details>
       <summary>Kostet Malipin etwas?</summary>
       <p>Nein. Kaufst du über einen mit „Werbung“ markierten Link, bekommen wir eine kleine Provision vom Shop. Dein Preis bleibt gleich.</p>
     </details>
     <details>
-      <summary>Was zählt zu „Wohnen &amp; Deko“?</summary>
-      <p>Alles für dein Zuhause. Deko wie Vasen und Kerzen, Leuchten, Kissen und Decken, Küche &amp; Tisch, Möbel, Pflanzen und Wanddeko.</p>
+      <summary>Wird mein Foto gespeichert?</summary>
+      <p>Nein. Mali schaut sich dein Foto nur kurz im Arbeitsspeicher an, um die Teile zu erkennen. Danach ist es weg.</p>
     </details>
     <details>
       <summary>Woher kommen die Produkte?</summary>
-      <p>Von Shops und Marktplätzen wie eBay und Etsy und aus deinen eigenen Pins, wenn diese zu einem Shop oder Second-Hand-Angebot führen.</p>
-    </details>
-    <details>
-      <summary>Brauche ich ein Pinterest-Business-Konto?</summary>
-      <p>Nein, dein normales Pinterest-Konto reicht.</p>
-    </details>
-    <details>
-      <summary>Kann ich ein Outfit per Foto finden?</summary>
-      <p>Ja. Lade einen Screenshot von TikTok, Instagram oder Pinterest hoch. Mali erkennt Teil, Farbe, Stil und bekannte Sneaker-Modelle und zeigt dir ähnliche Teile, neu und Second Hand. Das Foto wird nicht gespeichert.</p>
+      <p>Von Shops und Marktplätzen wie eBay und Etsy sowie aus Partner-Shops. Second Hand findest du zusätzlich über die Knöpfe zu Vinted und willhaben.</p>
     </details>
     <details>
       <summary>Erkennt Malipin auch Schnitte wie Bootcut oder Wide Leg?</summary>
       <p>Ja. Malipin kennt rund 150 Merkmale wie Bootcut, Wide Leg, Baggy, Cropped, Light Wash, Rollkragen, Leder oder Cord und sucht genau danach, zum Beispiel nach „Baggy Light Wash Jeans“ statt nur nach „Hose“.</p>
     </details>
     <details>
-      <summary>Gibt es auch Second Hand und Vintage?</summary>
-      <p>Ja. Neben Neuware zeigt Malipin Second-Hand- und Vintage-Angebote, zum Beispiel von eBay und Etsy. So findest du deinen Stil oft günstiger und nachhaltiger.</p>
+      <summary>Wann kann ich mein Pinterest verbinden?</summary>
+      <p>Sobald Pinterest unsere App freigibt. Dann reicht dein normales Pinterest-Konto, ein Business-Konto brauchst du nicht.</p>
     </details>
     <details>
       <summary>Sind die Shops sicher?</summary>
@@ -502,13 +316,13 @@
     </details>
     <details>
       <summary>Kann ich meine Daten löschen?</summary>
-      <p>Ja. Unter „Mein Pinterest“ trennst du die Verbindung, und deine gespeicherten Zugangsdaten werden gelöscht. Zusätzlich kannst du den Zugriff in deinen Pinterest-Einstellungen widerrufen.</p>
+      <p>Ja. Fotos speichern wir gar nicht. Deine Merkliste löschst du dort mit einem Klick, und eine Pinterest-Verbindung trennst du unter „Mein Pinterest“.</p>
     </details>
   </section>
 
   <!-- Nur auf dem Handy: Leiste unten, verschwindet bei Hero, Start-Bereich und Footer -->
-  <div class="mobile-connect" id="mobile-connect">
-    <a href="/konto.html" class="button connect"><svg class="icon"><use href="#i-link"/></svg>Mit Pinterest verbinden</a>
+  <div class="mobile-cta" id="mobile-cta">
+    <a href="/foto.html" class="button"><svg class="icon"><use href="#i-camera"/></svg>Foto hochladen</a>
   </div>
   </main>
 
@@ -532,10 +346,10 @@
   </footer>
 
   <script>
-    // Handy-Leiste ausblenden, solange ein anderer großer Verbinden-Button sichtbar ist
+    // Handy-Leiste ausblenden, solange ein anderer großer Foto-Button sichtbar ist
     // (Hero, Start-Bereich) oder der Footer – sonst stünde der Button doppelt da.
     // IntersectionObserver meldet, welche Elemente gerade im Bild sind.
-    const bar = document.getElementById("mobile-connect");
+    const bar = document.getElementById("mobile-cta");
     const visible = new Set();
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
@@ -545,9 +359,30 @@
       bar.classList.toggle("hidden", visible.size > 0);
     });
     observer.observe(document.querySelector(".hero-actions"));
-    observer.observe(document.querySelector(".photo-cta"));   // dort gibt's "Fit hochladen"
     observer.observe(document.getElementById("konto"));
     observer.observe(document.querySelector(".landing-footer"));
+
+    // Abschnitte bauen sich beim Scrollen auf: Überschrift, dann Text, dann Bilder, je ca.
+    // 80 ms versetzt (landing.css .reveal). Ohne Bewegung (Systemeinstellung) bleibt alles stehen.
+    if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const parts = ".hero-text > *, .hero-outfit, .section-title, .section-lead, .how-steps li, " +
+                    ".idea, .why-list > div, .style-band-inner > *, .cta > *, details";
+      const reveal = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add("in");
+          reveal.unobserve(entry.target);
+        }
+      }, { rootMargin: "0px 0px -8% 0px" });
+      document.querySelectorAll("main section").forEach((section) => {
+        section.querySelectorAll(parts).forEach((el, i) => {
+          el.classList.add("reveal");
+          el.style.setProperty("--delay", `${Math.min(i, 6) * 80}ms`);
+          reveal.observe(el);
+        });
+      });
+      document.documentElement.classList.add("reveal-ready");
+    }
   </script>
   <script src="/nav.js" defer></script>
   <!-- Mali, das Maskottchen -->

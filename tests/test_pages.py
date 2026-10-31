@@ -21,13 +21,16 @@ def test_pages_and_files_exist(client, path):
     assert client.get(path).status_code == 200
 
 
-def test_many_connect_buttons_all_lead_to_konto(fake, client):
-    """Die Startseite lädt an mehreren Stellen zum Verbinden ein – alle führen zu /konto.html."""
+def test_landing_leads_with_photo_search(fake, client):
+    """Solange Pinterest zu ist: die Startseite führt zur Foto-Suche, ohne tote Pinterest-Knöpfe,
+    und zeigt echte Outfits aus dem Katalog (vom Server eingesetzt)."""
     import re
     html = client.get("/").text
-    buttons = re.findall(r'<a href="([^"]+)" class="button[^"]*connect[^"]*">', html)
-    assert len(buttons) >= 3
-    assert set(buttons) == {"/konto.html"}
+    hero = html.split('<section class="hero">')[1].split("</section>")[0]
+    assert re.search(r'<a href="/foto.html" class="button large">', hero)
+    assert "connect" not in html.split('<main id="main">')[1].split("</main>")[0]
+    assert 'class="hero-outfit' in hero and "HERO_OUTFIT" not in html and "OUTFIT_IDEAS" not in html
+    assert client.get("/index.html").text == html
 
 
 @pytest.mark.parametrize("path", ["/", "/shop.html", "/konto.html", "/produkt.html", "/foto.html",

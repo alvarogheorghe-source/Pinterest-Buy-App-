@@ -238,8 +238,8 @@ body {
   }
 
   /* Startseite: nur über die "Mit Pinterest verbinden"-Leiste, wenn sie gerade zu sehen ist */
-  body.landing:has(.mobile-connect:not(.hidden)) .mali,
-  body.landing:has(.mobile-connect:not(.hidden)) .mali-return {
+  body.landing:has(.mobile-cta:not(.hidden)) .mali,
+  body.landing:has(.mobile-cta:not(.hidden)) .mali-return {
     bottom: calc(86px + env(safe-area-inset-bottom));
   }
 

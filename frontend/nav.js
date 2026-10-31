@@ -30,7 +30,7 @@ updateSavedCount();
     if (el.classList.contains("soon") || el.dataset.photo) return;
     // Große Haupt-Buttons (Startseite) nicht tot stehen lassen: dort geht's zur Foto-Suche,
     // die ohne Pinterest funktioniert. Kleine Buttons sagen "bald verfügbar".
-    if (el.classList.contains("large") || el.closest(".mobile-connect")) {
+    if (el.classList.contains("large") || el.closest(".mobile-cta")) {
       el.dataset.photo = "1";
       el.classList.remove("connect");
       el.href = "/foto.html";
@@ -91,6 +91,8 @@ function hit(data) {
   const source = params.get("von") || params.get("utm_source") || params.get("ref") || "";
   hit({ type: "view", page: location.pathname, source, referrer: document.referrer });
   if (source) {
+    // Kommt über einen Werbe-/Bio-Link: keine lange Begrüßung, gleich die Seite (bunny.js)
+    document.documentElement.dataset.fromLink = "1";
     ["von", "utm_source", "utm_medium", "utm_campaign", "ref"].forEach((key) => params.delete(key));
     const rest = params.toString();
     history.replaceState(null, "", location.pathname + (rest ? `?${rest}` : "") + location.hash);
