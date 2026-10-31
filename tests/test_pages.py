@@ -78,6 +78,7 @@ def test_every_page_links_privacy_and_imprint():
             continue
         html = page.read_text(encoding="utf-8")
         assert "/impressum.html" in html and "/datenschutz.html" in html, page.name
+        assert "/nutzungsbedingungen.html" in html, page.name
 
 
 def test_every_public_page_has_amazon_disclosure():
@@ -112,3 +113,11 @@ def test_api_docs_only_locally():
 def test_images_are_cached_pages_are_not(client):
     assert client.get("/img/favicon.svg").headers["cache-control"] == "public, max-age=604800"
     assert client.get("/style.css").headers["cache-control"] == "no-cache"
+
+
+def test_terms_page(client):
+    html = client.get("/nutzungsbedingungen.html").text
+    assert "<h1>Nutzungsbedingungen</h1>" in html and "verkauft selbst nichts" in html
+    assert '<a href="/impressum.html">Impressum</a>' in html             # Links im Text
+    assert client.get("/terms.html").text == html
+    assert "/nutzungsbedingungen.html" in client.get("/sitemap.xml").text

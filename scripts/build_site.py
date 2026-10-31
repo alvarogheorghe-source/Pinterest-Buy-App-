@@ -71,6 +71,7 @@ def static_index(source: str) -> str:
     # Footer-Links
     page = re.sub(r'<nav class="footer-links">.*?</nav>',
                   '<nav class="footer-links">\n        <a href="/datenschutz.html">Datenschutz</a>\n'
+                  '        <a href="/nutzungsbedingungen.html">Nutzungsbedingungen</a>\n'
                   '        <a href="/impressum.html">Impressum</a>\n      </nav>',
                   page, flags=re.DOTALL)
     page = page.replace("<p>Prototyp mit Beispieldaten · Impressum folgt</p>",
@@ -137,6 +138,7 @@ def subpage(title: str, body: str, description: str = "", path: str | None = Non
   </main>
   <footer class="site-footer">
     <p><a href="/">Startseite</a> · <a href="/datenschutz.html">Datenschutz</a> ·
+      <a href="/nutzungsbedingungen.html">Nutzungsbedingungen</a> ·
       <a href="/impressum.html">Impressum</a></p>
   </footer>
   <script src="/bunny.js" defer></script>
@@ -150,13 +152,15 @@ def inline_markdown(text: str) -> str:
     text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
     text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
     text = re.sub(r"(?<![\w*])\*([^*\n]+)\*(?![\w*])", r"<em>\1</em>", text)
-    text = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)", r'<a href="\2">\1</a>', text)
+    # [Text](https://…) oder [Text](/seite.html) – andere Ziele (javascript: …) bleiben Text
+    text = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+|/[^)\s]*)\)", r'<a href="\2">\1</a>', text)
     text = re.sub(r'(?<![">])(https://[^\s<),]+[^\s<),.])', r'<a href="\1">\1</a>', text)
     return text
 
 
 def markdown_to_html(source: str) -> str:
-    """Kleiner Markdown-Umwandler – reicht für PRIVACY.md (Überschriften, Absätze, Listen)."""
+    """Kleiner Markdown-Umwandler – reicht für PRIVACY.md und TERMS.md (Überschriften, Absätze,
+    Listen, Links)."""
     out, paragraph, items = [], [], []
 
     def flush():

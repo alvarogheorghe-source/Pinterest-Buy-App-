@@ -832,6 +832,16 @@ def datenschutz():
 
 # --- Eine Seite pro Vibe (/stil/goth-baddie) + Sitemap für Google ----------------------------
 
+@app.get("/nutzungsbedingungen.html", response_class=HTMLResponse)
+@app.get("/terms.html", response_class=HTMLResponse)       # englische Adresse, gleiche Seite
+def terms():
+    from scripts import build_site
+    body = build_site.markdown_to_html((build_site.ROOT / "TERMS.md").read_text("utf-8"))
+    return build_site.subpage("Nutzungsbedingungen", body, "Nutzungsbedingungen von Malipin: "
+                              "kostenloser Dienst, Partnerlinks, Pinterest-Verbindung, Foto-Suche "
+                              "und faire Nutzung.", "/nutzungsbedingungen.html")
+
+
 @app.get("/stil/{name}", response_class=HTMLResponse)
 def vibe_page(name: str):
     page = vibe_pages.render(name)
@@ -856,7 +866,8 @@ def outfit_page(slug: str):
 
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap():
-    paths = ["/", "/foto.html", "/stile.html", *vibe_pages.all_paths(), *outfit_pages.all_paths()]
+    paths = ["/", "/foto.html", "/stile.html", *vibe_pages.all_paths(), *outfit_pages.all_paths(),
+             "/impressum.html", "/datenschutz.html", "/nutzungsbedingungen.html"]
     urls = "".join(f"  <url><loc>{vibe_pages.SITE_URL}{p}</loc></url>\n" for p in paths)
     xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + "</urlset>\n")
