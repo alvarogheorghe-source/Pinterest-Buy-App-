@@ -950,85 +950,152 @@ details p {
   gap: 22px;
 }
 
-/* Handy mit "Screenshot" eines Outfits */
+/* Handy mit "Screenshot" eines Outfits: Pixel-Figur wie Mali, Mali scannt sie gerade */
 .phone {
   flex: none;
-  width: 170px;
-  padding: 8px;
-  border-radius: 30px;
-  background: #2b2026;
-  box-shadow: 0 26px 50px -18px rgba(58, 42, 48, 0.45);
+  width: 176px;
+  padding: 7px;
+  border: 1.5px solid #f3c6d3;
+  border-radius: 34px;
+  background: #fffaf6;
+  box-shadow: 0 26px 50px -22px rgba(58, 42, 48, 0.35);
   transform: rotate(-4deg);
 }
 
 .phone-screen {
   position: relative;
-  height: 320px;
-  border-radius: 23px;
+  height: 330px;
+  border-radius: 27px;
   overflow: hidden;
-  background: linear-gradient(180deg, #f3e9e1, #e2d3c6);
+  background: var(--lilac-soft);
 }
 
-.fit-head {
+/* Boden direkt unter den Sneakern (hinter der Figur) */
+.phone-screen::before {
+  content: "";
   position: absolute;
-  top: 36px;
-  left: 50%;
-  width: 34px;
-  height: 40px;
-  margin-left: -17px;
+  left: 24%;
+  right: 24%;
+  bottom: 62px;
+  height: 12px;
   border-radius: 50%;
-  background: #d7a98c;
+  background: rgba(119, 91, 161, 0.16);
 }
 
-.fit-jacket {
+.phone-notch {
   position: absolute;
-  top: 78px;
+  top: 9px;
   left: 50%;
-  width: 92px;
-  height: 92px;
-  margin-left: -46px;
-  border-radius: 26px 26px 10px 10px;
-  background: linear-gradient(160deg, #3a2f36, #17121a);
+  width: 46px;
+  height: 7px;
+  margin-left: -23px;
+  border-radius: 999px;
+  background: #e9dcef;
 }
 
-.fit-pants {
+.fit-figure {
   position: absolute;
-  top: 166px;
+  top: 60px;
   left: 50%;
-  width: 74px;
-  height: 96px;
-  margin-left: -37px;
-  border-radius: 6px 6px 14px 14px;
-  background: linear-gradient(160deg, #7d9cc4, #4f6f99);
+  width: 125px;
+  height: 200px;
+  margin-left: -62px;
 }
 
-.fit-shoes {
+.fit-pixel {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Gestrichelte Rahmen = Teile, die Mali erkannt hat (Lage in % der 20 x 32 Pixel) */
+.scan-box {
   position: absolute;
-  top: 262px;
-  left: 50%;
-  display: flex;
-  gap: 8px;
-  margin-left: -40px;
+  border: 2px dashed var(--berry);
+  border-radius: 8px;
 }
 
-.fit-shoes span {
-  width: 36px;
-  height: 14px;
-  border-radius: 10px 14px 4px 4px;
-  background: #f5f0e6;
-  box-shadow: inset 0 -3px 0 #c9302c;
+.scan-box span {
+  position: absolute;
+  top: -11px;
+  left: -2px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--berry);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
+.box-jacket {
+  left: 10%;
+  top: 19%;
+  width: 80%;
+  height: 39%;
+}
+
+.box-shoes {
+  left: 15%;
+  top: 91%;
+  width: 70%;
+  height: 12%;
+}
+
+.box-shoes span {
+  top: auto;
+  bottom: -12px;
+}
+
+/* Scan-Linie fährt langsam auf und ab */
+.scan-line {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 14%;
+  height: 2px;
+  border-radius: 2px;
+  background: #e8789a;
+  box-shadow: 0 0 10px 2px rgba(232, 120, 154, 0.45);
+  animation: scan 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes scan {
+  to { top: 76%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-line {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Leiste unten wie bei einem Post: Herz, Kommentar, Teilen */
 .phone-ui {
   position: absolute;
-  right: 10px;
-  bottom: 54px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  color: #fff;
-  font-size: 0.85rem;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  gap: 14px;
+  padding: 12px 16px 16px;
+  background: #fffaf6;
+}
+
+.phone-ui svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: #6b5656;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.phone-ui svg:first-child {
+  fill: var(--berry);
+  stroke: var(--berry);
 }
 
 /* Mali erkennt -> Begriffe -> passendes Teil */
@@ -1066,15 +1133,23 @@ details p {
   }
 
   .phone {
-    width: 140px;
+    width: 140px;      /* Handy + Karte nebeneinander passen in 358px */
   }
 
   .phone-screen {
-    height: 270px;
+    height: 280px;
   }
 
-  .fit-pants { height: 74px; }
-  .fit-shoes { top: 238px; }
+  .fit-figure {
+    top: 46px;
+    width: 100px;
+    height: 160px;
+    margin-left: -50px;
+  }
+
+  .phone-screen::before {
+    bottom: 60px;
+  }
 }
 
 /* --- Sprachen (nur öffentliche Website, scripts/build_site.py) ---------------------------- */
