@@ -24,7 +24,12 @@ from backend import (amazon, analysis, currency, feedback, i18n, looks, matching
                      style_guide, vibe, vibe_pages, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
-app = FastAPI(title="Malipin")
+# API-Doku (/docs, /openapi.json) nur lokal: auf dem Server wäre sie eine Landkarte aller
+# Endpunkte (auch Admin) für jeden Besucher. PUBLIC_URL ist nur auf dem Server gesetzt.
+_LOCAL = not os.getenv("PUBLIC_URL", "").strip()
+app = FastAPI(title="Malipin", docs_url="/docs" if _LOCAL else None,
+              redoc_url="/redoc" if _LOCAL else None,
+              openapi_url="/openapi.json" if _LOCAL else None)
 
 # Session-Cookie: merkt sich den OAuth-"state" zwischen Login und Callback.
 # Das Cookie wird mit SESSION_SECRET signiert, damit niemand es fälschen kann.
@@ -800,7 +805,8 @@ def impressum():
 def datenschutz():
     from scripts import build_site
     privacy = build_site.markdown_to_html((build_site.ROOT / "PRIVACY.md").read_text("utf-8"))
-    return build_site.subpage("Privacy Policy", privacy, "How Malipin handles your data.",
+    return build_site.subpage("Privacy Policy", privacy, "How Malipin handles your data: read-only "
+                              "Pinterest access, no tracking cookies, no sharing, delete any time.",
                               "/datenschutz.html", lang="en")
 
 
@@ -841,11 +847,15 @@ def sitemap():
 # Muss als LETZTES kommen, sonst würde es die API-Routen überdecken.
 class FrontendFiles(StaticFiles):
     """Wie StaticFiles – aber der Browser fragt immer kurz nach, ob sich eine Datei geändert hat
-    (no-cache + ETag). Sonst sieht man nach einem Update manchmal noch das alte Design."""
+    (no-cache + ETag). Sonst sieht man nach einem Update manchmal noch das alte Design.
+    Ausnahme: Bilder (img/) ändern sich kaum -> eine Woche behalten, schnellere Besuche."""
 
     async def get_response(self, path, scope):
         response = await super().get_response(path, scope)
-        response.headers["Cache-Control"] = "no-cache"
+        if path.startswith("img/") and response.status_code == 200:
+            response.headers["Cache-Control"] = "public, max-age=604800"
+        else:
+            response.headers["Cache-Control"] = "no-cache"
         return response
 
 

@@ -2298,7 +2298,9 @@ section + section {
 .style-vibes a,
 .style-line .style-terms a {
   color: var(--accent);
-  text-decoration: none;
+  text-decoration: underline;           /* Links nicht nur an der Farbe erkennbar */
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .style-vibes a:hover,
@@ -2643,7 +2645,7 @@ body[data-big-mali] .mali-return {
 
 .header-nav .is-active {
   background: var(--chip-bg);
-  color: var(--accent);
+  color: #b8335f;           /* etwas dunkler als --accent: Kontrast 4.5:1 auf dem rosa Grund */
 }
 
 .header-nav svg {
@@ -2725,8 +2727,13 @@ body[data-big-mali] .mali-return {
     padding: 8px 10px;
   }
 
-  .nav-photo .nav-text {
-    display: none;          /* am Handy nur die Kamera */
+  .nav-photo .nav-text {    /* am Handy nur die Kamera – Text bleibt für Screenreader */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .nav-icons {
@@ -2928,4 +2935,10 @@ p.amazon-link a { color: var(--text); text-underline-offset: 3px; }
 .outfit-link:hover,
 .outfit-item:hover {
   box-shadow: 0 4px 14px rgba(80, 30, 50, 0.14);
+}
+
+/* Tastatur: deutlich sichtbarer Fokus auf allem, was man anklicken kann (Barrierefreiheit) */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
 }

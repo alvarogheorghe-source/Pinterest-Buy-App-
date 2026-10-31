@@ -8,9 +8,9 @@
      und eine helle Fläche. */
   --berry: #c93a69;
   --berry-soft: #fde4ec;
-  --lilac: #7b5ea7;
+  --lilac: #775ba1;          /* Kontrast ≥ 4.5:1 auf --lilac-soft */
   --lilac-soft: #f0e9f8;
-  --rose: #b84f74;
+  --rose: #ac4a6d;           /* Kontrast ≥ 4.5:1 auf --rose-soft */
   --rose-soft: #fdeaf0;
   --peach: #b85e43;
   --peach-soft: #fdebe2;

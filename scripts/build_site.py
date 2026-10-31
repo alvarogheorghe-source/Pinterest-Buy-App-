@@ -101,7 +101,8 @@ def not_found_page() -> str:
         "    <p>Diese Seite gibt es nicht. Mali hat überall geschnuppert – nichts.</p>\n"
         '    <p lang="en">This page doesn\'t exist. Mali sniffed everywhere – nothing.</p>\n'
         '    <p><a class="button" href="/">Zur Startseite</a> '
-        '<a class="button secondary" href="/foto.html">Fit per Foto finden</a></p>')
+        '<a class="button secondary" href="/foto.html">Fit per Foto finden</a></p>',
+        "Diese Seite gibt es bei Malipin nicht. Zur Startseite oder direkt zur Foto-Suche.")
 
 
 def subpage(title: str, body: str, description: str = "", path: str | None = None,
@@ -219,7 +220,8 @@ def impressum_page() -> str:
     <p>Malipin steht in keiner Verbindung zu Pinterest, eBay oder Etsy und wird von diesen
       nicht unterstützt oder geprüft. Für Inhalte externer Links sind deren Betreiber
       verantwortlich.</p>"""
-    return subpage("Impressum", body, "Impressum und Offenlegung von Malipin (malipin.com).",
+    return subpage("Impressum", body, "Impressum und Offenlegung von Malipin (malipin.com): "
+                   "Betreiber, Kontakt und Angaben nach österreichischem Mediengesetz und ECG.",
                    "/impressum.html")
 
 

@@ -30,7 +30,7 @@ updateSavedCount();
     if (el.classList.contains("soon") || el.dataset.photo) return;
     // Große Haupt-Buttons (Startseite) nicht tot stehen lassen: dort geht's zur Foto-Suche,
     // die ohne Pinterest funktioniert. Kleine Buttons sagen "bald verfügbar".
-    if (el.classList.contains("large")) {
+    if (el.classList.contains("large") || el.closest(".mobile-connect")) {
       el.dataset.photo = "1";
       el.classList.remove("connect");
       el.href = "/foto.html";

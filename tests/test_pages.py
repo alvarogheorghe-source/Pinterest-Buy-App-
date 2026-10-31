@@ -95,3 +95,20 @@ def test_unknown_page_shows_friendly_404(client):
     assert 'name="robots" content="noindex"' in response.text
     api = client.get("/api/gibtsnicht", headers={"Accept": "text/html"})
     assert api.status_code == 404 and api.json()["detail"]
+
+
+def test_api_docs_only_locally():
+    """Auf dem Server (PUBLIC_URL gesetzt) keine /docs und /openapi.json für Besucher."""
+    import subprocess
+    import sys
+    code = ("from fastapi.testclient import TestClient; from backend.main import app; c = TestClient(app); "
+            "print(c.get('/docs').status_code, c.get('/openapi.json').status_code)")
+    run = lambda env: subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,  # noqa: E731
+                                     env={**__import__("os").environ, **env}).stdout.split()[-2:]
+    assert run({"PUBLIC_URL": "https://malipin.com"}) == ["404", "404"]
+    assert run({"PUBLIC_URL": ""}) == ["200", "200"]
+
+
+def test_images_are_cached_pages_are_not(client):
+    assert client.get("/img/favicon.svg").headers["cache-control"] == "public, max-age=604800"
+    assert client.get("/style.css").headers["cache-control"] == "no-cache"

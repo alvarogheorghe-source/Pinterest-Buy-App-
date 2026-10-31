@@ -118,7 +118,7 @@ async function showSavedPins() {
     if (!pin.image_url) continue;
     const img = document.createElement("img");
     img.src = pin.image_url;
-    img.alt = pin.title;
+    img.alt = pin.title || t("Dein Pin");
     img.title = pin.title;
     pinGrid.appendChild(img);
   }
