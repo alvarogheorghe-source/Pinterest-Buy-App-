@@ -39,3 +39,4 @@ data/product_checks.json
 backups/
 data/stats.json
 .audit/
+.taste-skill/
