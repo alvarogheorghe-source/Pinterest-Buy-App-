@@ -44,8 +44,6 @@ die nur eine Webseite in einer Hülle sind – die App braucht echte App-Funktio
 | **Meine Größen** – einmal Größen angeben, der Shop zeigt nur Passendes (wenn die Feeds Größen liefern) | Auf Vinted das Erste, was man einstellt; spart Frust | mittel – erst prüfen, welche Feeds Größen haben |
 | **Gespeicherte Suchen** mit „12 neue Teile seit gestern“ | Genau der Mechanismus, der Vinted-Nutzer:innen täglich zurückholt | mittel |
 | **Marken folgen** – Neues von Lieblingsmarken im Feed | Persönlich, ohne dass man viel tun muss | klein |
-| **Preisverlauf** auf der Produktseite („günstigster Preis seit 30 Tagen“) | Vertrauen und ein bisschen Dringlichkeit; die Feeds werden ja täglich geladen | mittel |
-| **Wisch-Modus** – Teile nach links/rechts wischen (mag ich / nicht) | Macht Spaß, perfekt fürs Handy, und „Für dich“ lernt sehr schnell | mittel |
 | **Outfit aus der Merkliste bauen** – Teile kombinieren, Gesamtpreis, teilen | Mehr Zeit im Shop, gut für TikTok | mittel |
 | **Wunschliste teilen** (Link für Freund:innen, z. B. zum Geburtstag) | Neue Besucher:innen über Freund:innen | klein |
 | **Wöchentlicher „Edit“ von Mali** – z. B. „Herbst unter 50 €“, aus den Outfit-Seiten | Frischer Inhalt, auch für Social Media | klein |
@@ -60,6 +58,8 @@ die nur eine Webseite in einer Hülle sind – die App braucht echte App-Funktio
 - Englisch als zweite Sprache
 - Fund aus der Foto-Suche teilen (`frontend/fitcard.js`)
 - Second Hand über Vinted und willhaben (`backend/secondhand.py`)
+
+Verworfen: Preisverlauf, Wisch-Modus.
 
 Zurückgestellt: Mali füttern / Belohnungen, Newsletter per E-Mail (braucht Einwilligung und
 Double-Opt-in), „Leute mit deinem Stil mochten auch …“ (lohnt sich erst mit mehr Besucher:innen).
