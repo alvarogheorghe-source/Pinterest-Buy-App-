@@ -11,3 +11,10 @@ ExecStart=/opt/malipin/.venv/bin/python -m backend.backup
 ExecStart=/opt/malipin/.venv/bin/python -m backend.feeds
 ExecStart=/opt/malipin/.venv/bin/python -m backend.vision
 Nice=10
+# Schutz: neue Dateien (Datenbank, Sicherungen) nur für malipin lesbar; das Programm darf sich
+# keine weiteren Rechte holen und Systemdateien nicht verändern
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true

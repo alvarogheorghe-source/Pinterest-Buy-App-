@@ -42,6 +42,7 @@ from backend import storage
 from backend import quality
 from backend.config import BASE_DIR
 from backend.counterfeit import looks_like_fake
+from backend import secrets_filter
 from backend.matching import (CATEGORY_PATTERNS, CATEGORY_SYNONYMS, COLOR_PATTERNS,
                               STYLE_PATTERNS, find_terms, gender_of)
 from backend.products import Product, ProductSource, ProductSourceError, sale_price
@@ -480,11 +481,7 @@ def import_feed(feed: dict) -> dict:
 
 def _without_keys(text: str) -> str:
     """Fehlermeldungen können Adressen enthalten – geheime Schlüssel nie speichern oder zeigen."""
-    for name in ("AWIN_FEED_KEY",):
-        key = os.getenv(name, "").strip()
-        if key:
-            text = text.replace(key, "***")
-    return text
+    return secrets_filter.redact(text)
 
 
 def import_all(feeds: list[dict] | None = None) -> dict:

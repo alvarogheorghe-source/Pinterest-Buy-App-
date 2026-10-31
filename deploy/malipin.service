@@ -13,6 +13,13 @@ ExecStart=/opt/malipin/.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --por
 Restart=always
 RestartSec=3
 # Geheimnisse stehen in /opt/malipin/.env (nur für den Benutzer malipin lesbar)
+# Schutz: neue Dateien (Datenbank, Sicherungen) nur für malipin lesbar; das Programm darf sich
+# keine weiteren Rechte holen und Systemdateien nicht verändern
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
 
 [Install]
 WantedBy=multi-user.target

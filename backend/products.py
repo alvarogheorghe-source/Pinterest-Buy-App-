@@ -16,6 +16,7 @@ from typing import Literal
 import httpx
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
+from backend import secrets_filter
 from backend.config import BASE_DIR
 
 PRODUCTS_FILE = BASE_DIR / "data" / "products.json"
@@ -170,8 +171,9 @@ class CombinedSource(ProductSource):
             else:
                 error = loaded
                 errors.append(error)
+                # geht als Warnung an den Browser -> Schlüssel aus Adressen entfernen
                 self.failed.append({"source": getattr(source, "name", "") or type(source).__name__,
-                                    "message": str(error)})
+                                    "message": secrets_filter.redact(str(error))})
                 logger.warning("Produktquelle %s fällt aus: %s", type(source).__name__, error)
         if errors and len(errors) == len(self.sources):
             raise errors[0]

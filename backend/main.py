@@ -20,8 +20,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from backend import (amazon, analysis, currency, feedback, i18n, looks, matching, outfit_pages,
                      photo, pins, pinterest, product_checks, products, quality, rate_limit,
-                     region, secondhand, shop_links, shops, similar, skimlinks, stats, storage,
-                     style_guide, vibe, vibe_pages, vision)
+                     region, secondhand, secrets_filter, shop_links, shops, similar, skimlinks,
+                     stats, storage, style_guide, vibe, vibe_pages, vision)
 from backend.config import FRONTEND_DIR, ConfigError
 
 # API-Doku (/docs, /openapi.json) nur lokal: auf dem Server wäre sie eine Landkarte aller
@@ -86,7 +86,7 @@ def not_connected(request: Request, exc: pinterest.NotConnectedError):
 
 @app.exception_handler(products.ProductSourceError)
 def products_broken(request: Request, exc: products.ProductSourceError):
-    return JSONResponse(status_code=500, content={"detail": i18n.tr(str(exc))})
+    return JSONResponse(status_code=500, content={"detail": i18n.tr(secrets_filter.redact(str(exc)))})
 
 
 @app.exception_handler(ConfigError)

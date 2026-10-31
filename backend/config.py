@@ -16,6 +16,11 @@ FRONTEND_DIR = BASE_DIR / "frontend"
 # .env einlesen (falls vorhanden). Die Werte landen in os.environ.
 load_dotenv(BASE_DIR / ".env")
 
+# Ab jetzt: geheime Schlüssel aus .env tauchen in keiner Log-Zeile auf (secrets_filter.py)
+from backend import secrets_filter  # noqa: E402
+
+secrets_filter.install()
+
 
 class ConfigError(Exception):
     """Wird geworfen, wenn ein nötiger Wert in .env fehlt."""

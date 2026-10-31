@@ -40,6 +40,9 @@ python3 -m venv "$DIR/.venv"
 mkdir -p "$DIR/data"
 chown -R malipin:malipin "$DIR"
 [ -f "$DIR/.env" ] && chmod 600 "$DIR/.env"
+# Daten und Sicherungen nur für malipin (enthalten Pinterest-Zugänge der Nutzer:innen)
+mkdir -p "$DIR/backups" && chown malipin:malipin "$DIR/backups"
+chmod 700 "$DIR/data" "$DIR/backups"
 
 echo "== Dienste =="
 cp "$DIR/deploy/malipin.service" "$DIR/deploy/malipin-nightly.service" "$DIR/deploy/malipin-nightly.timer" /etc/systemd/system/
