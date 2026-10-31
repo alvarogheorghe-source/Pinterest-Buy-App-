@@ -1,38 +1,35 @@
-/* Design der Startseite (index.html) – Pastell, aber ruhig: flache Farbflächen statt Verläufe,
-   keine Schatten an ruhenden Dingen, echte Outfit-Bilder statt Platzhalter-Grafik.
+/* Design der Startseite (index.html) – "Editorial in Pastell".
    Grundbausteine (Buttons, Kopfzeile, Tags) kommen aus style.css. */
 
 :root {
   /* --serif (Überschriften) steht in style.css */
 
-  /* Akzentfarben – eine rosa Farbfamilie. Je eine kräftigere Farbe (Schrift) und eine
-     helle Fläche. */
+  /* Akzentfarben – eine rosa Farbfamilie. Je eine kräftigere Farbe (Icons, Linien)
+     und eine helle Fläche. */
   --berry: #c93a69;
   --berry-soft: #fde4ec;
   --lilac: #775ba1;          /* Kontrast ≥ 4.5:1 auf --lilac-soft */
   --lilac-soft: #f0e9f8;
   --rose: #ac4a6d;           /* Kontrast ≥ 4.5:1 auf --rose-soft */
   --rose-soft: #fdeaf0;
+  --peach: #b85e43;
   --peach-soft: #fdebe2;
+  --gold: #8f6a20;
   --cream: #fff4de;
+  --shell: #f7e4ea;
 }
 
-/* Fließtext auf der Startseite in voller Schriftfarbe – Grau nur für Nebensachen */
+/* Schutz gegen seitliches Scrollen durch die schwebenden Deko-Elemente */
 body.landing {
   overflow-x: clip;
 }
 
-/* --- Kopfzeile: halbdurchsichtig mit Unschärfe (die einzige "Glas"-Fläche) --------------- */
+/* --- Kopfzeile: halbdurchsichtig mit Unschärfe ("Glas") --------------------------------- */
 
 .site-header.glass {
-  border-bottom: 0;                 /* Abstand und Fläche statt Trennlinie */
-  background: rgba(255, 248, 250, 0.9);
+  background: rgba(255, 248, 250, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-}
-
-.landing-footer {
-  border-top: 0;
 }
 
 .button.small {
@@ -62,116 +59,289 @@ body.landing {
 .button .icon {
   width: 18px;
   height: 18px;
+  transition: transform 0.2s;
+}
+
+.button:hover .icon {
+  transform: translateX(3px);
+}
+
+/* --- "Mit Pinterest verbinden"-Buttons (Grund-Look steht in style.css) -------------------- */
+
+/* Unter "Zwei Welten": Text + Button in einer Zeile */
+.connect-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px 22px;
+  margin-top: 30px;
+  padding: 22px;
+  border: 1px dashed var(--border);
+  border-radius: 20px;
+  text-align: center;
+}
+
+.connect-row p {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.25rem;
 }
 
 /* Leiste unten – nur auf dem Handy sichtbar (siehe Media Query unten) */
-.mobile-cta {
+.mobile-connect {
   display: none;
 }
 
-/* --- Hero: Text links, Malis Outfit des Tages rechts ---------------------------------------- */
+/* --- Hero ----------------------------------------------------------------------------------- */
 
 .hero {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.05fr 1fr;
   align-items: center;
   gap: 56px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 64px 16px 88px;
+  padding: 72px 16px 96px;
+}
+
+/* Weiche Farbflecken im Hintergrund */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+}
+
+.blob-rose {
+  width: 420px;
+  height: 420px;
+  top: -80px;
+  right: 8%;
+  background: var(--rose-soft);
+}
+
+.blob-lilac {
+  width: 360px;
+  height: 360px;
+  bottom: -60px;
+  right: 30%;
+  background: var(--lilac-soft);
+}
+
+.blob-pink {
+  width: 300px;
+  height: 300px;
+  top: 10%;
+  left: -100px;
+  background: var(--berry-soft);   /* rosa statt Creme – sonst wirkt es gelblich */
+}
+
+.eyebrow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 22px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--berry);
+}
+
+.eyebrow-chip .icon {
+  width: 16px;
+  height: 16px;
 }
 
 .hero h1 {
-  margin: 0 0 24px;
+  margin: 0 0 22px;
   font-family: var(--serif);
-  font-size: clamp(2.6rem, 6vw, 4.6rem);   /* wächst mit der Fensterbreite */
+  font-size: clamp(2.5rem, 5.6vw, 4.3rem); /* wächst mit der Fensterbreite */
   font-weight: 600;
-  line-height: 1.02;
-  letter-spacing: -0.02em;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--berry);
 }
 
 .lead {
-  max-width: 32em;
-  margin: 0 0 32px;
+  max-width: 34em;
+  margin: 0 0 30px;
   font-size: 1.15rem;
-  line-height: 1.55;
+  color: var(--muted);
 }
 
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 26px;
 }
 
-.hero-note {
+.trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
   margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
   color: var(--muted);
 }
 
-/* Echtes Outfit: ein großes Bild, zwei kleine daneben (outfit_pages.home_hero) */
-.hero-outfit {
-  margin: 0;
+.trust-row li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
 }
 
-.hero-outfit-pics {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 12px;
-  aspect-ratio: 5 / 4;
+.trust-row .icon {
+  width: 18px;
+  height: 18px;
+  color: var(--lilac);
 }
 
-.hero-outfit-pics img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 20px;
-  background: var(--rose-soft);
+/* App-Vorschau */
+.hero-visual {
+  position: relative;
+  min-height: 460px;
 }
 
-.hero-outfit-pics img:first-child {
-  grid-row: span 2;
+.board {
+  columns: 3;            /* Masonry-Look wie bei Pinterest */
+  column-gap: 10px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: 0 30px 60px -30px rgba(58, 42, 48, 0.25);
+  transform: rotate(-2deg);
 }
 
-/* Nur zwei Teile: beide gleich groß nebeneinander, ohne Loch darunter */
-.hero-outfit-pics:not(:has(img:nth-child(3))),
-.idea-pics:not(:has(img:nth-child(3))) {
-  grid-template-columns: 1fr 1fr;
-}
-
-.hero-outfit-pics:not(:has(img:nth-child(3))) img,
-.idea-pics:not(:has(img:nth-child(3))) img {
-  grid-row: span 2;
-}
-
-.hero-outfit figcaption {
+.board-pin {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 16px;
+  justify-content: center;
+  height: var(--h);
+  margin-bottom: 10px;
+  border-radius: 12px;
+  break-inside: avoid;
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.hero-outfit figcaption img {
-  flex-shrink: 0;
-  image-rendering: pixelated;
+.board-pin .icon {
+  width: 34px;
+  height: 34px;
+  stroke-width: 1.3;
 }
 
-.hero-outfit figcaption strong {
-  display: block;
-  color: var(--berry);
+/* Helle Kästchen: Symbol dunkler, sonst ist es auf Creme kaum zu sehen */
+.board-pin.tile-shell,
+.board-pin.tile-cream {
+  color: rgba(150, 92, 78, 0.65);
 }
 
-.hero-outfit figcaption a {
-  color: var(--text);
+/* Unten liegt eine schwebende Karte darüber -> Symbol ins obere Drittel */
+.board-pin.tile-cream {
+  align-items: flex-start;
+  padding-top: 26px;
 }
 
-.hero-outfit.is-empty img {
-  width: min(320px, 70%);
-  height: auto;
-  margin: 0 auto;
-  display: block;
-  image-rendering: pixelated;
+.tile-rose { background: linear-gradient(160deg, #f8c9d7, #ec9ab4); }
+.tile-plum { background: linear-gradient(160deg, #8e3b5c, #5e2840); }
+.tile-lilac { background: linear-gradient(160deg, #dccbf0, #b39ad8); }
+.tile-shell { background: linear-gradient(160deg, #fbe6dc, #efc3b5); }
+.tile-peach { background: linear-gradient(160deg, #f6a98f, #e47d73); }
+.tile-cream { background: linear-gradient(160deg, #fff1d8, #f6d8b8); }
+
+.float-card {
+  position: absolute;
+  width: 190px;
+  padding: 10px 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 22px 44px -12px rgba(58, 42, 48, 0.22);
+}
+
+.float-card p {
+  margin: 4px 4px 0;
+}
+
+.float-card .card-price {
+  font-size: 1rem;
+}
+
+.float-image {
+  height: 118px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+}
+
+.grad-shell { background: linear-gradient(160deg, #fbe6dc, #eec0b0); }
+.grad-rose { background: linear-gradient(160deg, #fde4ec, #f2a9c0); }
+
+.card-fashion {
+  right: -14px;
+  bottom: -30px;
+  transform: rotate(3deg);
+  animation: float 7s ease-in-out infinite;
+}
+
+.card-home {
+  left: -26px;
+  bottom: 40px;
+  transform: rotate(-4deg);
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+.float-tags {
+  position: absolute;
+  top: -16px;
+  right: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.soft-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 6px 16px -8px rgba(58, 42, 48, 0.3);
+}
+
+.chip-rose { background: var(--rose-soft); color: var(--rose); }
+.chip-lilac { background: var(--lilac-soft); color: var(--lilac); }
+.chip-cream { background: var(--cream); color: var(--gold); }
+
+/* Leichtes Schweben – aus, wenn im System "Bewegung reduzieren" eingestellt ist */
+@keyframes float {
+  50% { translate: 0 -8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-fashion,
+  .card-home {
+    animation: none;
+  }
 }
 
 /* --- Abschnitte ------------------------------------------------------------------------ */
@@ -179,141 +349,240 @@ body.landing {
 .section {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 96px 16px;
+  padding: 80px 16px;
+}
+
+.section-kicker {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--berry);
 }
 
 .section-title {
   max-width: 22em;
   margin: 0 0 16px;
   font-family: var(--serif);
-  font-size: clamp(2rem, 3.8vw, 2.8rem);
+  font-size: clamp(1.9rem, 3.6vw, 2.7rem);
   font-weight: 600;
-  line-height: 1.1;
+  line-height: 1.12;
 }
 
 .section-lead {
-  max-width: 36em;
+  max-width: 40em;
   margin: 0 0 36px;
-  font-size: 1.1rem;
-  line-height: 1.55;
+  font-size: 1.08rem;
+  color: var(--muted);
 }
 
 .narrow-section {
   max-width: 760px;
 }
 
-/* --- So findet Mali dein Fit: eine echte, nummerierte Liste in großer Schrift ------------ */
+/* Icon in farbigem Kreis/Quadrat */
+.step-icon,
+.feature-icon,
+.world-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
-.how-steps {
+.tint-peach { background: var(--peach-soft); color: var(--peach); }
+.tint-cream { background: var(--cream); color: var(--gold); }
+.tint-berry { background: var(--berry-soft); color: var(--berry); }
+.tint-lilac { background: var(--lilac-soft); color: var(--lilac); }
+.tint-rose { background: var(--rose-soft); color: var(--rose); }
+
+/* --- Zwei Welten ------------------------------------------------------------------------ */
+
+.worlds {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-  margin: 40px 0 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: step;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
 }
 
-.how-steps li {
-  counter-increment: step;
-}
-
-/* Die Zahl gehört zur Überschrift (Reihenfolge ist hier wirklich wichtig) */
-.how-steps h3::before {
-  content: counter(step) ". ";
-  color: var(--berry);
-}
-
-.how-steps h3 {
-  margin: 0 0 10px;
-  font-family: var(--serif);
-  font-size: 1.6rem;
-  font-weight: 600;
-  line-height: 1.15;
-}
-
-.how-steps p {
-  max-width: 30em;
-  margin: 0;
-  line-height: 1.55;
-}
-
-/* --- Komplette Outfits mit echten Bildern (outfit_pages.home_ideas) ----------------------- */
-
-.ideas {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 28px;
-  margin-bottom: 36px;
-}
-
-.idea {
+.world {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  color: var(--text);
+  padding: 34px;
+  border-radius: 24px;
   text-decoration: none;
+  overflow: hidden;
+  transition: transform 0.25s, box-shadow 0.25s;
 }
 
-.idea-pics {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 8px;
-  aspect-ratio: 4 / 3;
-  margin-bottom: 10px;
+.world:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 48px -24px rgba(58, 42, 48, 0.3);
 }
 
-.idea-pics img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.world-mode { background: var(--rose-soft); }
+.world-home { background: var(--lilac-soft); }
+
+/* großer, dezenter Kreis als Deko in der Ecke */
+.world::after {
+  content: "";
+  position: absolute;
+  right: -60px;
+  bottom: -60px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.world-icon {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 18px;
   border-radius: 16px;
-  background: var(--rose-soft);
+  background: var(--surface);
 }
 
-.idea-pics img:first-child {
-  grid-row: span 2;
+.world-icon .icon {
+  width: 28px;
+  height: 28px;
 }
 
-.idea strong {
+.world-mode .world-icon { color: var(--rose); }
+.world-home .world-icon { color: var(--lilac); }
+
+.world h3 {
+  margin: 0 0 8px;
   font-family: var(--serif);
-  font-size: 1.35rem;
-  line-height: 1.2;
+  font-size: 1.8rem;
+  font-weight: 600;
 }
 
-.idea:hover strong {
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.idea-total {
+.world p {
+  max-width: 28em;
+  margin: 0 0 20px;
   color: var(--muted);
 }
 
-/* --- Warum Malipin: ruhige Liste auf einer Farbfläche statt Icon-Kärtchen ------------------ */
+.world-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 26px;
+  padding: 0;
+  list-style: none;
+}
 
-.why-list {
+.world-chips li {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 0.85rem;
+}
+
+.world-link {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  font-weight: 700;
+}
+
+.world-link .icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* --- So funktioniert's ----------------------------------------------------------------- */
+
+.steps {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 36px 56px;
-  margin: 40px 0 0;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin: 36px 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.why-list dt {
-  margin-bottom: 8px;
+/* gestrichelte Linie, die die drei Icons verbindet */
+.steps::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  left: 56px;
+  right: calc(33% - 28px);
+  border-top: 1.5px dashed var(--border);
+}
+
+.step {
+  position: relative;
+}
+
+.step-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 6px var(--bg); /* Lücke um das Icon über der Linie */
+}
+
+.step-icon .icon {
+  width: 24px;
+  height: 24px;
+}
+
+.step-number {
+  display: block;
+  margin: 18px 0 2px;
   font-family: var(--serif);
-  font-size: 1.6rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--muted);
 }
 
-.why-list dd {
-  max-width: 30em;
+.step h3,
+.feature h3 {
+  margin: 0 0 6px;
+  font-size: 1.12rem;
+}
+
+.step p,
+.feature p {
   margin: 0;
-  line-height: 1.55;
+  color: var(--muted);
 }
 
-/* --- Stil-Band (flache Farbfläche) ------------------------------------------------------- */
+/* --- Vorteile ----------------------------------------------------------------------------- */
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 36px;
+}
+
+.feature {
+  padding: 26px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+
+.feature:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 36px -24px rgba(58, 42, 48, 0.35);
+}
+
+.feature-icon {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+}
+
+/* --- Stil-Band --------------------------------------------------------------------------- */
 
 .style-band {
   padding: 0 16px;
@@ -326,22 +595,22 @@ body.landing {
   gap: 40px;
   max-width: 1168px;
   margin: 0 auto;
-  padding: 64px 56px;
+  padding: 56px;
   border-radius: 28px;
-  background: var(--berry-soft);
+  background: linear-gradient(135deg, #fde4ec, #f9d3e0);
   color: var(--text);
 }
 
 .style-band h2 {
   margin: 0 0 12px;
   font-family: var(--serif);
-  font-size: clamp(2rem, 3.8vw, 2.8rem);
+  font-size: clamp(1.8rem, 3.4vw, 2.5rem);
   font-weight: 600;
 }
 
 .style-band p {
-  margin: 0 0 24px;
-  line-height: 1.55;
+  margin: 0;
+  color: var(--muted);
 }
 
 .style-words {
@@ -365,39 +634,94 @@ body.landing {
 .w-lilac { background: var(--lilac-soft); color: #5a3f86; }
 .w-cream { background: var(--cream); color: #7a5a18; }
 .w-peach { background: var(--peach-soft); color: #93432c; }
-.w-berry { background: #fff; color: #a32c55; }
+.w-berry { background: var(--berry-soft); color: #a32c55; }
 
-/* --- Start-Bereich (flache Markenfarbe) ---------------------------------------------------- */
+/* --- Datenschutz --------------------------------------------------------------------------- */
+
+.privacy {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 48px;
+}
+
+.checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--lilac-soft);
+  color: var(--lilac);
+}
+
+.check .icon {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.2;
+}
+
+/* --- Konto-/Start-Bereich ------------------------------------------------------------------- */
 
 .cta {
+  position: relative;
   max-width: 1168px;
   margin: 0 auto 24px;
-  padding: 80px 24px;
+  padding: 72px 24px;
   border-radius: 28px;
-  background: #be3763;
+  background: linear-gradient(135deg, #cc3d70, #b8325e);
   color: #fff;
   text-align: center;
+  overflow: hidden;
+}
+
+/* warmer Lichtschein hinter dem Text */
+.cta-glow {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  width: 520px;
+  height: 320px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.28), transparent);
+  pointer-events: none;
 }
 
 .cta h2 {
-  margin: 0 0 12px;
+  position: relative;
+  margin: 0 0 10px;
   font-family: var(--serif);
-  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
   font-weight: 600;
 }
 
 .cta p {
+  position: relative;
   margin: 0 0 28px;
-  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.88);
 }
 
-/* --- Häufige Fragen: Abstand und Fläche statt Trennlinien ---------------------------------- */
+/* --- Häufige Fragen ----------------------------------------------------------------------- */
 
 details {
-  margin-bottom: 8px;
-  padding: 0 20px;
-  border-radius: 16px;
-  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
 summary {
@@ -428,7 +752,7 @@ details[open] summary::after {
 
 details p {
   margin: 0 0 18px;
-  line-height: 1.55;
+  color: var(--muted);
 }
 
 /* --- Footer --------------------------------------------------------------------------------- */
@@ -466,17 +790,23 @@ details p {
   }
 
   .hero {
-    grid-template-columns: 1fr;   /* Text oben, Outfit darunter */
-    gap: 40px;
-    padding-top: 40px;
+    grid-template-columns: 1fr;   /* Text oben, Vorschau darunter */
+    gap: 64px;
+    padding-top: 48px;
   }
 
-  .how-steps,
-  .ideas {
-    grid-template-columns: 1fr 1fr;
+  .hero-visual {
+    width: 100%;          /* sonst schrumpft es im Grid (Inhalt ist "schwebend") */
+    max-width: 460px;
+    margin: 0 auto;
   }
 
-  .style-band-inner {
+  .features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .style-band-inner,
+  .privacy {
     grid-template-columns: 1fr;
   }
 }
@@ -492,15 +822,31 @@ details p {
     gap: 14px;
   }
 
-  /* Sehr schmale Handys: "Shop" oben ausblenden */
+  .hero-visual {
+    min-height: 400px;
+  }
+
+  /* Sehr schmale Handys: "Shop" oben ausblenden, "Shop ansehen" steht im Hero */
   @media (max-width: 420px) {
     .header-nav .nav-links .header-link {
-      display: none;   /* ♡ Merkliste, Sprache und der Foto-Button bleiben sichtbar */
+      display: none;   /* ♡ Merkliste, Sprache und "Kostenlos starten" bleiben sichtbar */
     }
   }
 
-  .hero h1 {
-    font-size: 2.6rem;   /* zwei Zeilen: "Outfit gesehen?" / "Mali findet's." */
+  .float-card {
+    width: 150px;
+  }
+
+  .float-image {
+    height: 84px;
+  }
+
+  .card-home {
+    left: -6px;
+  }
+
+  .card-fashion {
+    right: -4px;
   }
 
   .hero-actions .button {
@@ -511,19 +857,26 @@ details p {
     white-space: nowrap;   /* Button-Text nicht umbrechen */
   }
 
-  .how-steps,
-  .ideas,
-  .why-list {
+  .worlds,
+  .steps,
+  .features {
     grid-template-columns: 1fr;
-    gap: 32px;
+  }
+
+  .steps::before {
+    display: none;
+  }
+
+  .world {
+    padding: 26px;
   }
 
   .section {
-    padding: 64px 16px;
+    padding: 56px 16px;
   }
 
   .style-band-inner {
-    padding: 40px 22px;
+    padding: 36px 22px;
   }
 
   .cta {
@@ -532,8 +885,12 @@ details p {
     padding: 56px 20px;
   }
 
-  /* Feste Leiste unten: flache Fläche (die Kopfzeile ist schon die eine Glas-Fläche) */
-  .mobile-cta {
+  .connect-row .button {
+    width: 100%;
+  }
+
+  /* Feste Leiste unten mit Glas-Effekt */
+  .mobile-connect {
     position: fixed;
     left: 0;
     right: 0;
@@ -541,20 +898,19 @@ details p {
     z-index: 20;
     display: block;
     padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); /* iPhone-Home-Balken */
-    background: var(--bg);
+    background: rgba(255, 248, 250, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
     transition: transform 0.3s, opacity 0.3s;
   }
 
-  .mobile-cta .button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+  .mobile-connect .button {
     width: 100%;
     padding: 13px;
   }
 
-  .mobile-cta.hidden {
+  .mobile-connect.hidden {
     transform: translateY(100%);
     opacity: 0;
     pointer-events: none;
@@ -564,6 +920,161 @@ details p {
   body.landing {
     padding-bottom: 76px;
   }
+}
+
+/* --- 1b. Foto-Suche ("Fit gesehen? Hochladen!") --- */
+.photo-spot {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 48px;
+}
+
+.photo-cta {
+  margin-top: 8px;
+}
+
+.photo-spot-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.photo-spot-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+/* Handy mit "Screenshot" eines Outfits */
+.phone {
+  flex: none;
+  width: 170px;
+  padding: 8px;
+  border-radius: 30px;
+  background: #2b2026;
+  box-shadow: 0 26px 50px -18px rgba(58, 42, 48, 0.45);
+  transform: rotate(-4deg);
+}
+
+.phone-screen {
+  position: relative;
+  height: 320px;
+  border-radius: 23px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f3e9e1, #e2d3c6);
+}
+
+.fit-head {
+  position: absolute;
+  top: 36px;
+  left: 50%;
+  width: 34px;
+  height: 40px;
+  margin-left: -17px;
+  border-radius: 50%;
+  background: #d7a98c;
+}
+
+.fit-jacket {
+  position: absolute;
+  top: 78px;
+  left: 50%;
+  width: 92px;
+  height: 92px;
+  margin-left: -46px;
+  border-radius: 26px 26px 10px 10px;
+  background: linear-gradient(160deg, #3a2f36, #17121a);
+}
+
+.fit-pants {
+  position: absolute;
+  top: 166px;
+  left: 50%;
+  width: 74px;
+  height: 96px;
+  margin-left: -37px;
+  border-radius: 6px 6px 14px 14px;
+  background: linear-gradient(160deg, #7d9cc4, #4f6f99);
+}
+
+.fit-shoes {
+  position: absolute;
+  top: 262px;
+  left: 50%;
+  display: flex;
+  gap: 8px;
+  margin-left: -40px;
+}
+
+.fit-shoes span {
+  width: 36px;
+  height: 14px;
+  border-radius: 10px 14px 4px 4px;
+  background: #f5f0e6;
+  box-shadow: inset 0 -3px 0 #c9302c;
+}
+
+.phone-ui {
+  position: absolute;
+  right: 10px;
+  bottom: 54px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #fff;
+  font-size: 0.85rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Mali erkennt -> Begriffe -> passendes Teil */
+.photo-spot-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.photo-spot-mali {
+  width: 48px;
+  height: 54px;
+  image-rendering: pixelated;
+}
+
+.photo-spot-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 220px;
+}
+
+.photo-spot-card {
+  position: static;
+  width: 180px;
+}
+
+.grad-plum { background: linear-gradient(160deg, #3a2f36, #17121a); }
+
+@media (max-width: 860px) {
+  .photo-spot {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .phone {
+    width: 140px;
+  }
+
+  .phone-screen {
+    height: 270px;
+  }
+
+  .fit-pants { height: 74px; }
+  .fit-shoes { top: 238px; }
 }
 
 /* --- Sprachen (nur öffentliche Website, scripts/build_site.py) ---------------------------- */
@@ -608,54 +1119,4 @@ details p {
   color: var(--muted);
   font-size: 1.3rem;
   cursor: pointer;
-}
-
-/* --- Bewegung: Abschnitte bauen sich beim Scrollen auf (index.html, Skript unten) ----------- */
-/* Nur mit JavaScript (Klasse reveal-ready) – ohne bleibt alles sofort sichtbar. */
-
-.reveal-ready .reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
-  transition-delay: var(--delay, 0ms);
-}
-
-.reveal-ready .reveal.in {
-  opacity: 1;
-  transform: none;
-}
-
-/* Das große Outfit-Bild zoomt ganz langsam (ein bewegtes Bild statt Video) */
-.hero-outfit-pics img:first-child {
-  animation: slow-zoom 14s ease-in-out infinite alternate;
-}
-
-@keyframes slow-zoom {
-  from { transform: scale(1); }
-  to { transform: scale(1.04); }
-}
-
-.hero-outfit-pics {
-  overflow: hidden;
-  border-radius: 20px;
-}
-
-.idea-pics img {
-  transition: transform 0.4s ease;
-}
-
-.idea:hover .idea-pics img:first-child {
-  transform: scale(1.03);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal-ready .reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-
-  .hero-outfit-pics img:first-child {
-    animation: none;
-  }
 }

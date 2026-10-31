@@ -2764,7 +2764,9 @@ body[data-big-mali] .mali-return {
 .footer-label {
   display: block;
   margin-bottom: 2px;
-  font-weight: 600;     /* normal geschrieben und lesbar groß – ist ein Rechtshinweis */
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 /* Einladung ohne Pins und Foto (shop.js: renderNeedsInput) */
