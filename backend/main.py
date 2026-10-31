@@ -126,6 +126,16 @@ def local(items: list[dict]) -> list[dict]:
     return items
 
 
+def client_ip(request: Request) -> str:
+    """IP-Adresse der Person (hinter Caddy die echte, siehe --proxy-headers)."""
+    return request.client.host if request.client else "?"
+
+
+def too_many(request: Request, action: str, limit: int, window: float = 600) -> bool:
+    """Schutz vor Spam und Raten: höchstens `limit` Mal `action` pro IP in `window` Sekunden."""
+    return not rate_limit.allow(f"{action}:{client_ip(request)}", limit, window)
+
+
 @app.get("/api/region")
 def get_region():
     """Land & Währung der Person + alle wählbaren Länder (für die Auswahl im Footer)."""
@@ -284,8 +294,10 @@ def save_selection(selection: BoardSelection):
 
 
 @app.post("/api/pins/refresh")
-def refresh_pins():
+def refresh_pins(request: Request):
     """Lädt die Pins der ausgewählten Boards neu von Pinterest."""
+    if too_many(request, "refresh", 20):
+        raise HTTPException(429, "Bitte kurz warten, bevor du die Pins nochmal lädst.")
     try:
         data = pins.load_pins_for_selected_boards()
     except ValueError as err:
@@ -316,6 +328,8 @@ class AdminLogin(BaseModel):
 def admin_login(data: AdminLogin, request: Request):
     if not admin_password():
         raise HTTPException(404, "Nicht gefunden.")
+    if too_many(request, "admin-login", 5, 15 * 60):         # 5 Versuche pro Viertelstunde
+        raise HTTPException(429, "Zu viele Versuche. Bitte in 15 Minuten nochmal.")
     if not secrets.compare_digest(data.password.encode(), admin_password().encode()):
         time.sleep(1)                                         # Raten bremsen
         raise HTTPException(401, "Falsches Passwort.")
@@ -346,10 +360,12 @@ class Hit(BaseModel):
 @app.post("/api/hit", status_code=204)
 def hit(data: Hit, request: Request):
     """Besucherzählung ohne Cookies (backend/stats.py): Seite aufgerufen / zu einem Shop geklickt."""
+    if too_many(request, "hit", 300):          # Fluten mit Fake-Besuchen: still ignorieren
+        return
     user_agent = request.headers.get("user-agent", "")
     source = (stats.source_of(data.source, data.referrer, user_agent, request.url.hostname or "")
               if data.type == "view" else "")
-    stats.record(data.type, ip=request.client.host if request.client else "",
+    stats.record(data.type, ip=client_ip(request),
                  user_agent=user_agent, page=data.page, shop=stats.shop_name(data.url),
                  source=source)
 
@@ -397,7 +413,7 @@ async def upload_photo(request: Request, force: bool = False):
     wird nur im Arbeitsspeicher analysiert und NICHT gespeichert."""
     if not request.headers.get("content-type", "").startswith("image/"):
         raise HTTPException(415, "Bitte ein Foto schicken (JPG, PNG, WebP …).")
-    if not rate_limit.allow(request.client.host if request.client else "?"):
+    if not rate_limit.allow(client_ip(request)):
         raise HTTPException(429, "Das waren gerade sehr viele Fotos. Probier es in ein paar Minuten nochmal.")
     stats.record("photo", user_agent=request.headers.get("user-agent", ""))
     async with PHOTO_SLOTS:   # höchstens 2 Fotos gleichzeitig, der Rest wartet kurz
@@ -435,8 +451,10 @@ def get_analysis():
 
 
 @app.post("/api/analysis")
-def start_analysis():
+def start_analysis(request: Request):
     """Analyse starten (z.B. nach einem RSS-Import). Läuft sie schon, passiert nichts."""
+    if too_many(request, "analysis", 20):
+        raise HTTPException(429, "Bitte kurz warten, bevor du die Analyse nochmal startest.")
     if not storage.load_pins()["pins"]:
         raise HTTPException(400, "Noch keine Pins geladen.")
     return analysis.start()
@@ -739,12 +757,14 @@ def get_vibe(avoid: str | None = Query(None, max_length=300)):
 
 class Vote(BaseModel):
     """{"product_id": "prod-001", "vote": "like"}  –  vote: null löscht die Bewertung"""
-    product_id: str
+    product_id: str = Field(min_length=1, max_length=200)
     vote: Literal["like", "dislike"] | None
 
 
 @app.post("/api/feedback")
-def post_feedback(vote: Vote):
+def post_feedback(vote: Vote, request: Request):
+    if too_many(request, "feedback", 300):
+        raise HTTPException(429, "Das waren gerade sehr viele Klicks. Kurz durchatmen!")
     known_ids = {p.id for p in products.get_product_source().load()}
     if vote.product_id not in known_ids:
         raise HTTPException(404, "Produkt nicht gefunden.")

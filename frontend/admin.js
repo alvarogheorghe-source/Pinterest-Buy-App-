@@ -91,7 +91,8 @@ loginForm.addEventListener("submit", async (event) => {
     body: JSON.stringify({ password: document.getElementById("password").value }),
   });
   if (!response.ok) {
-    message.textContent = "Falsches Passwort.";
+    // 401 = falsch, 429 = zu viele Versuche (Server-Text zeigen)
+    message.textContent = (await response.json().catch(() => ({}))).detail || "Falsches Passwort.";
     return;
   }
   loginForm.hidden = true;
