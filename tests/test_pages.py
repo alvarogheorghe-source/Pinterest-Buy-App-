@@ -121,3 +121,16 @@ def test_terms_page(client):
     assert '<a href="/impressum.html">Impressum</a>' in html             # Links im Text
     assert client.get("/terms.html").text == html
     assert "/nutzungsbedingungen.html" in client.get("/sitemap.xml").text
+
+
+def test_shop_for_new_visitors_does_not_load_the_catalog(fake, client, monkeypatch):
+    """Neue Besucher (ohne Pins) sehen sofort die Einladung: Kategorien und Looks brauchen den
+    Katalog nicht (am Server 23.000 Produkte + Live-Abfragen bei eBay/Etsy)."""
+    from backend import products
+
+    def no_catalog():
+        raise AssertionError("Katalog geladen")
+    monkeypatch.setattr(products, "get_product_source", no_catalog)
+    assert client.get("/api/categories?department=mode").json()[0] == "Accessoires"
+    assert client.get("/api/looks").json() == []
+    assert client.get("/api/recommendations?department=mode").json()["needs_input"] is True

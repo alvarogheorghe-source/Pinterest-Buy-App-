@@ -527,8 +527,11 @@ def get_product_detail(product_id: str, limit: int = Query(12, ge=1, le=48)):
 
 @app.get("/api/categories")
 def get_categories(department: products.Department | None = None):
-    """Kategorien, z.B. /api/categories?department=wohnen"""
-    return products.list_categories(products.get_product_source().load(), department)
+    """Kategorien, z.B. /api/categories?department=wohnen. Die feste Liste (matching.py) –
+    nicht aus dem Katalog gelesen: der ist am Server groß (und fragt eBay/Etsy live), und der
+    Shop wartet auf diese Liste."""
+    return sorted(name for name, (world, _) in matching.CATEGORY_SYNONYMS.items()
+                  if not department or world == department)
 
 
 # --- Matching (Schritt 5) ---------------------------------------------------------------
@@ -724,11 +727,13 @@ def for_whom(choice: str, pins_list: list[dict]) -> str | None:
 def get_looks():
     """Shop the Look: Outfit-Pins mit den passenden Teilen (looks.py) – im Budget egal,
     Lieferland zählt."""
+    pins_list = storage.load_pins()["pins"]
+    if not pins_list:     # ohne Pins gibt es keine Looks – den großen Katalog gar nicht laden
+        return []
     here = region.current()
     available = products.filter_products(products.get_product_source().load(),
                                          department="mode", country=here.code)
     disliked = feedback.ids_with_vote(feedback.load_feedback(), "dislike")
-    pins_list = storage.load_pins()["pins"]
     wanted = for_whom("auto", pins_list)
     found = looks.shop_the_look(pins_list,
                                 [p for p in available if p.id not in disliked

@@ -219,8 +219,12 @@ function renderNeedsInput() {
       textContent: "Lade ein Foto von einem Outfit oder Teil hoch, das dir gefällt. Mali sucht dir dann passende Teile, neu und Second Hand." }),
   );
   const actions = Object.assign(document.createElement("div"), { className: "no-shops-actions" });
-  actions.append(Object.assign(document.createElement("a"),
-    { className: "button", href: "/foto.html", textContent: t("Foto hochladen") }), connectButton());
+  const photo = Object.assign(document.createElement("a"), { className: "button", href: "/foto.html" });
+  photo.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' +
+    '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/>' +
+    '<circle cx="12" cy="13" r="3"/></svg>';
+  photo.append(t("Foto hochladen"));
+  actions.append(photo, connectButton());
   box.appendChild(actions);
   grid.replaceChildren(box);
   rows.replaceChildren();
@@ -562,13 +566,12 @@ function createCard(data) {
 // --- Bedienung ------------------------------------------------------------------------------
 
 // Zeigt, was in der Adresse steht (beim Laden und bei jeder Änderung der Adresse)
-async function applyHash() {
+function applyHash() {
   const { department, tab } = readHash();
   if (department !== filters.department) {
     filters.department = department;
     filters.category = ""; // Kategorien der anderen Welt passen nicht mehr
-    await loadCategories();
-    categorySelect.value = "";
+    loadCategories();      // parallel – der Shop wartet nicht auf die Auswahlliste
   }
   filters.tab = tab;
 
@@ -609,8 +612,10 @@ categorySelect.addEventListener("change", () => {
 
 // Kategorien der aktuellen Welt in die Auswahlliste schreiben
 async function loadCategories() {
-  const categories = await fetch(`/api/categories?department=${filters.department}`)
+  const department = filters.department;
+  const categories = await fetch(`/api/categories?department=${department}`)
     .then((r) => r.json());
+  if (department !== filters.department) return;   // inzwischen andere Welt gewählt
   categorySelect.length = 1; // alle Optionen außer "Alle Kategorien" entfernen
   for (const category of categories) {
     const option = document.createElement("option");
@@ -618,10 +623,12 @@ async function loadCategories() {
     option.textContent = category;
     categorySelect.appendChild(option);
   }
+  categorySelect.value = filters.category;
 }
 
-// Start: Kategorien für "Mode" laden, dann anzeigen, was in der Adresse steht
-loadCategories().then(applyHash);
+// Start: anzeigen, was in der Adresse steht; die Kategorien für "Mode" kommen parallel dazu
+loadCategories();
+applyHash();
 
 
 // Mali hat die Pins fertig analysiert (analysis.js) -> Empfehlungen neu laden
