@@ -40,3 +40,6 @@ backups/
 data/stats.json
 .audit/
 .taste-skill/
+
+# Apple-Richtlinien (Text gehört Apple, nicht ins öffentliche Repo)
+.claude/skills/apple-design/
