@@ -128,11 +128,10 @@ class ClipEmbedder:
             if FRONTEND_DIR.resolve() not in path.parents:  # nicht aus frontend/ ausbrechen
                 raise ValueError("Pfad außerhalb von frontend/")
             return Image.open(path).convert("RGB")
-        if not url.startswith(("https://", "http://")):
-            raise ValueError("keine Web-Adresse")
-        response = httpx.get(url, timeout=15, follow_redirects=True)
-        response.raise_for_status()
-        return Image.open(io.BytesIO(response.content)).convert("RGB")
+        from backend import safe_fetch
+        from backend.photo import open_limited
+        # Nur öffentliche Ziele, jede Weiterleitung geprüft, Größe und Pixel begrenzt
+        return open_limited(safe_fetch.get(url, timeout=15)).convert("RGB")
 
     def embed_image_urls(self, urls: list[str]) -> list[list[float] | None]:
         images: list = []
@@ -149,7 +148,8 @@ class ClipEmbedder:
         opened: list = []
         for data in images:
             try:
-                opened.append(Image.open(io.BytesIO(data)).convert("RGB"))
+                from backend.photo import open_limited
+                opened.append(open_limited(data).convert("RGB"))
             except Exception:
                 opened.append(None)
         return self._embed(opened)

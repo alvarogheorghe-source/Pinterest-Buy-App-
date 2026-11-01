@@ -42,6 +42,24 @@ _current_user: contextvars.ContextVar[str] = contextvars.ContextVar("malipin_use
                                                                      default=LOCAL_USER)
 
 
+# Schutz für "Alle meine Daten löschen": Hintergrund-Arbeit (z.B. eine laufende Analyse), die
+# VOR dem Löschen gestartet wurde, darf danach nichts mehr für diese Person speichern.
+_deleted_at: dict[str, float] = {}
+_work_started: contextvars.ContextVar[float | None] = contextvars.ContextVar(
+    "malipin_work_started", default=None)
+
+
+def start_background_work() -> None:
+    """Am Anfang eines Hintergrund-Threads aufrufen (merkt sich die Startzeit)."""
+    _work_started.set(time.time())
+
+
+def deleted_meanwhile() -> bool:
+    """Wurden die Daten dieser Person gelöscht, seit die Hintergrund-Arbeit begann?"""
+    started = _work_started.get()
+    return started is not None and _deleted_at.get(current_user(), -1.0) >= started
+
+
 def current_user() -> str:
     return _current_user.get()
 
@@ -106,6 +124,8 @@ def write_json(filename: str, data) -> None:
         DATA_DIR.mkdir(parents=True, exist_ok=True)
         _path(filename).write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
         return
+    if deleted_meanwhile():
+        return                     # Person hat inzwischen "Alle meine Daten löschen" gewählt
     with _connect() as db:
         db.execute("INSERT OR REPLACE INTO data VALUES (?, ?, ?, ?)",
                    (current_user(), filename, json.dumps(data, ensure_ascii=False), time.time()))
@@ -156,6 +176,7 @@ def merge_user_data(source: str, target: str) -> None:
 
 def delete_user_data() -> int:
     """"Alle meine Daten löschen": entfernt ALLES der aktuellen Person. Gibt die Anzahl zurück."""
+    _deleted_at[current_user()] = time.time()
     with _connect() as db:
         return db.execute("DELETE FROM data WHERE user = ?", (current_user(),)).rowcount
 

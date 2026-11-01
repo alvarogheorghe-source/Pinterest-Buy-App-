@@ -40,7 +40,10 @@ def dominant_hex(image_bytes: bytes) -> str | None:
     """Bild -> "#rrggbb" der Hauptfarbe. None, wenn das Bild nur Hintergrund zeigt."""
     from PIL import Image  # erst hier: ohne Pillow läuft der Rest der App trotzdem
 
-    image = Image.open(BytesIO(image_bytes)).convert("RGB")
+    from backend.photo import open_limited
+    image = open_limited(image_bytes)
+    image.draft("RGB", (128, 128))                   # JPEG: gleich klein dekodieren (spart Speicher)
+    image = image.convert("RGB")
     image.thumbnail((64, 64))
     w, h = image.size
     image = image.crop((w // 5, h // 5, w - w // 5, h - h // 5))   # mittlere 60 %
@@ -67,11 +70,10 @@ def _color_for(pin: dict) -> str | None:
     if not url or not url.startswith("https://"):
         return None
     try:
+        from backend import safe_fetch
         with _http() as client:
-            response = client.get(url)
-        if response.status_code != 200 or len(response.content) > MAX_BYTES:
-            return None
-        return dominant_hex(response.content)
+            content = safe_fetch.get(url, client=client, max_bytes=MAX_BYTES)
+        return dominant_hex(content)
     except Exception:   # kaputtes Bild, Netzwerkfehler … -> einfach ohne Farbe weiter
         return None
 

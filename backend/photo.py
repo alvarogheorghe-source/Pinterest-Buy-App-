@@ -19,6 +19,7 @@ from backend.products import (DEPARTMENTS, JsonProductSource, Product, online_so
                               remember_photo_results)
 
 MAX_BYTES = 8 * 1024 * 1024
+MAX_PIXELS = 40_000_000   # 40 Megapixel – mehr hat kein Handyfoto; schützt vor "Bild-Bomben"
 RESULTS = 8           # höchstens so viele Produkte zeigen (Qualität statt Menge)
 PHOTO_MIN = 0.3       # so ähnlich muss ein Produktbild dem Foto mindestens sehen (0..1)
 VISUAL_CHECK = 8      # so viele Text-Beste ohne fertiges Bild werden sofort angeschaut
@@ -32,14 +33,26 @@ class PhotoError(Exception):
     """Kein brauchbares Bild (falsches Format, zu groß …)."""
 
 
+def open_limited(data: bytes):
+    """Bild öffnen, aber nur bis MAX_PIXELS: eine kleine Datei kann sonst beim Entpacken
+    Hunderte MB Speicher belegen."""
+    from PIL import Image
+    image = Image.open(io.BytesIO(data))
+    width, height = image.size
+    if width * height > MAX_PIXELS:
+        raise PhotoError("Das Foto hat zu viele Pixel (höchstens 40 Megapixel).")
+    return image
+
+
 def check_image(data: bytes) -> None:
     if not data:
         raise PhotoError("Kein Foto empfangen.")
     if len(data) > MAX_BYTES:
         raise PhotoError("Das Foto ist zu groß (höchstens 8 MB).")
     try:
-        from PIL import Image
-        Image.open(io.BytesIO(data)).verify()
+        open_limited(data).verify()
+    except PhotoError:
+        raise
     except Exception as err:
         raise PhotoError("Das ist kein Bild, das ich lesen kann (JPG, PNG, WebP …).") from err
 

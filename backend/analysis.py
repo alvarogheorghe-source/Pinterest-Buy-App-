@@ -48,6 +48,8 @@ def _load_state() -> dict:
 
 
 def _update(**changes) -> None:
+    if storage.deleted_meanwhile():
+        return
     with _lock:
         state = _load_state()
         state.update(changes)
@@ -117,6 +119,7 @@ def run() -> None:
     """Die eigentliche Arbeit. Läuft im Hintergrund-Thread; Fehler landen im Status."""
     from backend import image_tags, vision
     from backend.products import get_product_source
+    storage.start_background_work()
     try:
         data = storage.load_pins()
         _update(step="farben", done=0, total=len(data["pins"]))

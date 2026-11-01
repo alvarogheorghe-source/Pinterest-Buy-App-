@@ -25,7 +25,6 @@ Automatisch:  Sind die Daten älter als FEED_MAX_AGE, lädt die App sie im Hinte
 """
 
 import csv
-import gzip
 import io
 import json
 import logging
@@ -189,6 +188,9 @@ def _joined(status: str) -> bool:
         and any(word in status for word in ("active", "joined", "approved", "member")))
 
 
+AWIN_DOWNLOAD_PREFIX = "https://productdata.awin.com/"
+
+
 def discover_awin() -> list[dict]:
     """Feeds aller Awin-Shops, die dich angenommen haben. Ohne AWIN_FEED_KEY: keine."""
     key = os.getenv("AWIN_FEED_KEY", "").strip()
@@ -197,8 +199,9 @@ def discover_awin() -> list[dict]:
     found = []
     for row in read_rows(download(AWIN_LIST_URL.format(key=key))):
         url, feed_id = _column(row, "url"), re.sub(r"\D", "", _column(row, "feed_id"))
-        if not url.startswith("http") or not feed_id or not _joined(_column(row, "status")):
-            continue
+        if not url.startswith(AWIN_DOWNLOAD_PREFIX) or "{" in url or not feed_id \
+                or not _joined(_column(row, "status")):
+            continue        # nur echte Awin-Download-Adressen, ohne Platzhalter
         region = _column(row, "region").upper()
         found.append({
             "name": f"awin-{feed_id}", "label": _column(row, "name") or "Awin", "preset": "awin",
@@ -323,6 +326,9 @@ def resolve_url(url: str) -> str:
     """"…/apikey/{AWIN_FEED_KEY}/…" -> Schlüssel aus .env einsetzen. Fehlt er: klare Meldung."""
     def value(match):
         name = match.group(1)
+        if not name.endswith("FEED_KEY"):
+            # Nur Feed-Schlüssel – nie andere Geheimnisse aus .env (z.B. SESSION_SECRET)
+            raise FeedError(f"{{{name}}} ist in Feed-Adressen nicht erlaubt (nur …FEED_KEY).")
         found = os.getenv(name, "").strip()
         if not found:
             raise FeedError(f"{name} fehlt in .env (wird in einer Feed-Adresse gebraucht).")
@@ -349,8 +355,26 @@ def download(url: str) -> bytes:
             chunks.append(chunk)
     data = b"".join(chunks)
     if data[:2] == b"\x1f\x8b":                       # gepackt (.gz)
-        data = gzip.decompress(data)
+        data = _gunzip(data)
     return data
+
+
+MAX_UNPACKED = 1024 * 1024 * 1024   # 1 GB entpackt – mehr ist kein echter Feed
+
+
+def _gunzip(data: bytes) -> bytes:
+    """Entpacken mit Obergrenze (schützt vor "Zip-Bomben")."""
+    import zlib
+    parts, size = [], 0
+    while data:                                   # .gz kann aus mehreren Teilen bestehen
+        unpacker = zlib.decompressobj(16 + zlib.MAX_WBITS)
+        part = unpacker.decompress(data, MAX_UNPACKED + 1 - size)
+        size += len(part)
+        if size > MAX_UNPACKED or unpacker.unconsumed_tail:
+            raise FeedError("Feed ist entpackt zu groß (über 1 GB).")
+        parts.append(part)
+        data = unpacker.unused_data
+    return b"".join(parts)
 
 
 def _local_name(tag: str) -> str:

@@ -4,6 +4,8 @@ Starten mit:  uvicorn backend.main:app --reload
 """
 
 import asyncio
+import hashlib
+import hmac
 import os
 import secrets
 import time
@@ -168,7 +170,7 @@ def pinterest_open(request: Request) -> bool:
     """Darf diese Person Pinterest verbinden? Solange Pinterest uns nur "Trial"-Zugang gibt,
     klappt der Login nur für eingetragene Testkonten -> öffentlich "Bald verfügbar"
     (PINTEREST_OPEN=0 in .env). Als Admin angemeldet geht es trotzdem (zum Testen)."""
-    return os.getenv("PINTEREST_OPEN", "1").strip() != "0" or bool(request.session.get("admin"))
+    return os.getenv("PINTEREST_OPEN", "1").strip() != "0" or is_admin(request)
 
 
 @app.get("/api/features")
@@ -201,9 +203,19 @@ def callback(request: Request, code: str | None = None, state: str | None = None
     if not code:
         raise HTTPException(400, "Kein Code von Pinterest erhalten.")
 
-    pinterest.exchange_code(code)
-    if multi_user():
-        link_pinterest_account(request)
+    switched = None
+    if multi_user() and storage.current_user().startswith("p-"):
+        # Browser ist noch mit einem ANDEREN Pinterest-Konto verbunden: dessen Daten nicht
+        # anfassen – neues Konto startet mit einer frischen, leeren Kennung
+        fresh_anonymous_session(request)
+        switched = storage.set_user(request.session["uid"])
+    try:
+        pinterest.exchange_code(code)
+        if multi_user():
+            link_pinterest_account(request)
+    finally:
+        if switched is not None:
+            storage.reset_user(switched)
     # Nach dem Login direkt zur Board-Auswahl
     return RedirectResponse("/konto.html")
 
@@ -216,7 +228,8 @@ def link_pinterest_account(request: Request) -> None:
     if not account_id:
         return
     linked = storage.linked_user_id(account_id)
-    storage.merge_user_data(storage.current_user(), linked)
+    if storage.current_user().startswith("u-"):     # nur anonyme Daten übernehmen
+        storage.merge_user_data(storage.current_user(), linked)
     request.session["uid"] = linked
 
 
@@ -313,10 +326,29 @@ def admin_password() -> str:
     return os.getenv("ADMIN_PASSWORD", "").strip()
 
 
+ADMIN_MAX_AGE = 12 * 60 * 60     # Admin-Anmeldung gilt höchstens 12 Stunden
+
+
+def _admin_tag() -> str:
+    """Prüfsumme des aktuellen Admin-Passworts: Wird das Passwort geändert, sind alle alten
+    Admin-Anmeldungen sofort ungültig. Das Passwort selbst steht nie im Cookie."""
+    return hmac.new(session_secret.encode(), admin_password().encode(), hashlib.sha256).hexdigest()
+
+
+def is_admin(request: Request) -> bool:
+    admin = request.session.get("admin")
+    if not admin_password() or not isinstance(admin, dict):
+        return False
+    if time.time() - float(admin.get("at", 0)) > ADMIN_MAX_AGE:
+        return False
+    return hmac.compare_digest(str(admin.get("tag", "")), _admin_tag())
+
+
 def require_admin(request: Request) -> None:
     if not admin_password():
         raise HTTPException(404, "Nicht gefunden.")          # Admin ganz abgeschaltet
-    if not request.session.get("admin"):
+    if not is_admin(request):
+        request.session.pop("admin", None)
         raise HTTPException(401, "Bitte als Admin anmelden.")
 
 
@@ -333,7 +365,7 @@ def admin_login(data: AdminLogin, request: Request):
     if not secrets.compare_digest(data.password.encode(), admin_password().encode()):
         time.sleep(1)                                         # Raten bremsen
         raise HTTPException(401, "Falsches Passwort.")
-    request.session["admin"] = True
+    request.session["admin"] = {"tag": _admin_tag(), "at": time.time()}
     return {"ok": True}
 
 
