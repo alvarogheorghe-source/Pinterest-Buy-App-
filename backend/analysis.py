@@ -141,9 +141,10 @@ def run() -> None:
         # zehntausende Produkte, die alle herunterzuladen würde Stunden dauern
         product_entries = [(f"product:{p['id']}", p["image_url"])
                            for p in _best_products(get_product_source().load(), data["pins"])]
-        entries = pin_entries + product_entries
-        _update(step="bilder", done=0, total=len(vision.missing(store, entries)))
-        vision.index(store, embedder, entries,
+        # Nur die Pins halten die Analyse auf. Die Produktbilder rechnet Mali danach im
+        # Hintergrund (die meisten hat der nächtliche Lauf ohnehin schon fertig).
+        _update(step="bilder", done=0, total=len(vision.missing(store, pin_entries)))
+        vision.index(store, embedder, pin_entries,
                      on_progress=lambda done, total: _update(done=done, total=total))
         store.save()
 
@@ -158,5 +159,14 @@ def run() -> None:
 
         _update(status="done", step="fertig", vision=True, finished_at=time.time(),
                 pins=pins_fingerprint(tagged))
+
+        # Erst jetzt (Person ist schon fertig): passende Produktbilder nachrechnen,
+        # damit "sieht genauso aus" im Shop beim nächsten Mal noch besser trifft
+        try:
+            if vision.missing(store, product_entries):
+                vision.index(store, embedder, product_entries)
+                store.save()
+        except Exception:
+            pass   # nur ein Extra – die fertige Analyse bleibt "fertig"
     except Exception as err:  # nie die App abstürzen lassen – Mali meldet es freundlich
         _update(status="error", error=str(err)[:300], finished_at=time.time())

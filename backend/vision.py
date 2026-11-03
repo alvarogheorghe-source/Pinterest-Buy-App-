@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_MODEL = "patrickjohncyh/fashion-clip"
 EMBEDDINGS_FILE = "embeddings.json"
 BATCH_SIZE = 16
+DOWNLOAD_WORKERS = 8      # so viele Bilder gleichzeitig herunterladen
 
 # Wie stark "sieht ähnlich aus" zählt (im Vergleich: ein Begriff in JEDEM Pin = 1 Punkt)
 VISUAL_WEIGHT = 2.0
@@ -134,12 +135,17 @@ class ClipEmbedder:
         return open_limited(safe_fetch.get(url, timeout=15)).convert("RGB")
 
     def embed_image_urls(self, urls: list[str]) -> list[list[float] | None]:
-        images: list = []
-        for url in urls:
+        # Bilder parallel laden (das Warten aufs Netz war der langsamste Teil),
+        # Reihenfolge bleibt gleich
+        from concurrent.futures import ThreadPoolExecutor
+
+        def load(url):
             try:
-                images.append(self.download(url))
+                return self.download(url)
             except Exception:
-                images.append(None)  # kaputtes/fehlendes Bild -> None
+                return None  # kaputtes/fehlendes Bild -> None
+        with ThreadPoolExecutor(DOWNLOAD_WORKERS) as pool:
+            images = list(pool.map(load, urls))
         return self._embed(images)
 
     def embed_image_bytes(self, images: list[bytes]) -> list[list[float] | None]:

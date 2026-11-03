@@ -96,3 +96,28 @@ def test_interrupted_analysis_is_not_stuck(fake):
     storage.write_json("analysis.json", {"status": "running", "step": "bilder"})
     analysis._states.clear()
     assert analysis.status()["status"] == "idle"
+
+
+def test_pins_finish_before_product_images(fake, monkeypatch):
+    """Schneller fertig: Die Fortschrittsanzeige zählt nur Pin-Bilder; Produktbilder kommen danach."""
+    from backend import analysis, image_tags, vision
+    seen = []
+
+    class Embedder:
+        name = "test-model"
+
+    def fake_index(store, embedder, entries, on_progress=None):
+        seen.append(([key.split(":")[0] for key, _ in entries], on_progress is not None))
+        return {}
+    monkeypatch.setattr(vision, "get_embedder", lambda: Embedder())
+    monkeypatch.setattr(vision, "index", fake_index)
+    monkeypatch.setattr(vision, "missing", lambda store, entries: entries)
+    monkeypatch.setattr(vision, "build_clusters", lambda store, pins: None)
+    monkeypatch.setattr(vision.EmbeddingStore, "save", lambda self: None)
+    monkeypatch.setattr(image_tags, "tag_pins", lambda embedder, store: None)
+    monkeypatch.setattr(analysis, "_best_products", lambda products, pins: [{"id": "p1", "image_url": "https://x.test/p.jpg"}])
+    storage.save_pins({"fetched_at": 1, "pins": [{"id": "a1", "image_url": "https://x.test/a.jpg", "dominant_color": "#000000"}]})
+    analysis.run()
+    assert seen[0] == (["pin"], True)            # zuerst nur Pins, mit Fortschritt
+    assert seen[1] == (["product"], False)       # danach Produkte, ohne die Anzeige aufzuhalten
+    assert storage.read_json("analysis.json")["status"] == "done"
