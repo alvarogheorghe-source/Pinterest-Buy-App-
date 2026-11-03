@@ -3066,3 +3066,11 @@ p.amazon-link a { color: var(--text); text-underline-offset: 3px; }
     transform: none;
   }
 }
+
+/* Foto-Suche: "hierher ziehen · ⌘V / Strg+V" gibt es nur am Computer – auf Handy und Tablet
+   (Touch, kein Mauszeiger) ausblenden */
+@media (hover: none) and (pointer: coarse) {
+  .photo-drop-hint {
+    display: none;
+  }
+}

@@ -256,11 +256,7 @@ body.landing {
   color: rgba(150, 92, 78, 0.65);
 }
 
-/* Unten liegt eine schwebende Karte darüber -> Symbol ins obere Drittel */
-.board-pin.tile-cream {
-  align-items: flex-start;
-  padding-top: 26px;
-}
+/* Alle Symbole stehen mittig in ihrem Kästchen (auch beim Creme-Kästchen) */
 
 .tile-rose { background: linear-gradient(160deg, #f8c9d7, #ec9ab4); }
 .tile-plum { background: linear-gradient(160deg, #8e3b5c, #5e2840); }
