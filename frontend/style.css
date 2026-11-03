@@ -6,7 +6,7 @@
      auf Windows/Android springen die Ersatzschriften dahinter ein. */
   --serif: "Cochin", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   /* Weiß & Rosa – passend zu Mali 🐰 */
-  --bg: #fff8fa;          /* Weiß mit einem Hauch Rosa */
+  --bg: #ffffff;          /* Weiß – Rosa nur noch auf Knöpfen und Akzenten */
   --surface: #ffffff;     /* Kacheln, Kästen */
   --text: #3a2a30;        /* warmes Pflaumenbraun statt Schwarz (wie Malis Umriss) */
   --muted: #7a606a;
