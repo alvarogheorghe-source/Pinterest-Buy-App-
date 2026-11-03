@@ -62,7 +62,7 @@ def render(name: str) -> str | None:
                      for s in vibe["styles"])
     quote = (f'<blockquote class="vibe-mali"><span class="vibe-mali-label">{tr("Mali sagt")}</span>'
              f"<span>{escape(_no_emoji(vibe['mali']))}</span></blockquote>" if vibe["mali"] else "")
-    # Typische Teile second hand suchen (Vinted/willhaben, nur Such-Links, backend/secondhand.py)
+    # Typische Teile second hand suchen (Vinted/willhaben/Depop, nur Such-Links, backend/secondhand.py)
     used = "".join(
         f'<p class="secondhand-links"><span>{escape(site)}:</span> ' + " ".join(
             f'<a class="chip" href="{escape(secondhand.search_url(site, [piece]))}" target="_blank" '

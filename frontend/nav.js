@@ -104,7 +104,7 @@ document.addEventListener("click", (event) => {
 }, true);
 
 
-// Second Hand: Such-Knöpfe zu Vinted/willhaben (backend/secondhand.py). Normale Links ohne
+// Second Hand: Such-Knöpfe zu Vinted/willhaben/Depop (backend/secondhand.py). Normale Links ohne
 // Provision -> keine "Werbung"-Kennzeichnung. Gibt null zurück, wenn es keine gibt.
 function secondhandLinks(links, label = "Second Hand suchen:") {
   if (!links?.length) return null;

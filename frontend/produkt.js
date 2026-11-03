@@ -79,7 +79,7 @@ function renderDetail(product, hasProfile, amazonUrl, secondhand) {
       { href: amazonUrl, target: "_blank", rel: "sponsored noopener" }), el("span", "ad-label", "Werbung"));
     info.append(more);
   }
-  const used = secondhandLinks(secondhand);       // Vinted/willhaben (nav.js)
+  const used = secondhandLinks(secondhand);       // Vinted/willhaben/Depop (nav.js)
   if (used) info.append(used);
 
   detail.replaceChildren(imageBox, info);

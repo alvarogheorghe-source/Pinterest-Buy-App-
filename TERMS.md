@@ -22,7 +22,7 @@ Viele Links auf Malipin sind Partnerlinks (Affiliate-Links). Kaufst du darüber 
 wir vom Shop eine Provision. Für dich ändert sich der Preis dadurch nicht. Solche Links sind mit
 „Werbung“ gekennzeichnet. Als Amazon-Partner verdienen wir an qualifizierten Verkäufen.
 
-Links zu Vinted und willhaben sind reine Such-Links, an denen wir nichts verdienen.
+Links zu Vinted, willhaben und Depop sind reine Such-Links, an denen wir nichts verdienen.
 
 ## 3. Preise, Verfügbarkeit und Vorschläge
 
