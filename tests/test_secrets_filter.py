@@ -46,3 +46,14 @@ def test_shop_warnings_for_the_browser_are_cleaned(monkeypatch):
     source = products.CombinedSource([Broken(), Fine()])
     source.load()
     assert "etsy-key-555555" not in str(source.warnings())
+
+
+def test_access_log_keeps_its_arguments(monkeypatch):
+    """uvicorns Zugriffslog erwartet genau 5 Argumente – der Filter darf sie nicht leeren."""
+    monkeypatch.setenv("EBAY_CLIENT_SECRET", "ebay-secret-xyz")
+    secrets_filter.install()
+    record = logging.getLogger("uvicorn.access").makeRecord(
+        "uvicorn.access", logging.INFO, __file__, 1, '%s - "%s %s HTTP/%s" %d',
+        ("1.2.3.4", "GET", "/x?t=ebay-secret-xyz", "1.1", 200), None)
+    assert len(record.args) == 5 and record.args[4] == 200
+    assert "ebay-secret-xyz" not in record.getMessage()

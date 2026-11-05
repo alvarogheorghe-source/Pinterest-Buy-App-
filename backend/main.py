@@ -102,7 +102,7 @@ def http_error(request: Request, exc: StarletteHTTPException):
     if (exc.status_code == 404 and not request.url.path.startswith("/api/")
             and "text/html" in request.headers.get("accept", "")):
         from scripts import build_site
-        return HTMLResponse(build_site.not_found_page(), status_code=404)
+        return HTMLResponse(build_site.not_found_page(i18n.current()), status_code=404)
     detail = i18n.tr(exc.detail) if isinstance(exc.detail, str) else exc.detail
     return JSONResponse(status_code=exc.status_code, content={"detail": detail},
                         headers=getattr(exc, "headers", None))
@@ -472,8 +472,8 @@ async def analyse_photo(request: Request, force: bool) -> dict:
     except photo.PhotoError as err:
         raise HTTPException(400, str(err))
     except vision.VisionUnavailable:
-        raise HTTPException(503, "Die Bilderkennung ist hier nicht installiert "
-                                 "(pip install -r requirements-ai.txt).")
+        raise HTTPException(503, "Die Foto-Suche ist gerade nicht verfügbar. "
+                                 "Bitte versuch es später nochmal.")
 
 
 @app.get("/api/analysis")

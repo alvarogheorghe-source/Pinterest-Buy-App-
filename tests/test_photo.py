@@ -73,7 +73,9 @@ def test_without_ai_packages(fake, client, monkeypatch):
         raise vision.VisionUnavailable("fehlt")
     monkeypatch.setattr(vision, "get_embedder", unavailable)
     response = upload(client, jpeg())
-    assert response.status_code == 503 and "requirements-ai" in response.json()["detail"]
+    detail = response.json()["detail"]
+    assert response.status_code == 503 and "nicht verfügbar" in detail
+    assert "pip" not in detail          # keine Entwicklerhinweise für Nutzer:innen
 
 
 def test_online_search_only_for_what_is_on_the_photo(fake, client, model, monkeypatch):

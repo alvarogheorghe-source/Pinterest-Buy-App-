@@ -58,6 +58,8 @@ def render(name: str) -> str | None:
     pieces = "".join(f"<li>{escape(p)}</li>" for p in vibe["pieces"])
     swatches = "".join(f'<span class="swatch" style="background:{escape(c)}"></span>'
                        for c in vibe["colors"])
+    if len(vibe["colors"]) < 2:      # ein einzelner Punkt sieht aus wie ein kaputtes Icon
+        swatches = ""
     styles = "".join(f'<a class="chip" href="/stile.html#{escape(s["slug"])}">{escape(s["name"])}</a>'
                      for s in vibe["styles"])
     quote = (f'<blockquote class="vibe-mali"><span class="vibe-mali-label">{tr("Mali sagt")}</span>'

@@ -3009,6 +3009,12 @@ p.amazon-link a { color: var(--text); text-underline-offset: 3px; }
     display: inline-flex;
     align-items: center;
   }
+  /* Knöpfe sind am Handy 44px hoch – Text dabei senkrecht mittig halten */
+  .button:not([hidden]) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
   .vibe-tag {
     display: inline-flex;
     align-items: center;
@@ -3072,5 +3078,17 @@ p.amazon-link a { color: var(--text); text-underline-offset: 3px; }
 @media (hover: none) and (pointer: coarse) {
   .photo-drop-hint {
     display: none;
+  }
+}
+
+/* Handys: Englisch ("Styles") ist breiter als Deutsch – Abstände etwas enger,
+   damit die Kopfzeile nie über den Rand ragt (sonst wackelt die Seite seitlich) */
+@media (max-width: 440px) {
+  .header-nav .header-link {
+    padding: 8px 7px;
+  }
+
+  .nav-icons {
+    padding-left: 4px;
   }
 }

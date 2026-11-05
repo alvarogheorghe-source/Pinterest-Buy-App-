@@ -52,7 +52,14 @@ def install() -> None:
     def factory(*args, **kwargs):
         record = original(*args, **kwargs)
         try:
-            record.msg, record.args = redact(record.getMessage()), ()
+            # Platzhalter und Argumente einzeln bereinigen: Die Form von args muss bleiben,
+            # weil z. B. der Zugriffslog von uvicorn genau 5 Werte erwartet.
+            if isinstance(record.msg, str):
+                record.msg = redact(record.msg)
+            if isinstance(record.args, tuple):
+                record.args = tuple(redact(a) if isinstance(a, str) else a for a in record.args)
+            elif isinstance(record.args, dict):
+                record.args = {k: redact(v) if isinstance(v, str) else v for k, v in record.args.items()}
             if record.exc_info:
                 record.exc_text = redact(logging.Formatter().formatException(record.exc_info))
         except Exception:  # noqa: BLE001  (Logging darf nie selbst abstürzen)

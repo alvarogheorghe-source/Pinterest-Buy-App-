@@ -96,11 +96,17 @@ def logo() -> str:
     return match.group(0)
 
 
-def not_found_page() -> str:
-    """Freundliche 404-Seite (statisch und von der App für falsche Adressen)."""
-    return subpage("Nicht gefunden / Not found", "    <h1>Hoppla! / Oops!</h1>\n"
+def not_found_page(lang: str = "de") -> str:
+    """Freundliche 404-Seite (statisch und von der App für falsche Adressen), in einer Sprache."""
+    if lang == "en":
+        return subpage("Not found", "    <h1>Oops!</h1>\n"
+            "    <p>This page doesn't exist. Mali sniffed everywhere – nothing.</p>\n"
+            '    <p><a class="button" href="/">Back to the homepage</a> '
+            '<a class="button secondary" href="/foto.html">Find a fit by photo</a></p>',
+            "This page doesn't exist on Malipin. Go to the homepage or straight to photo search.",
+            lang="en")
+    return subpage("Nicht gefunden", "    <h1>Hoppla!</h1>\n"
         "    <p>Diese Seite gibt es nicht. Mali hat überall geschnuppert – nichts.</p>\n"
-        '    <p lang="en">This page doesn\'t exist. Mali sniffed everywhere – nothing.</p>\n'
         '    <p><a class="button" href="/">Zur Startseite</a> '
         '<a class="button secondary" href="/foto.html">Fit per Foto finden</a></p>',
         "Diese Seite gibt es bei Malipin nicht. Zur Startseite oder direkt zur Foto-Suche.")
