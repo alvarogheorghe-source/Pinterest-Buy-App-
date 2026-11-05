@@ -328,9 +328,16 @@
   const LINE_PAUSE = 550;     // Lesezeit nach jeder Zeile ...
   const PAUSE_PER_CHAR = 6;   // ... plus etwas mehr bei langen Sätzen
 
-  async function welcome() {
+  async function welcome(force = false) {
     // Nur beim allerersten Besuch: localStorage bleibt auch nach dem Schließen des Browsers
     if (el.hidden || recall(localStorage, "mali-welcome") === "done") return;
+    // Nur auf der Startseite: Wer über Google auf eine Outfit- oder Stil-Seite kommt,
+    // will sofort den Inhalt sehen. Der erste Besuch zählt trotzdem als "begrüßt".
+    const onHome = location.pathname === "/" || location.pathname === "/index.html";
+    if (!onHome && !force) {
+      remember(localStorage, "mali-welcome", "done");
+      return;
+    }
     // Über einen Werbe- oder Bio-Link (?von=…, nav.js) gekommen: Wer auf eine Anzeige tippt,
     // will die Seite sehen, nicht erst ein Intro. Mali hüpft dann nur kurz unten (life()).
     const params = new URLSearchParams(location.search);
@@ -356,19 +363,24 @@
     const spoken = Object.assign(document.createElement("p"),
       { className: "visually-hidden", textContent: WELCOME.join(" ") }); // ... Screenreader lesen alles
     const skipHint = Object.assign(document.createElement("p"),
-      { className: "splash-skip", textContent: t("Tippen zum Überspringen", "Tap to skip") });
+      { className: "splash-skip", textContent: t("Tippen oder scrollen zum Überspringen", "Tap or scroll to skip") });
     stage.append(big, name, line);
     overlay.append(stage, spoken, skipHint);
     document.body.appendChild(overlay);
-    document.documentElement.classList.add("splash-open"); // Scrollen kurz sperren
+    // Scrollen bleibt frei: Wer scrollt, will zur Seite – dann verschwindet Mali sofort
     el.classList.add("waiting");                            // kleiner Mali wartet unsichtbar
 
     // Überspringen per Klick/Tippen oder Escape
     let skipped = false;
+    let scrolledAway = false;
     const listeners = new AbortController();
     const skip = new Promise((resolve) => {
       const onSkip = () => { skipped = true; resolve(); };
+      const onScroll = () => { scrolledAway = true; onSkip(); };
       overlay.addEventListener("click", onSkip, { signal: listeners.signal });
+      for (const type of ["wheel", "touchmove", "scroll"]) {
+        window.addEventListener(type, onScroll, { signal: listeners.signal, passive: true });
+      }
       document.addEventListener("keydown", (event) => { if (event.key === "Escape") onSkip(); },
         { signal: listeners.signal });
     });
@@ -408,7 +420,9 @@
 
     // Abgang: großer Mali fliegt an den Platz des kleinen, Hintergrund blendet aus
     overlay.classList.add("leaving");
-    if (!reduceMotion && big.animate) {
+    if (scrolledAway) {
+      await wait(250);          // schnell weg – die Person ist schon unterwegs
+    } else if (!reduceMotion && big.animate) {
       const from = big.getBoundingClientRect();
       const to = el.getBoundingClientRect();
       const dx = to.left + to.width / 2 - (from.left + from.width / 2);
@@ -580,7 +594,7 @@
     tanzen: dance, essen: eatCarrot, schlafen: nap, freuen: happyJump,
     hoppeln: (targetX) => hopTo(targetX), vibe: showVibe,
     teilen: shareVibe,            // Vibe-Karte zum Teilen öffnen (z.B. vom Stil-Lexikon)
-    begruessen: () => { remember(localStorage, "mali-welcome", ""); return welcome(); },
+    begruessen: () => { remember(localStorage, "mali-welcome", ""); return welcome(true); },
     // Malis Pixel-Bilder – für die Analyse-Ansicht (analysis.js) und die Vibe-Karte
     pixels: { frames: FRAMES, palette: PALETTE, heart: HEART },
   };
