@@ -88,3 +88,20 @@ def test_every_page_renders_and_is_in_the_sitemap(fake, client, catalog):
 def test_style_pages_link_to_matching_outfits(fake, client, catalog):
     html = client.get("/stil/streetwear-icon").text
     assert re.search(r'href="/outfits/streetwear-outfit-herren-unter-100"', html)
+
+
+def test_every_page_has_an_english_version(catalog):
+    """Englische Besucher:innen sehen Titel, Text und Überschriften auf Englisch."""
+    from backend import i18n
+    assert set(outfit_pages.EN_TEXTS) == set(outfit_pages.BY_SLUG)
+    outfit_pages._cache.clear()
+    token = i18n._current.set("en")
+    try:
+        html = outfit_pages.render("y2k-outfit-damen")
+        index = outfit_pages.render_index()
+    finally:
+        i18n._current.reset(token)
+        outfit_pages._cache.clear()
+    assert '<html lang="en"' in html and "Y2K outfit for women" in html
+    assert "How to style the look" in html and "So stylst du" not in html
+    assert "Outfit ideas" in index and "Komplette Looks" not in index

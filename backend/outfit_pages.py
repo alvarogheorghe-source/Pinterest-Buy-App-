@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from html import escape
 from urllib.parse import quote
 
-from backend import (currency, feeds, product_checks, products, quality, region, secondhand,
+from backend import (currency, i18n, feeds, product_checks, products, quality, region, secondhand,
                      style_guide)
 from backend.matching import build_style_profile, rank_products
 from backend.vibe_pages import SITE_URL, _meta, _shell
@@ -171,6 +171,117 @@ PAGES = [
         "damen", ["goth-baddie"]),
 ]
 BY_SLUG = {p.slug: p for p in PAGES}
+
+# Englische Fassung je Seite: (Titel, Beschreibung, Einleitung, Tipps). Adresse (slug) und
+# Suchbegriffe bleiben deutsch – Google und deutsche Besucher sehen die deutsche Seite.
+EN_TEXTS = {
+    "clean-girl-outfit-unter-50": (
+        "Clean Girl outfit under €50",
+        "Get the clean girl look: calm colours, clean cuts, gold details. "
+        "A complete outfit from real shops for under €50.",
+        "The clean girl look seems effortless but is well thought out: calm colours like white, "
+        "beige and cream, clean cuts and one or two gold details. It doesn't have to be "
+        "expensive. Clean lines and pieces that go well together matter more than brands.",
+        ["Stick to two or three colours, ideally white, beige and one warm tone.",
+         "A simple top and well-fitting trousers are the base.",
+         "Gold hoops or a fine necklace finish the look."]),
+    "y2k-outfit-herren": (
+        "Y2K outfit for men",
+        "Y2K outfits for men: baggy jeans, graphic tees and statement sneakers. "
+        "A complete outfit from real shops for under €80.",
+        "The Y2K look brings back the early 2000s: wide jeans, graphic tees, sporty sneakers "
+        "and a bit of shine. For men it works best loose and wide, with one piece that "
+        "stands out.",
+        ["Wide or baggy jeans are the centrepiece.",
+         "A graphic or logo tee brings the retro vibe.",
+         "Add sporty sneakers, ideally with a chunky sole."]),
+    "y2k-outfit-damen": (
+        "Y2K outfit for women",
+        "Y2K outfits for women: baby tees, low-rise jeans and playful details. "
+        "A complete outfit from real shops for under €60.",
+        "Y2K for women means short baby tees, low-rise or wide jeans, glitter and playful "
+        "accessories. The look is all about bold colour and pieces that look a bit like a "
+        "music video from 2003.",
+        ["A short baby tee or top is almost a must.",
+         "Low-rise or wide jeans, ideally in light washes.",
+         "Small bags, hair clips and glitter complete the look."]),
+    "streetwear-outfit-herren-unter-100": (
+        "Streetwear outfit for men under €100",
+        "Streetwear for men on a budget: hoodie, cargo pants, sneakers. "
+        "A complete outfit from real shops for under €100.",
+        "Streetwear is all about comfortable, wide cuts and one piece that stands out. The base "
+        "is an oversized hoodie or a heavy tee, cargo or wide trousers and good sneakers. You "
+        "don't need expensive brands for it.",
+        ["Oversized on top, wide below: that's the silhouette.",
+         "Earth tones, black and grey go with everything.",
+         "The sneakers are the statement piece."]),
+    "streetwear-outfit-damen": (
+        "Streetwear outfit for women",
+        "Streetwear for women: oversized hoodie, cargo pants, chunky sneakers. "
+        "A complete outfit from real shops for under €100.",
+        "Streetwear for women plays with contrasts: wide trousers with a short top, a big "
+        "hoodie with cycling shorts, plus chunky sneakers. Comfortable, confident and with one "
+        "piece people talk about.",
+        ["Play with wide and short: cargo pants with a cropped top.",
+         "Chunky sneakers give the look weight.",
+         "A cap or a small bag as a detail."]),
+    "cozy-herbst-outfit": (
+        "Cozy autumn outfit",
+        "Cozy autumn outfits: knits, warm earth tones, comfortable cuts. "
+        "A complete outfit from real shops for under €80.",
+        "A cozy autumn outfit feels like a blanket but still looks good: soft knits, warm "
+        "colours like beige, brown and cream, and cuts you want to stay in all day.",
+        ["An oversized knit jumper is the centrepiece.",
+         "Warm earth tones: beige, camel, brown, cream.",
+         "Comfortable boots or sneakers for long walks."]),
+    "old-money-outfit-herren": (
+        "Old money outfit for men",
+        "Old money look for men: knitwear, shirt, chinos, loafers. Timeless and elegant. "
+        "A complete outfit from real shops for under €120.",
+        "Old money looks like old money without being loud: muted colours, a knit over a "
+        "shirt, chinos and loafers. No logos, but a good fit and pieces that will still work "
+        "in ten years.",
+        ["No big logos, rather good fabrics and fit.",
+         "Navy, beige, white and dark green are the base colours.",
+         "Loafers instead of sneakers make the difference."]),
+    "old-money-outfit-damen": (
+        "Old money outfit for women",
+        "Old money look for women: blazer, knitwear, tailored trousers, ballet flats. Timeless "
+        "and elegant. A complete outfit from real shops for under €120.",
+        "The old money look for women is calm and high quality: a blazer or knit, tailored "
+        "trousers with a crease, ballet flats or loafers. Few pieces, muted colours and nothing "
+        "that screams trend.",
+        ["Muted colours: cream, navy, camel.",
+         "Tailored trousers with a crease look elegant instantly.",
+         "Pearls or simple gold jewellery as a detail."]),
+    "gorpcore-outfit": (
+        "Gorpcore outfit",
+        "Gorpcore: outdoor clothing as street style. Fleece, cargo pants, trail sneakers. "
+        "A complete outfit from real shops for under €150.",
+        "Gorpcore wears outdoor clothing in the city: fleece jackets, technical trousers and "
+        "trail sneakers, often in earth tones or with a bright pop of colour. Practical, "
+        "weatherproof and very popular right now.",
+        ["A fleece or technical jacket is the main piece.",
+         "Cargo or hiking trousers with lots of pockets.",
+         "Trail sneakers or sturdy boots."]),
+    "goth-outfit-damen": (
+        "Goth outfit for women",
+        "Goth outfits for women: black, lace, boots and dark details. "
+        "A complete outfit from real shops for under €80.",
+        "Goth is more than just black: lace, mesh, faux leather and heavy boots, with silver "
+        "details. The look is dark but never boring, and works from subtle to bold.",
+        ["Black in different materials looks more interesting than plain cotton.",
+         "Heavy boots or platforms are the base.",
+         "Silver jewellery and a choker as a detail."]),
+}
+
+
+def texts(page: OutfitPage, lang: str) -> tuple[str, str, str, list[str]]:
+    """Titel, Beschreibung, Einleitung und Tipps in der Sprache der Person."""
+    if lang == "en" and page.slug in EN_TEXTS:
+        return EN_TEXTS[page.slug]
+    return page.title, page.description, page.intro, page.tips
+
 _cache: dict = {}
 
 
@@ -246,7 +357,7 @@ def outfit(page: OutfitPage, ranked: list[dict]) -> list[dict]:
 def _card(item: dict) -> str:
     return (f'<a class="outfit-item" href="/produkt.html?id={quote(item["id"])}">'
             f'<img src="{escape(item["image_url"])}" alt="{escape(item["name"])}" loading="lazy">'
-            f'<span class="outfit-item-cat">{escape(item["category"])}</span>'
+            f'<span class="outfit-item-cat">{escape(i18n.tr(item["category"]))}</span>'
             f'<span class="outfit-item-name">{escape(item["name"])}</span>'
             f'<strong class="outfit-item-price">{money(item["local_price"])}</strong></a>')
 
@@ -255,7 +366,7 @@ def render(slug: str) -> str | None:
     page = BY_SLUG.get(slug)
     if page is None:
         return None
-    key = (slug, region.current().code)
+    key = (slug, region.current().code, i18n.current())
     cached = _cache.get(key)
     if cached and cached[0] > time.time() - CACHE_SECONDS:
         return cached[1]
@@ -265,6 +376,9 @@ def render(slug: str) -> str | None:
 
 
 def _render(page: OutfitPage) -> str:
+    lang = i18n.current()
+    tr = lambda text, **values: escape(i18n.tr(text, lang, **values))  # noqa: E731
+    title, description, intro, tip_list = texts(page, lang)
     ranked = candidates(page)
     look = outfit(page, ranked)
     chosen = {item["id"] for item in look}
@@ -273,69 +387,72 @@ def _render(page: OutfitPage) -> str:
 
     if look:
         outfit_html = (f'<div class="outfit-grid">{"".join(_card(i) for i in look)}</div>'
-                       f'<p class="outfit-total">Zusammen: <strong>{money(total)}</strong> '
-                       f'<span class="muted">· Preise von heute, Mali sucht täglich neu</span></p>')
+                       f'<p class="outfit-total">{tr("Zusammen:")} <strong>{money(total)}</strong> '
+                       f'<span class="muted">· {tr("Preise von heute, Mali sucht täglich neu")}</span></p>')
     else:
-        outfit_html = ('<p class="muted">Gerade findet Mali kein komplettes Outfit im Budget. '
-                       'Schau morgen wieder vorbei, der Katalog wird jede Nacht neu geladen.</p>')
-    more_html = (f'<h2 class="styles-heading">Mehr Teile für den Look</h2>'
+        outfit_html = ('<p class="muted">' + tr("Gerade findet Mali kein komplettes Outfit im Budget. "
+                       "Schau morgen wieder vorbei, der Katalog wird jede Nacht neu geladen.") + '</p>')
+    more_html = (f'<h2 class="styles-heading">{tr("Mehr Teile für den Look")}</h2>'
                  f'<div class="outfit-grid more">{"".join(_card(i) for i in more)}</div>'
                  if more else "")
     used = "".join(
         f'<p class="secondhand-links"><span>{escape(site)}:</span> ' + " ".join(
             f'<a class="chip" href="{escape(secondhand.search_url(site, [slot, page.gender or ""]))}" '
-            f'target="_blank" rel="noopener">{escape(slot)}</a>' for slot in page.slots) + "</p>"
+            f'target="_blank" rel="noopener">{tr(slot)}</a>' for slot in page.slots) + "</p>"
         for site in secondhand.sites())
-    tips = "".join(f"<li>{escape(tip)}</li>" for tip in page.tips)
-    titles = {v["slug"].removeprefix("vibe-"): v["title"] for v in style_guide.guide("de")["vibes"]}
+    tips = "".join(f"<li>{escape(tip)}</li>" for tip in tip_list)
+    titles = {v["slug"].removeprefix("vibe-"): v["title"] for v in style_guide.guide(lang)["vibes"]}
     related = "".join(f'<a class="chip" href="/stil/{escape(v)}">{escape(titles.get(v, v))}</a>'
                       for v in page.related)
-    others = "".join(f'<a class="chip" href="{path(p.slug)}">{escape(p.title)}</a>'
+    others = "".join(f'<a class="chip" href="{path(p.slug)}">{escape(texts(p, lang)[0])}</a>'
                      for p in PAGES if p.slug != page.slug)
 
     main = f"""<main class="styles-page outfit-page">
-    <nav class="vibe-crumbs" aria-label="Pfad"><a href="/outfits">Outfit-Ideen</a> <span aria-hidden="true">›</span> {escape(page.title)}</nav>
-    <h1 class="outfit-title">{escape(page.title)}</h1>
-    <p class="outfit-intro">{escape(page.intro)}</p>
+    <nav class="vibe-crumbs" aria-label="{tr("Pfad")}"><a href="/outfits">{tr("Outfit-Ideen")}</a> <span aria-hidden="true">›</span> {escape(title)}</nav>
+    <h1 class="outfit-title">{escape(title)}</h1>
+    <p class="outfit-intro">{escape(intro)}</p>
 
-    <h2 class="styles-heading">Malis Outfit unter {money(page.budget)}</h2>
+    <h2 class="styles-heading">{tr("Malis Outfit unter {budget}", budget=money(page.budget))}</h2>
     {outfit_html}
 
-    <h2 class="styles-heading">So stylst du den Look</h2>
+    <h2 class="styles-heading">{tr("So stylst du den Look")}</h2>
     <ul class="outfit-tips">{tips}</ul>
 
     {more_html}
 
     <section class="vibe-cta">
-      <h2>Du hast ein Outfit gesehen, das dir gefällt?</h2>
-      <p class="muted">Lade ein Foto hoch. Mali findet ähnliche Teile, neu und Second Hand.</p>
-      <a class="button" href="/foto.html">Foto hochladen</a>
-      {'<h3 class="vibe-sub">Second Hand finden</h3>' + used if used else ""}
+      <h2>{tr("Du hast ein Outfit gesehen, das dir gefällt?")}</h2>
+      <p class="muted">{tr("Lade ein Foto hoch. Mali findet ähnliche Teile, neu und Second Hand.")}</p>
+      <a class="button" href="/foto.html">{tr("Foto hochladen")}</a>
+      {'<h3 class="vibe-sub">' + tr("Second Hand finden") + '</h3>' + used if used else ""}
     </section>
 
-    {'<h2 class="styles-heading">Passende Vibes</h2><div class="vibe-others">' + related + "</div>" if related else ""}
-    <h2 class="styles-heading">Weitere Outfit-Ideen</h2>
+    {'<h2 class="styles-heading">' + tr("Passende Vibes") + '</h2><div class="vibe-others">' + related + "</div>" if related else ""}
+    <h2 class="styles-heading">{tr("Weitere Outfit-Ideen")}</h2>
     <div class="vibe-others">{others}</div>
   </main>"""
     head, foot = _shell()
-    head = _meta(head, title=f"{page.title} | Malipin", description=page.description,
+    head = _meta(head, title=f"{title} | Malipin", description=description,
                  url=SITE_URL + path(page.slug))
+    head = head.replace('<html lang="de">', f'<html lang="{lang}">')
     return head + main + foot
 
 
 def render_index() -> str:
+    lang = i18n.current()
+    tr = lambda text: escape(i18n.tr(text, lang))  # noqa: E731
     items = "".join(
-        f'<a class="outfit-link" href="{path(p.slug)}"><strong>{escape(p.title)}</strong>'
-        f'<span class="muted">{escape(p.description.split(". ")[0])}.</span></a>' for p in PAGES)
+        f'<a class="outfit-link" href="{path(p.slug)}"><strong>{escape(texts(p, lang)[0])}</strong>'
+        f'<span class="muted">{escape(texts(p, lang)[1].split(". ")[0])}.</span></a>' for p in PAGES)
     main = f"""<main class="styles-page outfit-page">
-    <h1 class="outfit-title">Outfit-Ideen</h1>
-    <p class="outfit-intro">Komplette Looks aus echten Shops, jeden Tag neu zusammengestellt und
-    immer im Budget. Such dir einen Stil aus, Mali hat das Outfit schon fertig.</p>
+    <h1 class="outfit-title">{tr("Outfit-Ideen")}</h1>
+    <p class="outfit-intro">{tr("Komplette Looks aus echten Shops, jeden Tag neu zusammengestellt und immer im Budget. Such dir einen Stil aus, Mali hat das Outfit schon fertig.")}</p>
     <div class="outfit-links">{items}</div>
   </main>"""
     head, foot = _shell()
-    head = _meta(head, title="Outfit-Ideen mit Budget | Malipin",
-                 description="Komplette Outfits aus echten Shops, im Budget: Clean Girl, Y2K, "
-                             "Streetwear, Old Money, Gorpcore und mehr. Täglich neu.",
+    head = _meta(head, title=i18n.tr("Outfit-Ideen mit Budget | Malipin", lang),
+                 description=i18n.tr("Komplette Outfits aus echten Shops, im Budget: Clean Girl, Y2K, "
+                                     "Streetwear, Old Money, Gorpcore und mehr. Täglich neu.", lang),
                  url=SITE_URL + "/outfits")
+    head = head.replace('<html lang="de">', f'<html lang="{lang}">')
     return head + main + foot
