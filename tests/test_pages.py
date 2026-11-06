@@ -119,7 +119,8 @@ def test_terms_page(client):
     html = client.get("/nutzungsbedingungen.html").text
     assert "<h1>Nutzungsbedingungen</h1>" in html and "verkauft selbst nichts" in html
     assert '<a href="/impressum.html">Impressum</a>' in html             # Links im Text
-    assert client.get("/terms.html").text == html
+    english = client.get("/terms.html").text
+    assert "<h1>Terms of Use</h1>" in english and '<html lang="en">' in english
     assert "/nutzungsbedingungen.html" in client.get("/sitemap.xml").text
 
 

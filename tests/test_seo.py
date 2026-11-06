@@ -67,7 +67,8 @@ def test_public_site_has_robots_sitemap_and_subpage_meta(site):  # noqa: F811
     impressum = (site / "impressum.html").read_text()
     assert '<link rel="canonical" href="https://malipin.com/impressum.html">' in impressum
     assert 'content="noindex"' in (site / "404.html").read_text()
-    assert '<html lang="en">' in (site / "datenschutz.html").read_text()
+    assert '<html lang="de">' in (site / "datenschutz.html").read_text()
+    assert '<html lang="en">' in (site / "privacy.html").read_text()
     for name in ("img/og-image.png", "img/icon-512.png", "site.webmanifest"):
         assert (site / name).exists()
     index = (site / "index.html").read_text()

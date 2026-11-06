@@ -852,31 +852,35 @@ def start_page():
 def impressum():
     from scripts import build_site
     try:
-        return build_site.impressum_page()
+        return build_site.impressum_page(i18n.current())
     except build_site.BuildError as error:          # website/impressum.json fehlt/unvollständig
         raise HTTPException(503, str(error)) from error
 
 
 @app.get("/datenschutz.html", response_class=HTMLResponse)
-@app.get("/privacy.html", response_class=HTMLResponse)     # englische Adresse, gleiche Seite
 def datenschutz():
     from scripts import build_site
-    privacy = build_site.markdown_to_html((build_site.ROOT / "PRIVACY.md").read_text("utf-8"))
-    return build_site.subpage("Privacy Policy", privacy, "How Malipin handles your data: read-only "
-                              "Pinterest access, no tracking cookies, no sharing, delete any time.",
-                              "/datenschutz.html", lang="en")
+    return build_site.privacy_page(i18n.current())
+
+
+@app.get("/privacy.html", response_class=HTMLResponse)     # englische Adresse, immer Englisch
+def privacy():
+    from scripts import build_site
+    return build_site.privacy_page("en")
 
 
 # --- Eine Seite pro Vibe (/stil/goth-baddie) + Sitemap für Google ----------------------------
 
 @app.get("/nutzungsbedingungen.html", response_class=HTMLResponse)
-@app.get("/terms.html", response_class=HTMLResponse)       # englische Adresse, gleiche Seite
 def terms():
     from scripts import build_site
-    body = build_site.markdown_to_html((build_site.ROOT / "TERMS.md").read_text("utf-8"))
-    return build_site.subpage("Nutzungsbedingungen", body, "Nutzungsbedingungen von Malipin: "
-                              "kostenloser Dienst, Partnerlinks, Pinterest-Verbindung, Foto-Suche "
-                              "und faire Nutzung.", "/nutzungsbedingungen.html")
+    return build_site.terms_page(i18n.current())
+
+
+@app.get("/terms.html", response_class=HTMLResponse)       # englische Adresse, immer Englisch
+def terms_en():
+    from scripts import build_site
+    return build_site.terms_page("en")
 
 
 @app.get("/stil/{name}", response_class=HTMLResponse)

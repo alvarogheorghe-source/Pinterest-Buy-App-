@@ -204,7 +204,33 @@ def markdown_to_html(source: str) -> str:
 REQUIRED = ["name", "adresse", "email"]
 
 
-def impressum_page() -> str:
+def privacy_page(lang: str = "de") -> str:
+    """Datenschutzerklärung: Deutsch aus DATENSCHUTZ.md, Englisch aus PRIVACY.md."""
+    if lang == "en":
+        body = markdown_to_html((ROOT / "PRIVACY.md").read_text("utf-8"))
+        return subpage("Privacy Policy", body, "How Malipin handles your data: read-only "
+                       "Pinterest access, no tracking cookies, no sharing, delete any time.",
+                       "/privacy.html", lang="en")
+    body = markdown_to_html((ROOT / "DATENSCHUTZ.md").read_text("utf-8"))
+    return subpage("Datenschutzerklärung", body, "So geht Malipin mit deinen Daten um: nur "
+                   "Lesezugriff auf Pinterest, keine Tracking-Cookies, keine Weitergabe, "
+                   "jederzeit löschbar.", "/datenschutz.html")
+
+
+def terms_page(lang: str = "de") -> str:
+    """Nutzungsbedingungen: Deutsch aus TERMS.md, Englisch aus TERMS.en.md."""
+    if lang == "en":
+        body = markdown_to_html((ROOT / "TERMS.en.md").read_text("utf-8"))
+        return subpage("Terms of Use", body, "Malipin's terms of use: free service, affiliate "
+                       "links, Pinterest connection, photo search and fair use.",
+                       "/terms.html", lang="en")
+    body = markdown_to_html((ROOT / "TERMS.md").read_text("utf-8"))
+    return subpage("Nutzungsbedingungen", body, "Nutzungsbedingungen von Malipin: kostenloser "
+                   "Dienst, Partnerlinks, Pinterest-Verbindung, Foto-Suche und faire Nutzung.",
+                   "/nutzungsbedingungen.html")
+
+
+def impressum_page(lang: str = "de") -> str:
     if not IMPRESSUM.exists():
         raise BuildError("website/impressum.json fehlt – Vorlage: website/impressum.example.json")
     data = json.loads(IMPRESSUM.read_text("utf-8"))
@@ -214,6 +240,24 @@ def impressum_page() -> str:
 
     e = {key: html.escape(str(value).strip()) for key, value in data.items()}
     address = "<br>".join(html.escape(part.strip()) for part in data["adresse"].split(","))
+    if lang == "en":
+        extra = f"<p>VAT ID: {e['uid']}</p>" if e.get("uid") else ""
+        body = f"""    <h1>Legal notice (Impressum)</h1>
+    <p>Information under § 5 Austrian E-Commerce Act and disclosure under § 25 Austrian Media Act</p>
+    <h2>Operator</h2>
+    <p>{e['name']}<br>{address}</p>
+    <p>E-mail: <a href="mailto:{e['email']}">{e['email']}</a></p>
+    {extra}
+    <h2>Business purpose</h2>
+    <p>Running the website malipin.com: style recommendations for fashion and home based on
+      Pinterest boards and referrals to online shops (partly through affiliate links).</p>
+    <h2>Editorial line</h2>
+    <p>Information and product recommendations about fashion, home and personal style.</p>
+    <h2>Notes</h2>
+    <p>Malipin is not affiliated with, endorsed or reviewed by Pinterest, eBay or Etsy. The
+      operators of external links are responsible for their content.</p>"""
+        return subpage("Legal notice", body, "Legal notice of Malipin (malipin.com): operator, "
+                       "contact and disclosure under Austrian law.", "/impressum.html", lang="en")
     extra = f"<p>UID-Nummer: {e['uid']}</p>" if e.get("uid") else ""
     body = f"""    <h1>Impressum</h1>
     <p>Informationen gemäß § 5 E-Commerce-Gesetz und Offenlegung gemäß § 25 Mediengesetz</p>
@@ -329,14 +373,8 @@ def build() -> None:
     (OUT / "en").mkdir()
     (OUT / "en" / "index.html").write_text(english_index(german), "utf-8")
     (OUT / "index.html").write_text(localize(german, "de"), "utf-8")
-    privacy = markdown_to_html((ROOT / "PRIVACY.md").read_text("utf-8"))
-    (OUT / "datenschutz.html").write_text(subpage(   # PRIVACY.md ist (noch) Englisch
-        "Privacy Policy", privacy, "How Malipin handles your data: read-only Pinterest access, "
-        "no sharing, delete any time.", "/datenschutz.html", lang="en"), "utf-8")
-    # Gleiche Seite unter englischer Adresse (z.B. für die Pinterest-Bewerbung)
-    (OUT / "privacy.html").write_text(subpage(
-        "Privacy Policy", privacy, "How Malipin handles your data: read-only Pinterest access, "
-        "no sharing, delete any time.", "/privacy.html", lang="en"), "utf-8")
+    (OUT / "datenschutz.html").write_text(privacy_page("de"), "utf-8")
+    (OUT / "privacy.html").write_text(privacy_page("en"), "utf-8")   # z.B. für Pinterest
     (OUT / "impressum.html").write_text(impressum_page(), "utf-8")
     (OUT / "404.html").write_text(not_found_page(), "utf-8")
     (OUT / "robots.txt").write_text(robots_txt(), "utf-8")

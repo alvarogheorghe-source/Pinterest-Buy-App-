@@ -101,6 +101,12 @@ def test_pinterest_coming_soon_when_closed(client, monkeypatch):
 
 def test_legal_pages_served_by_the_app(client):
     assert "Impressum" in client.get("/impressum.html").text
-    assert "Privacy Policy" in client.get("/datenschutz.html").text
+    assert "Datenschutzerklärung" in client.get("/datenschutz.html").text
     assert "Privacy Policy" in client.get("/privacy.html").text
+    # Englisch eingestellt: auch die deutschen Adressen kommen auf Englisch
+    client.cookies.set("lang", "en")
+    assert "Privacy Policy" in client.get("/datenschutz.html").text
+    assert "Terms of Use" in client.get("/nutzungsbedingungen.html").text
+    assert "Legal notice" in client.get("/impressum.html").text
+    client.cookies.delete("lang")
     assert 'href="/impressum.html"' in client.get("/").text
