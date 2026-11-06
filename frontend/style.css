@@ -3092,3 +3092,16 @@ p.amazon-link a { color: var(--text); text-underline-offset: 3px; }
     padding-left: 4px;
   }
 }
+
+/* "Mein Pinterest", solange Pinterest noch nicht offen ist (nav.js) */
+.soon-note {
+  margin: 12px auto 0;
+  max-width: 34em;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.soon-note a {
+  color: var(--accent);
+  font-weight: 600;
+}

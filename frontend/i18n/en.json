@@ -1,6 +1,14 @@
 {
   "_hinweis": "Wörterbuch Deutsch -> Englisch für Website UND App. Links der deutsche Text (genau wie im Code/HTML, Leerzeichen egal), rechts Englisch. {n}, {name} … sind Platzhalter. Tests melden fehlende Übersetzungen.",
   "texts": {
+    "Zeig ein Outfit.": "Show an outfit.",
+    "Mali findet es.": "Mali finds it.",
+    "In deinem Budget.": "Within your budget.",
+    "Lade ein Foto von einem Outfit hoch, das dir gefällt. Mali erkennt die einzelnen Teile und findet ähnliche, neu oder Second Hand, sortiert nach deinem Budget. Die Verbindung mit Pinterest kommt bald.": "Upload a photo of an outfit you like. Mali spots each piece and finds similar ones, new or second hand, sorted by your budget. Connecting Pinterest is coming soon.",
+    "Kein Konto nötig": "No account needed",
+    "Foto wird nicht gespeichert": "Your photo isn't stored",
+    "Pinterest prüft unsere App gerade. Bis dahin findet Mali deinen Stil per Foto:": "Pinterest is reviewing our app right now. Until then, Mali finds your style by photo:",
+    "Zur Foto-Suche": "Go to photo search",
     "Mode & Wohnen": "Fashion & Home",
     "So funktioniert's": "How it works",
     "Shop": "Shop",

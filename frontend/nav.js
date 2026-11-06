@@ -56,6 +56,24 @@ updateSavedCount();
     a.href = a.dataset.closedHref;
     a.textContent = t(a.dataset.closedText);
   });
+  // Texte, die Pinterest versprechen, gegen ehrliche Foto-Such-Texte tauschen (eigenes,
+  // festes HTML aus der Seite – i18n.js übersetzt die neuen Texte automatisch)
+  document.querySelectorAll("[data-closed-html]").forEach((el) => {
+    el.innerHTML = el.dataset.closedHtml;
+  });
+  // "Mein Pinterest": erklären, warum der Button grau ist, und einen Weg anbieten
+  if (location.pathname === "/konto.html") {
+    const button = document.querySelector(".soon");
+    if (button && !document.querySelector(".soon-note")) {
+      const note = document.createElement("p");
+      note.className = "soon-note";
+      note.append(t("Pinterest prüft unsere App gerade. Bis dahin findet Mali deinen Stil per Foto:"), " ");
+      const link = Object.assign(document.createElement("a"), { href: "/foto.html" });
+      link.textContent = t("Zur Foto-Suche");
+      note.append(link);
+      button.after(note);
+    }
+  }
   // "Kostenlos starten" in der Kopfzeile -> zur Foto-Suche (geht ohne Pinterest)
   document.querySelectorAll(".site-header a[href='/konto.html'].button").forEach((a) => {
     a.href = "/foto.html";
