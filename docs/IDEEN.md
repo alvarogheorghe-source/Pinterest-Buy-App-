@@ -50,6 +50,21 @@ die nur eine Webseite in einer Hülle sind – die App braucht echte App-Funktio
 | **Wiederkehrende Besucher messen** (anonym, ohne Cookie) in der Admin-Statistik | Nur so sieht man, ob die neue Richtung wirkt | klein |
 | **Schnelle Bilder** – Produktbilder verkleinert über den eigenen Server ausliefern | Ein Feed muss flüssig scrollen, sonst wirkt keine App gut | mittel |
 
+## Später: Creator-Profile (Idee von Alvaro, 12.11.2026)
+
+Viele auf TikTok zeigen Outfits und sagen, wo die Teile her sind. Idee: Creator bekommen auf
+Malipin ein eigenes Profil, laden ein Outfit-Foto hoch und verlinken die einzelnen Teile.
+Mali schlägt die Teile per Foto-Suche schon vor, die Creator wählen nur noch aus.
+
+| Frage | Erste Einschätzung |
+|-------|--------------------|
+| Warum gut? | Creator bringen ihre Follower mit: kostenlose Reichweite, und ihre Outfits sind echter Inhalt für den Shop |
+| Provision für Creator? | Einfachste Variante zuerst: Creator tragen ihre **eigenen** Partner-Links ein (Amazon, Awin …) und verdienen direkt. Später: Malipin teilt die eigene Provision (braucht Verträge, Auszahlungen, Steuer-Klärung) |
+| Was braucht es? | Creator-Konto mit Anmeldung, Profilseite (/c/name), Outfit hochladen + Teile verknüpfen, Moderation (keine fremden Fotos, keine verbotenen Inhalte), „Werbung“-Kennzeichnung je Creator |
+| Rechtlich | Bildrechte der Creator, Kennzeichnung als Werbung, Datenschutz für Creator-Konten, bei Provisionsteilung: Verträge und Steuern → mit Anwalt/WKO klären |
+| Vorbilder | LTK und ShopMy machen das für Influencer – Malipins Unterschied: Mali erkennt die Teile automatisch, plus Second Hand und Budget |
+| Wann? | Erst wenn Pinterest freigeschaltet ist und der Shop regelmäßig besucht wird |
+
 ## Schon fertig (aus der alten Liste)
 
 - Vibe-Karte zum Teilen (`frontend/vibecard.js`)
