@@ -9,6 +9,7 @@ Ablauf:
 Doku: https://developers.pinterest.com/docs/getting-started/authentication/
 """
 
+import logging
 import time
 from urllib.parse import urlencode
 
@@ -16,6 +17,8 @@ import httpx
 
 from backend import storage
 from backend.config import get_setting
+
+log = logging.getLogger("malipin.pinterest")
 
 AUTH_URL = "https://www.pinterest.com/oauth/"
 TOKEN_URL = "https://api.pinterest.com/v5/oauth/token"
@@ -152,6 +155,16 @@ def api_get(path: str, params: dict | None = None) -> dict:
         response = send(refresh_access_token()["access_token"])
         if response.status_code == 401:
             raise NotConnectedError("Pinterest akzeptiert den Token nicht.")
+    if response.is_error:
+        # Pinterest nennt den Grund im JSON (code + message) – ins Log, ohne Token/Daten
+        try:
+            body = response.json()
+            reason = f"code={body.get('code')} message={str(body.get('message'))[:300]}"
+        except ValueError:
+            reason = response.text[:300]
+        scope = (storage.load_tokens() or {}).get("scope")
+        log.warning("Pinterest %s %s -> %s (%s), erlaubte Rechte: %s",
+                    "GET", path, response.status_code, reason, scope)
     response.raise_for_status()
     return response.json()
 

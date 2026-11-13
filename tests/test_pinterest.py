@@ -185,3 +185,19 @@ def test_missing_config_gives_clear_error(fake, client, monkeypatch):
     response = client.get("/auth/login")
     assert response.status_code == 500
     assert "PINTEREST_CLIENT_ID" in response.json()["detail"]
+
+
+def test_pinterest_error_reason_is_logged(fake, client, caplog, monkeypatch):
+    """Lehnt Pinterest ab (z.B. 403), steht Pinterests Begründung im Server-Log."""
+    import httpx
+    import pytest
+    save_tokens(fake.valid_token)
+
+    def forbidden(self, url, **kwargs):
+        return httpx.Response(403, json={"code": 29, "message": "Not allowed"},
+                              request=httpx.Request("GET", url))
+    monkeypatch.setattr(httpx.Client, "get", forbidden)
+    with caplog.at_level("WARNING"), pytest.raises(httpx.HTTPStatusError):
+        pinterest.list_boards()
+    assert "/boards -> 403" in caplog.text and "Not allowed" in caplog.text
+    assert fake.valid_token not in caplog.text
