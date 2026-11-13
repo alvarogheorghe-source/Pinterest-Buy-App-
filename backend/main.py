@@ -9,6 +9,7 @@ import hmac
 import os
 import secrets
 import time
+from html import escape
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -179,14 +180,49 @@ def features(request: Request):
     return {"pinterest": pinterest_open(request)}
 
 
+# --- Login-Sicherheitscode ("state") -------------------------------------------------------
+# Der Code liegt doppelt im Browser: im Session-Cookie und in einem eigenen Cookie, das keine
+# andere Anfrage überschreiben kann. Zusätzlich ist er signiert und läuft nach 15 Minuten ab.
+# Kommt der Rückweg von Pinterest trotzdem ohne passendes Cookie an (anderer Browser, Cookie
+# verloren), muss die Person das Verbinden erst auf Malipin bestätigen – so kann niemand
+# Fremdes jemandem heimlich sein Pinterest-Konto unterschieben.
+OAUTH_COOKIE = "malipin_oauth"
+OAUTH_MAX_AGE = 15 * 60
+
+
+def _state_signature(nonce: str, issued: str) -> str:
+    return hmac.new(session_secret.encode(), f"oauth:{nonce}.{issued}".encode(),
+                    hashlib.sha256).hexdigest()[:32]
+
+
+def new_oauth_state() -> str:
+    nonce, issued = secrets.token_urlsafe(16), str(int(time.time()))
+    return f"{nonce}.{issued}.{_state_signature(nonce, issued)}"
+
+
+def oauth_state_valid(state: str) -> bool:
+    """Von uns ausgestellt und nicht älter als 15 Minuten?"""
+    try:
+        nonce, issued, signature = state.split(".")
+        age = time.time() - int(issued)
+    except ValueError:
+        return False
+    return (0 <= age <= OAUTH_MAX_AGE
+            and hmac.compare_digest(signature, _state_signature(nonce, issued)))
+
+
 @app.get("/auth/login")
 def login(request: Request):
     """Schickt den Nutzer zum Einloggen zu Pinterest."""
     if not pinterest_open(request):
         return RedirectResponse("/konto.html?bald=1")
-    state = secrets.token_urlsafe(16)
+    state = new_oauth_state()
     request.session["oauth_state"] = state
-    return RedirectResponse(pinterest.build_login_url(state))
+    response = RedirectResponse(pinterest.build_login_url(state))
+    response.set_cookie(OAUTH_COOKIE, state, max_age=OAUTH_MAX_AGE, path="/auth", httponly=True,
+                        samesite="lax",
+                        secure=os.getenv("PUBLIC_URL", "").startswith("https://"))
+    return response
 
 
 @app.get("/auth/callback")
@@ -197,12 +233,43 @@ def callback(request: Request, code: str | None = None, state: str | None = None
         # z.B. wenn der Nutzer auf "Ablehnen" geklickt hat
         return RedirectResponse(f"/konto.html?error={error}")
 
-    expected_state = request.session.pop("oauth_state", None)
-    if not state or state != expected_state:
+    expected = {request.session.pop("oauth_state", None), request.cookies.get(OAUTH_COOKIE)}
+    if not state or not oauth_state_valid(state):
         raise HTTPException(400, "Da ist beim Login etwas schiefgelaufen. Bitte starte ihn neu.")
     if not code:
         raise HTTPException(400, "Kein Code von Pinterest erhalten.")
+    if state not in expected:
+        # Echter Login von uns, aber dieser Browser kennt ihn nicht: erst bestätigen lassen
+        request.session["pending_login"] = {"code": code, "at": int(time.time())}
+        return confirm_login_page()
+    return finish_login(request, code)
 
+
+@app.post("/auth/confirm")
+def confirm_login(request: Request):
+    """Bestätigung von der Seite "Mit Pinterest verbinden?" (nur im selben Browser möglich:
+    das Session-Cookie wird bei fremden Formularen nicht mitgeschickt, samesite=lax)."""
+    pending = request.session.pop("pending_login", None)
+    if not pending or time.time() - pending.get("at", 0) > 10 * 60:
+        return RedirectResponse("/konto.html?error=login_abgelaufen", status_code=303)
+    response = finish_login(request, pending["code"])
+    response.status_code = 303                      # nach POST per GET weiter
+    return response
+
+
+def confirm_login_page() -> HTMLResponse:
+    from scripts import build_site
+    lang = i18n.current()
+    tr = lambda text: escape(i18n.tr(text, lang))   # noqa: E731
+    body = f"""    <h1>{tr("Mit Pinterest verbinden?")}</h1>
+    <p>{tr("Pinterest hat dich zurück zu Malipin geschickt. Tippe auf „Verbinden“, um dein Pinterest-Konto mit Malipin zu verbinden.")}</p>
+    <form method="post" action="/auth/confirm"><button class="button" type="submit">{tr("Verbinden")}</button></form>
+    <p class="muted">{tr("Hast du das nicht gerade selbst gestartet? Dann schließ diese Seite einfach.")}</p>"""
+    return HTMLResponse(build_site.subpage(i18n.tr("Mit Pinterest verbinden?", lang), body,
+                                           lang=lang))
+
+
+def finish_login(request: Request, code: str) -> RedirectResponse:
     switched = None
     if multi_user() and storage.current_user().startswith("p-"):
         # Browser ist noch mit einem ANDEREN Pinterest-Konto verbunden: dessen Daten nicht
@@ -217,7 +284,9 @@ def callback(request: Request, code: str | None = None, state: str | None = None
         if switched is not None:
             storage.reset_user(switched)
     # Nach dem Login direkt zur Board-Auswahl
-    return RedirectResponse("/konto.html")
+    response = RedirectResponse("/konto.html")
+    response.delete_cookie(OAUTH_COOKIE, path="/auth")
+    return response
 
 
 def link_pinterest_account(request: Request) -> None:

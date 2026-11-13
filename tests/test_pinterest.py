@@ -61,6 +61,48 @@ def test_callback_exchanges_code_and_saves_tokens(fake, client):
     assert tokens["expires_at"] > time.time() + 29 * 24 * 3600
 
 
+def test_callback_in_another_browser_asks_before_connecting(fake, client):
+    """Rückweg von Pinterest landet in einem Browser ohne Login-Cookie (z.B. Handy):
+    nicht scheitern, sondern erst auf Malipin bestätigen lassen."""
+    from fastapi.testclient import TestClient
+    from backend.main import app
+    login = client.get("/auth/login")
+    state = parse_qs(urlparse(login.headers["location"]).query)["state"][0]
+
+    other = TestClient(app, follow_redirects=False)          # anderer Browser, keine Cookies
+    page = other.get(f"/auth/callback?code=abc&state={state}")
+    assert page.status_code == 200 and "/auth/confirm" in page.text
+    assert storage.load_tokens() is None                     # noch nichts verbunden
+
+    done = other.post("/auth/confirm")
+    assert done.status_code == 303 and done.headers["location"] == "/konto.html"
+    assert storage.load_tokens()["access_token"] == fake.valid_token
+    assert other.post("/auth/confirm").headers["location"].startswith("/konto.html?error=")
+
+
+def test_login_state_survives_a_lost_session(fake, client):
+    """Eigenes Login-Cookie: auch wenn das Session-Cookie zwischendurch überschrieben wird."""
+    login = client.get("/auth/login")
+    state = parse_qs(urlparse(login.headers["location"]).query)["state"][0]
+    client.cookies.delete("session")
+    response = client.get(f"/auth/callback?code=abc&state={state}")
+    assert response.status_code == 307 and storage.load_tokens() is not None
+
+
+def test_confirm_without_pending_login_does_nothing(fake, client):
+    response = client.post("/auth/confirm")
+    assert response.status_code == 303 and "error=" in response.headers["location"]
+    assert storage.load_tokens() is None
+
+
+def test_forged_or_expired_state_is_rejected(fake, client, monkeypatch):
+    from backend import main
+    assert client.get("/auth/callback?code=abc&state=a.1.b").status_code == 400
+    old = main.new_oauth_state()
+    monkeypatch.setattr(main.time, "time", lambda: 10**10)   # weit in der Zukunft
+    assert not main.oauth_state_valid(old)
+
+
 def test_login_error_from_pinterest(fake, client):
     response = client.get("/auth/callback?error=access_denied")
     assert response.headers["location"] == "/konto.html?error=access_denied"

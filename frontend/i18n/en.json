@@ -1,6 +1,10 @@
 {
   "_hinweis": "Wörterbuch Deutsch -> Englisch für Website UND App. Links der deutsche Text (genau wie im Code/HTML, Leerzeichen egal), rechts Englisch. {n}, {name} … sind Platzhalter. Tests melden fehlende Übersetzungen.",
   "texts": {
+    "Mit Pinterest verbinden?": "Connect Pinterest?",
+    "Pinterest hat dich zurück zu Malipin geschickt. Tippe auf „Verbinden“, um dein Pinterest-Konto mit Malipin zu verbinden.": "Pinterest sent you back to Malipin. Tap “Connect” to connect your Pinterest account to Malipin.",
+    "Verbinden": "Connect",
+    "Hast du das nicht gerade selbst gestartet? Dann schließ diese Seite einfach.": "Didn't start this yourself just now? Then simply close this page.",
     "Zusammen:": "Together:",
     "Preise von heute, Mali sucht täglich neu": "today's prices, Mali searches again every day",
     "Gerade findet Mali kein komplettes Outfit im Budget. Schau morgen wieder vorbei, der Katalog wird jede Nacht neu geladen.": "Right now Mali can't find a complete outfit within budget. Check back tomorrow, the catalogue reloads every night.",
